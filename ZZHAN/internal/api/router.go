@@ -29,7 +29,6 @@ func NewRouter(
 func (r *Router) Setup(engine *gin.Engine) {
 	// 全局中间件
 	engine.Use(middleware.Recovery())
-	engine.Use(middleware.Logger())
 	engine.Use(middleware.RequestLogger())
 	engine.Use(middleware.CORS())
 
