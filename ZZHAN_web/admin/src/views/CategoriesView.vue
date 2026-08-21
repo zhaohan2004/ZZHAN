@@ -151,8 +151,8 @@ onMounted(load)
             </td>
             <td style="color: var(--text-2); max-width: 280px">{{ c.desc || '—' }}</td>
             <td style="font-family: 'JetBrains Mono', monospace">{{ c.count }}</td>
-            <td>{{ c.createdAt }}</td>
-            <td>{{ c.updatedAt }}</td>
+            <td>{{ c.created_at }}</td>
+            <td>{{ c.updated_at }}</td>
             <td style="text-align: right; white-space: nowrap">
               <button class="tb-btn edit" title="编辑" @click="openEdit(c)"><Pencil :size="15" /></button>
               <button class="tb-btn del" title="删除" @click="removeCategory(c)"><Trash2 :size="15" /></button>

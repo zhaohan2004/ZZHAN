@@ -24,7 +24,7 @@ const router = createRouter({
 
 router.afterEach((to) => {
   const siteStore = useSiteStore()
-  const base = siteStore.site?.name ?? 'CodeThink'
+  const base = siteStore.site?.name ?? '小猫的个人博客'
   const title = to.meta.title as string | undefined
   document.title = title ? `${title} - ${base}` : base
 })

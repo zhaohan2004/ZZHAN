@@ -11,8 +11,8 @@ export interface CategoryAdmin {
   desc: string
   color: string
   count: number
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 /** 标签 */
@@ -20,8 +20,8 @@ export interface TagAdmin {
   id: number
   name: string
   count: number
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 /** 后台文章 */
@@ -32,7 +32,7 @@ export interface AdminArticle {
   slug: string
   title: string
   summary: string
-  coverImage: string
+  cover_image: string
   category: string
   tags: string[]
   status: ArticleStatus
@@ -45,12 +45,12 @@ export interface AdminArticle {
 export interface AdminArticlePayload {
   title: string
   summary: string
-  coverImage: string
+  cover_image: string
   category: string
   tags: string[]
   content: string
   status: ArticleStatus
-  publishedAt: string
+  published_at: string
 }
 
 /** 后台评论（两态：正常 / 封禁） */
@@ -58,9 +58,9 @@ export type CommentStatus = 'normal' | 'banned'
 
 export interface CommentAdmin {
   id: number
-  articleId: number
-  articleTitle: string
-  userName: string
+  article_id: number
+  article_title: string
+  user_name: string
   avatar: string
   content: string
   ip: string
@@ -81,19 +81,19 @@ export interface DashboardStat {
 
 /** 仪表盘图表数据 */
 export interface DashboardCharts {
-  weekVisits: { d: string; pv: number; uv: number }[]
-  postTrend: { m: string; n: number }[]
-  catDist: { name: string; value: number; color: string }[]
+  week_visits: { d: string; pv: number; uv: number }[]
+  post_trend: { m: string; n: number }[]
+  cat_dist: { name: string; value: number; color: string }[]
 }
 
 /** 仪表盘列表数据 */
 export interface DashboardArticles {
-  recentPosts: { id: number; title: string; category: string; date: string; views: number }[]
-  hotPosts: { id: number; title: string; views: number }[]
+  recent_posts: { id: number; title: string; category: string; date: string; views: number }[]
+  hot_posts: { id: number; title: string; views: number }[]
 }
 export interface RecentComment {
   id: number
-  userName: string
+  user_name: string
   avatar: string
   content: string
   time: string
@@ -116,12 +116,12 @@ export interface AdminProfile {
 
 /** 系统设置 KV */
 export interface SettingsKV {
-  blogName: string
-  blogDesc: string
-  logoText: string
-  authorName: string
-  authorRole: string
-  authorIntro: string
+  blog_name: string
+  blog_desc: string
+  logo_text: string
+  author_name: string
+  author_role: string
+  author_intro: string
   github: string
   email: string
   /** 站点标语（首页 hero 副标题） */
@@ -135,6 +135,8 @@ export interface SettingsKV {
   /** 头像 URL/数据 URI（关于页 + 首页 hero），为空时回退到 initials */
   avatar: string
   /** 首页终端打字机内容（多行，每行 `类型|文本`：tk 蓝 / cm 灰注释 / fn 紫，纯文本默认 tk） */
-  heroTerminal: string
+  hero_terminal: string
+  /** 社交链接列表（前台关于页 / 首页展示） */
+  socials: { name: string; icon: string; url: string }[]
   [key: string]: unknown
 }

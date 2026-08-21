@@ -15,14 +15,14 @@ const query = reactive<{
   page: number
   pageSize: number
   status: CommentStatus | 'all'
-  articleId: number
+  article_id: number
   startDate: string
   endDate: string
 }>({
   page: 1,
   pageSize: 10,
   status: 'all',
-  articleId: 0,
+  article_id: 0,
   startDate: '',
   endDate: '',
 })
@@ -39,7 +39,7 @@ async function load() {
       page: query.page,
       pageSize: query.pageSize,
       status: query.status,
-      articleId: query.articleId || undefined,
+      article_id: query.article_id || undefined,
       startDate: query.startDate || undefined,
       endDate: query.endDate || undefined,
     })
@@ -64,7 +64,7 @@ function search() {
   load()
 }
 function reset() {
-  query.articleId = 0
+  query.article_id = 0
   query.startDate = ''
   query.endDate = ''
   query.status = 'all'
@@ -112,7 +112,7 @@ onMounted(async () => {
     <div class="admin-tools">
       <div style="flex: 1"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <select v-model.number="query.articleId" class="select" style="width:210px">
+        <select v-model.number="query.article_id" class="select" style="width:210px">
           <option :value="0">全部文章</option>
           <option v-for="a in articles" :key="a.id" :value="a.id">{{ a.title }}</option>
         </select>
@@ -147,11 +147,11 @@ onMounted(async () => {
             <td>
               <div style="display: flex; align-items: center; gap: 10px">
                 <span style="width: 32px; height: 32px; border-radius: 10px; flex: none" :style="{ background: c.avatar }"></span>
-                <b style="font-weight: 600; color: var(--text-2)">{{ c.userName }}</b>
+                <b style="font-weight: 600; color: var(--text-2)">{{ c.user_name }}</b>
               </div>
             </td>
             <td style="max-width: 320px; color: var(--text-2)">{{ c.content }}</td>
-            <td style="color: var(--text-2)">{{ c.articleTitle }}</td>
+            <td style="color: var(--text-2)">{{ c.article_title }}</td>
             <td style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px">{{ c.time }}</td>
             <td><span class="st" :class="STATUS_MAP[c.status].cls">{{ STATUS_MAP[c.status].label }}</span></td>
             <td style="text-align: right; white-space: nowrap">

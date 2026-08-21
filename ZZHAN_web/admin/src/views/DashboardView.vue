@@ -103,7 +103,7 @@ onMounted(async () => {
       <div class="chart-card">
         <div class="chart-title">最近 7 天访问量 <small>PV 数据</small></div>
         <div class="chart-box" style="height: 240px">
-          <BarChart v-if="charts" :data="charts.weekVisits.map((d) => ({ label: d.d, value: d.pv }))" />
+          <BarChart v-if="charts" :data="charts.week_visits.map((d) => ({ label: d.d, value: d.pv }))" />
         </div>
       </div>
       <div class="chart-card">
@@ -117,10 +117,10 @@ onMounted(async () => {
         <div class="chart-box" style="height: 240px">
           <LineChart
             v-if="charts"
-            :labels="charts.weekVisits.map((d) => d.d)"
+            :labels="charts.week_visits.map((d) => d.d)"
             :series="[
-              { data: charts.weekVisits.map((d) => d.pv), color: '#60a5fa', name: '访问量 PV' },
-              { data: charts.weekVisits.map((d) => d.uv), color: '#34d399', name: '访客数 UV' },
+              { data: charts.week_visits.map((d) => d.pv), color: '#60a5fa', name: '访问量 PV' },
+              { data: charts.week_visits.map((d) => d.uv), color: '#34d399', name: '访客数 UV' },
             ]"
           />
         </div>
@@ -132,7 +132,7 @@ onMounted(async () => {
       <div class="widget">
         <h3 class="widget-title">最近发布文章</h3>
         <div
-          v-for="a in articles?.recentPosts ?? []"
+          v-for="a in articles?.recent_posts ?? []"
           :key="a.id"
           style="padding: 10px 0; border-bottom: 1px dashed var(--border)"
         >
@@ -149,7 +149,7 @@ onMounted(async () => {
         >
           <span style="width: 32px; height: 32px; border-radius: 10px; flex: none" :style="{ background: c.avatar }" />
           <div style="min-width: 0">
-            <div style="font-size: 13px; font-weight: 600; color: var(--text-2)">{{ c.userName }} <span style="font-weight: 400; color: var(--text-3)">{{ c.time }}</span></div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-2)">{{ c.user_name }} <span style="font-weight: 400; color: var(--text-3)">{{ c.time }}</span></div>
             <div style="font-size: 12.5px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ c.content }}</div>
           </div>
         </div>

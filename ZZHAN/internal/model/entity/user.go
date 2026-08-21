@@ -12,7 +12,7 @@ type User struct {
 	Avatar      string     `gorm:"type:varchar(255);comment:头像 URL" json:"avatar"`
 	Email       string     `gorm:"type:varchar(100);comment:邮箱" json:"email"`
 	Status      int8       `gorm:"type:tinyint;not null;default:1;comment:状态：1 正常 / 0 禁用" json:"status"`
-	LastLoginAt *time.Time `gorm:"type:datetime;comment:最后登录时间" json:"lastLoginAt"`
+	LastLoginAt *time.Time `gorm:"type:datetime;comment:最后登录时间" json:"last_login_at"`
 }
 
 // TableName 指定表名

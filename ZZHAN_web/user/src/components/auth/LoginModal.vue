@@ -6,6 +6,7 @@
 import { computed, ref, watch } from 'vue'
 import { Check, Github, Image as ImageIcon, Loader2, X } from 'lucide-vue-next'
 import { useAuthStore, type LoginProvider } from '@/stores/auth'
+import { useSiteStore } from '@/stores/site'
 import { useToast } from '@/composables/useToast'
 import { initialsAvatar } from '@/utils/avatar'
 
@@ -21,7 +22,10 @@ const AVATAR_PALETTE = [
 ]
 
 const auth = useAuthStore()
+const site = useSiteStore()
 const { toast } = useToast()
+
+const logoText = computed(() => site.site?.logo_text ?? 'CT')
 
 const step = ref<'login' | 'profile'>('login')
 const tab = ref<LoginProvider>('wechat')
@@ -34,7 +38,7 @@ const open = computed(() => auth.loginModalOpen)
 
 watch(open, (v) => {
   if (v) {
-    step.value = auth.needProfile ? 'profile' : 'login'
+    step.value = auth.need_profile ? 'profile' : 'login'
     if (step.value === 'profile' && auth.user) {
       nickname.value = auth.user.nickname || ''
       avatarPreview.value = auth.user.avatar || ''
@@ -51,7 +55,7 @@ async function doLogin(provider: LoginProvider): Promise<void> {
   try {
     await auth.loginWith(provider, 'mock-code-' + provider)
     toast('登录成功', 'success')
-    if (auth.needProfile) {
+    if (auth.need_profile) {
       step.value = 'profile'
       nickname.value = auth.user?.nickname ?? ''
     }
@@ -99,7 +103,7 @@ async function complete(): Promise<void> {
     <div v-if="open" class="modal-overlay open login-modal" @click.self="close">
       <div class="modal">
         <div class="modal-head">
-          <h3>{{ step === 'login' ? '登录 CodeThink' : '完善资料' }}</h3>
+          <h3>{{ step === 'login' ? '登录 ' + (site.site?.name ?? '小猫的个人博客') : '完善资料' }}</h3>
           <button class="modal-close" type="button" aria-label="关闭" @click="close"><X :size="17" /></button>
         </div>
         <div class="modal-body">
@@ -117,7 +121,7 @@ async function complete(): Promise<void> {
             <div class="lm-panel" :class="{ active: tab === 'wechat' }">
               <div class="wx-qr">
                 <Github v-if="false" />
-                <span class="wx-qr-ico" style="font-family:'JetBrains Mono',monospace;font-weight:800">CT</span>
+                <span class="wx-qr-ico" style="font-family:'JetBrains Mono',monospace;font-weight:800">{{ logoText }}</span>
               </div>
               <p class="lm-hint">使用微信扫一扫，模拟扫码登录</p>
               <button class="btn btn-primary w-full" type="button" :disabled="loading" @click="doLogin('wechat')">

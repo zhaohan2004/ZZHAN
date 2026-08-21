@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** 评论列表 — 顶层评论（parentId 为 null）+ 楼中楼 replies。 */
+/** 评论列表 — 顶层评论（parent_id 为 null）+ 楼中楼 replies。 */
 import type { CommentItem as CommentModel } from '@/types/models'
 import CommentItem from './CommentItem.vue'
 

@@ -33,14 +33,14 @@ export interface ArticleSummary {
   slug: string
   title: string
   summary: string
-  coverImage: string
+  cover_image: string
   category: CategoryRef
   tags: string[]
   date: string
   updated: string
   views: number
   likes: number
-  commentCount: number
+  comment_count: number
   featured: boolean
   hot: boolean
 }
@@ -61,13 +61,11 @@ export interface ArticleDetail extends ArticleSummary {
 /** 站点信息 */
 export interface SiteInfo {
   name: string
-  logoText: string
+  logo_text: string
   tagline: string
   bio: string
   github: string
   email: string
-  icp: string
-  beian: string
   socials: { name: string; icon: string; url: string }[]
   /** 座右铭（关于页引用块） */
   motto?: string
@@ -78,9 +76,9 @@ export interface SiteInfo {
   /** 头像 URL/数据 URI（关于页 + 首页 hero），为空时回退到 initials */
   avatar?: string
   /** 首页终端打字机内容（多行 `类型|文本`：tk/cm/fn，纯文本默认 tk） */
-  heroTerminal?: string
-  /** 站点短名（兼容字段；静态 SITE.shortName） */
-  shortName?: string
+  hero_terminal?: string
+  /** 站点短名（兼容字段；静态 SITE.short_name） */
+  short_name?: string
   /** 作者昵称（兼容字段；静态 SITE.author） */
   author?: string
   /** 作者头衔（兼容字段；静态 SITE.role） */
@@ -90,12 +88,12 @@ export interface SiteInfo {
 /** 评论项（含楼中楼 replies） */
 export interface CommentItem {
   id: number
-  parentId: number | null
-  userName: string
+  parent_id: number | null
+  user_name: string
   avatar: string
   content: string
   time: string
-  likeCount: number
+  like_count: number
   liked: boolean
   replies?: CommentItem[]
 }
@@ -103,8 +101,8 @@ export interface CommentItem {
 /** 发表评论请求体 */
 export interface CommentDraft {
   content: string
-  parentId?: number | null
-  userName?: string
+  parent_id?: number | null
+  user_name?: string
   email?: string
 }
 
@@ -124,7 +122,7 @@ export interface LikeResult {
 /** 评论点赞响应 */
 export interface CommentLikeResult {
   liked: boolean
-  likeCount: number
+  like_count: number
 }
 
 /** 关于我：技能 */
@@ -171,17 +169,17 @@ export interface AuthUser {
 
 /** 登录结果（微信 / GitHub） */
 export interface LoginResult {
-  accessToken: string
-  refreshToken: string
-  expiresIn: number
+  access_token: string
+  refresh_token: string
+  expires_in: number
   user: AuthUser
-  needProfile: boolean
+  need_profile: boolean
 }
 
 /** 刷新令牌结果 */
 export interface RefreshResult {
-  accessToken: string
-  expiresIn: number
+  access_token: string
+  expires_in: number
 }
 
 /** 完善资料结果 */

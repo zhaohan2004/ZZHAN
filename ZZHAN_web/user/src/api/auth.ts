@@ -15,8 +15,8 @@ export function githubLogin(code: string): Promise<LoginResult> {
 }
 
 /** 刷新令牌 POST /auth/refresh */
-export function refreshToken(refreshToken: string): Promise<RefreshResult> {
-  return request<RefreshResult>({ method: 'POST', url: '/auth/refresh', data: { refreshToken } })
+export function refresh_token(refresh_token: string): Promise<RefreshResult> {
+  return request<RefreshResult>({ method: 'POST', url: '/auth/refresh', data: { refresh_token } })
 }
 
 /** 退出登录 POST /auth/logout */

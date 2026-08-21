@@ -21,6 +21,7 @@ const searchOpen = ref(false)
 const searchInput = ref('')
 
 const siteName = computed(() => site.site?.name ?? '小猫的个人博客')
+const logoText = computed(() => site.site?.logo_text ?? 'CT')
 
 const navLinks = [
   { to: '/', label: '首页', exact: true },
@@ -92,10 +93,9 @@ onBeforeUnmount(() => {
   <header class="nav" :class="{ scrolled }">
     <div class="container nav-inner">
       <router-link to="/" class="brand">
-        <span class="brand-logo">CT</span>
+        <span class="brand-logo">{{ logoText }}</span>
         <span class="brand-text">
-          CodeThink<span class="brand-dot">.</span>
-          <span style="font-size:11px;color:var(--text-3);font-weight:400;margin-left:8px">{{ siteName }}</span>
+          {{ siteName }}<span class="brand-dot">.</span>
         </span>
       </router-link>
 

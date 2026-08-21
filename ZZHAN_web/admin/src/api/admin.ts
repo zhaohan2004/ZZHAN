@@ -17,8 +17,8 @@ import type {
 } from '@/types/models'
 
 export interface LoginResult {
-  accessToken: string
-  expiresIn: number
+  access_token: string
+  expires_in: number
   profile: AdminProfile
 }
 
@@ -120,7 +120,7 @@ export function listComments(
     page?: number
     pageSize?: number
     status?: CommentStatus | 'all'
-    articleId?: number
+    article_id?: number
     startDate?: string
     endDate?: string
   } = {},

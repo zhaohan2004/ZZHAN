@@ -14,7 +14,7 @@ const emit = defineEmits<{ (e: 'liked', likes: number): void }>()
 const auth = useAuthStore()
 const { toast } = useToast()
 const liked = ref(false)
-const likeCount = ref(props.likes)
+const like_count = ref(props.likes)
 const loading = ref(false)
 
 async function onLike(): Promise<void> {
@@ -24,7 +24,7 @@ async function onLike(): Promise<void> {
   try {
     const res = await toggleLike(props.slug)
     liked.value = res.liked
-    likeCount.value = res.likes
+    like_count.value = res.likes
     emit('liked', res.likes)
     toast(res.liked ? '点赞成功' : '已取消点赞', res.liked ? 'success' : 'info')
   } catch {
@@ -48,7 +48,7 @@ async function onShare(): Promise<void> {
 <template>
   <div class="post-actions">
     <button class="post-action-btn" :class="{ on: liked }" type="button" @click="onLike">
-      <ThumbsUp :size="17" /> 点赞 <span>{{ likeCount }}</span>
+      <ThumbsUp :size="17" /> 点赞 <span>{{ like_count }}</span>
     </button>
     <button class="post-action-btn" type="button" @click="onShare">
       <Share2 :size="17" /> 分享
