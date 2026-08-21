@@ -27,14 +27,14 @@ onMounted(async () => {
 })
 
 /** 头像 — 优先取后台设置的自定义头像，否则按作者名生成 initials。 */
-const authorName = computed(() => site.site?.author || '阿轩')
-const authorRole = computed(() => site.site?.role || 'Gopher · 后端工程师')
-const authorLocation = computed(() => site.site?.location || '北京')
+const author_name = computed(() => site.site?.author || '小猫')
+const author_role = computed(() => site.site?.role || 'Gopher · 后端工程师')
+const authorLocation = computed(() => site.site?.location || '河南')
 const authorMotto = computed(
   () => site.site?.motto || '「写代码是跟计算机对话，写博客是跟自己对话。」',
 )
 const avatarSrc = computed(() =>
-  site.site?.avatar || initialsAvatar(authorName.value, '#3b82f6', '#3b82f6', 260),
+  site.site?.avatar || initialsAvatar(site.site?.logo_text || author_name.value, '#3b82f6', '#3b82f6', 260),
 )
 </script>
 
@@ -44,14 +44,14 @@ const avatarSrc = computed(() =>
       <div class="container" style="max-width:1000px">
         <!-- 头部 -->
         <div class="glass-card about-head">
-          <img class="about-avatar" :src="avatarSrc" :alt="authorName" />
+          <img class="about-avatar" :src="avatarSrc" :alt="author_name" />
           <div style="flex:1;min-width:0">
             <h1 style="font-size:28px;font-weight:800;letter-spacing:-.4px">
-              <span class="grad-text">{{ authorName }}</span>
+              <span class="grad-text">{{ author_name }}</span>
             </h1>
             <div style="display:flex;align-items:center;gap:8px;margin:8px 0 12px;flex-wrap:wrap">
               <span class="badge" style="background:var(--grad-soft);color:var(--accent);border:1px solid var(--border)">
-                <Code2 :size="13" />{{ authorRole }}
+                <Code2 :size="13" />{{ author_role }}
               </span>
               <span class="badge" style="background:rgba(148,163,184,.14);color:var(--text-2)">
                 <MapPin :size="13" />{{ authorLocation }}

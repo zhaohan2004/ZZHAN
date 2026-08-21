@@ -40,7 +40,7 @@ function parseLines(raw: string): TermLine[] {
     .filter((x): x is TermLine => x !== null)
 }
 
-const LINES = computed(() => parseLines(site.site?.heroTerminal || DEFAULT_TERMINAL))
+const LINES = computed(() => parseLines(site.site?.hero_terminal || DEFAULT_TERMINAL))
 
 const visible = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null

@@ -74,12 +74,12 @@ function buildPayload(status: ArticleStatus): AdminArticlePayload {
   return {
     title: title.value.trim() || '未命名文章',
     summary: summary.value.trim(),
-    coverImage: coverUrl.value,
+    cover_image: coverUrl.value,
     category: pubCategory.value,
     tags: [...selectedTags.value],
     content: content.value,
     status,
-    publishedAt: pubDate.value || new Date().toISOString().slice(0, 10),
+    published_at: pubDate.value || new Date().toISOString().slice(0, 10),
   }
 }
 

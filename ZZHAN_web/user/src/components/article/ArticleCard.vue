@@ -21,7 +21,7 @@ const props = withDefaults(
 )
 
 const cover = computed(() =>
-  props.article.coverImage || coverArt(props.article.title, props.article.category.name, props.article.id),
+  props.article.cover_image || coverArt(props.article.title, props.article.category.name, props.article.id),
 )
 const catColor = computed(() => props.article.category.color || '#3b82f6')
 </script>

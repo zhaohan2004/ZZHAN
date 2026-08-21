@@ -118,11 +118,11 @@ function loginResult(provider: 'wechat' | 'github'): LoginResult {
     provider === 'wechat' ? ['#07c160', '#00d866'] : ['#24292e', '#58a6ff']
   const avatar = initialsAvatar(nickname.charAt(0), colors[0], colors[1], 160)
   return {
-    accessToken: 'mock-access-token-' + provider,
-    refreshToken: 'mock-refresh-token-' + provider,
-    expiresIn: 7200,
+    access_token: 'mock-access-token-' + provider,
+    refresh_token: 'mock-refresh-token-' + provider,
+    expires_in: 7200,
     user: { id: provider === 'wechat' ? 1 : 2, provider, nickname, avatar },
-    needProfile: false,
+    need_profile: false,
   }
 }
 
@@ -142,21 +142,23 @@ function siteHandler(): SiteInfo {
     /* 忽略（无 localStorage 环境） */
   }
   const s = stored as Partial<Record<string, unknown>>
+  const storedSocials = Array.isArray(s.socials) ? s.socials : null
   return {
     ...siteData,
-    name: String(s.blogName || siteData.name),
-    logoText: String(s.logoText || siteData.logoText),
-    tagline: String(s.tagline || s.blogDesc || siteData.tagline),
-    bio: String(s.authorIntro || siteData.bio),
+    name: String(s.blog_name || siteData.name),
+    logo_text: String(s.logo_text || siteData.logo_text),
+    tagline: String(s.tagline || s.blog_desc || siteData.tagline),
+    bio: String(s.author_intro || siteData.bio),
     github: String(s.github || siteData.github),
     email: String(s.email || siteData.email),
-    author: String(s.authorName || siteData.author),
-    role: String(s.authorRole || siteData.role),
+    author: String(s.author_name || siteData.author),
+    role: String(s.author_role || siteData.role),
     motto: String(s.motto || siteData.motto),
     location: String(s.location || siteData.location),
     since: typeof s.since === 'number' ? s.since : siteData.since,
     avatar: String(s.avatar || ''),
-    heroTerminal: String(s.heroTerminal || siteData.heroTerminal || ''),
+    hero_terminal: String(s.hero_terminal || siteData.hero_terminal || ''),
+    socials: storedSocials ?? siteData.socials,
   }
 }
 
@@ -173,10 +175,10 @@ const routes: MockRoute[] = [
   { pattern: buildPattern('GET /stats'), handler: () => statsData() },
   { pattern: buildPattern('POST /articles/*/comments'), handler: postComment },
   { pattern: buildPattern('POST /articles/*/like'), handler: articleLike },
-  { pattern: buildPattern('POST /comments/*/like'), handler: () => ({ liked: true, likeCount: 13 }) },
+  { pattern: buildPattern('POST /comments/*/like'), handler: () => ({ liked: true, like_count: 13 }) },
   { pattern: buildPattern('POST /auth/wechat'), handler: () => loginResult('wechat') },
   { pattern: buildPattern('POST /auth/github'), handler: () => loginResult('github') },
-  { pattern: buildPattern('POST /auth/refresh'), handler: () => ({ accessToken: 'mock-refreshed-token', expiresIn: 7200 }) },
+  { pattern: buildPattern('POST /auth/refresh'), handler: () => ({ access_token: 'mock-refreshed-token', expires_in: 7200 }) },
   { pattern: buildPattern('POST /auth/logout'), handler: () => null },
   { pattern: buildPattern('PUT /auth/profile'), handler: (ctx) => ({ user: (ctx.data ?? {}) }) },
 ]

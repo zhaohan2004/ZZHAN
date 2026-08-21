@@ -1,6 +1,10 @@
 package app
 
 import (
+	"ZZHAN/internal/api/admin"
+	"ZZHAN/internal/api/web"
+	"ZZHAN/internal/repository"
+	"ZZHAN/internal/service"
 	"context"
 	"fmt"
 	"net/http"
@@ -139,13 +143,19 @@ func (a *App) initDatabase() error {
 // initDependencies 初始化依赖注入
 func (a *App) initDependencies() {
 	// ========== 创建 Repository ==========
-	// userRepo := repository.NewUserRepository(a.mysqlDB)
+	siteRepo := repository.NewSiteRepository(a.mysqlDB)
+	siteAdminRepo := repository.NewSiteRepository(a.mysqlDB)
 
 	// ========== 创建 Service ==========
-	// userSvc := service.NewUserService(userRepo)
+	siteService := service.NewSiteService(siteRepo)
+	siteAdminService := service.NewSiteService(siteAdminRepo)
+
+	//// ========== 创建 Controller ==========
+	siteController := web.NewSiteController(siteService)
+	siteAdminController := admin.NewSiteAdminController(siteAdminService)
 
 	// ========== 创建 Router ==========
-	// a.router = api.NewRouter(userSvc, authSvc)
+	a.router = api.NewRouter(siteController, siteAdminController)
 }
 
 // initRouter 初始化路由

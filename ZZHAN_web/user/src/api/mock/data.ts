@@ -1,6 +1,6 @@
 /**
  * Mock 数据集 — 以 assets/js/data.js 为素材，转换为 types/models.ts 形状的 TS 常量。
- * coverImage 留空，前端走 cover.ts 回退。
+ * cover_image 留空，前端走 cover.ts 回退。
  */
 import type {
   AboutData,
@@ -25,15 +25,13 @@ function md(...lines: string[]): string {
 /* ============ 站点信息 ============ */
 const SITE = {
   name: '小猫的个人博客',
-  shortName: '小猫',
-  logoText: '猫',
+  short_name: '小猫',
+  logo_text: '猫',
   tagline: '记录代码，分享技术，持续成长',
   bio: '一名专注后端开发的全栈工程师，深耕 Go / MySQL / Redis / 云原生，喜欢把复杂的问题讲简单。',
   motto: '「写代码是跟计算机对话，写博客是跟自己对话。」',
   github: 'https://github.com/yourname',
   email: 'hello@codethink.dev',
-  icp: '京ICP备2026000000号-1',
-  beian: '京公网安备 11000000000000 号',
   author: '阿轩',
   role: 'Gopher · 后端工程师',
   location: '北京',
@@ -48,15 +46,13 @@ const SITE = {
 
 export const siteData: SiteInfo = {
   name: SITE.name,
-  logoText: SITE.logoText,
+  logo_text: SITE.logo_text,
   tagline: SITE.tagline,
   bio: SITE.bio,
   github: SITE.github,
   email: SITE.email,
-  icp: SITE.icp,
-  beian: SITE.beian,
   socials: SITE.socials,
-  shortName: SITE.shortName,
+  short_name: SITE.short_name,
   author: SITE.author,
   role: SITE.role,
   motto: SITE.motto,
@@ -64,7 +60,7 @@ export const siteData: SiteInfo = {
   since: SITE.since,
   avatar: SITE.avatar,
   // 首页终端打字机（每行 `类型|文本`：tk 蓝 / cm 灰 / fn 紫；纯文本默认 tk）
-  heroTerminal: [
+  hero_terminal: [
     'tk|go run server.go',
     'cm|# 今天也在认真写代码',
     'fn|[小猫] ',
@@ -110,14 +106,14 @@ interface RawArticle {
   slug: string
   title: string
   summary: string
-  coverImage: string
+  cover_image: string
   category: string
   tags: string[]
   date: string
   updated: string
   views: number
   likes: number
-  commentCount: number
+  comment_count: number
   featured: boolean
   hot: boolean
   status: string
@@ -126,10 +122,10 @@ interface RawArticle {
 
 const RAW_ARTICLES: RawArticle[] = [
   {
-    id: 1, slug: 'go-concurrency-in-depth', title: 'Go 并发模型深度解析：从 goroutine 到 channel', coverImage: '',
+    id: 1, slug: 'go-concurrency-in-depth', title: 'Go 并发模型深度解析：从 goroutine 到 channel', cover_image: '',
     summary: '并发是 Go 语言最鲜明的名片。本文从 goroutine 的调度模型讲起，深入 channel 的三种状态与 select 的用法，最后用 worker pool 和 fan-in/fan-out 等真实模式串起整个并发体系。',
     category: 'Go', tags: ['Go', '并发', '面试'], date: '2026-08-18', updated: '2026-08-22',
-    views: 12840, likes: 862, commentCount: 56, featured: true, hot: true, status: 'published',
+    views: 12840, likes: 862, comment_count: 56, featured: true, hot: true, status: 'published',
     content: md(
       '> 并发不是并行，但并发编程确实让程序变得更复杂。这篇文章从 Go 的并发原语出发，带你理解 goroutine、channel 与 select 的设计哲学，并用真实的工程模式收尾。',
       '',
@@ -240,10 +236,10 @@ const RAW_ARTICLES: RawArticle[] = [
     ),
   },
   {
-    id: 2, slug: 'mysql-index-optimization', title: 'MySQL 索引原理与优化实战：从 B+Tree 到执行计划', coverImage: '',
+    id: 2, slug: 'mysql-index-optimization', title: 'MySQL 索引原理与优化实战：从 B+Tree 到执行计划', cover_image: '',
     summary: '索引为什么能提速？为什么明明建了索引却不生效？本文从 B+Tree 的数据结构讲起，手把手教你读懂 EXPLAIN 执行计划，并给出高频 SQL 的优化套路。',
     category: 'MySQL', tags: ['MySQL', 'MySQL索引', '性能优化', '面试'], date: '2026-08-12', updated: '2026-08-15',
-    views: 15320, likes: 1204, commentCount: 89, featured: true, hot: true, status: 'published',
+    views: 15320, likes: 1204, comment_count: 89, featured: true, hot: true, status: 'published',
     content: md(
       '> 面试问索引，十有八九会从 B+Tree 开始。本文沿着「数据结构 → 索引失效 → EXPLAIN → 优化案例」的路径，把 MySQL 索引讲透。',
       '',
@@ -333,10 +329,10 @@ const RAW_ARTICLES: RawArticle[] = [
     ),
   },
   {
-    id: 3, slug: 'redis-cache-penetration-breakdown-snowslide', title: 'Redis 缓存穿透、击穿、雪崩：成因分析与终极解决方案', coverImage: '',
+    id: 3, slug: 'redis-cache-penetration-breakdown-snowslide', title: 'Redis 缓存穿透、击穿、雪崩：成因分析与终极解决方案', cover_image: '',
     summary: '缓存三大难题是后端面试的高频考点，也是线上事故的常见来源。本文用真实流量场景拆解穿透、击穿、雪崩的成因，并给出布隆过滤器、互斥锁、逻辑过期等一揽子方案。',
     category: 'Redis', tags: ['Redis', '缓存', '并发', '面试'], date: '2026-08-05', updated: '2026-08-09',
-    views: 9860, likes: 731, commentCount: 41, featured: true, hot: true, status: 'published',
+    views: 9860, likes: 731, comment_count: 41, featured: true, hot: true, status: 'published',
     content: md(
       '> 缓存能扛住 99% 的读流量，但剩下的 1% 往往就是事故现场。穿透、击穿、雪崩，三个名字听着像，成因和解决方案却完全不同。',
       '',
@@ -441,10 +437,10 @@ const RAW_ARTICLES: RawArticle[] = [
     ),
   },
   {
-    id: 4, slug: 'gin-gorm-restful-api', title: '用 Gin + GORM 搭建一个优雅的 RESTful API 服务', coverImage: '',
+    id: 4, slug: 'gin-gorm-restful-api', title: '用 Gin + GORM 搭建一个优雅的 RESTful API 服务', cover_image: '',
     summary: '从项目结构、分层设计到中间件与统一响应，手把手教你用 Go 生态最流行的组合搭建一个可维护、可扩展的 RESTful API。',
     category: 'Gin', tags: ['Gin', 'GORM', 'Go', 'JWT'], date: '2026-07-28', updated: '2026-07-30',
-    views: 7420, likes: 512, commentCount: 33, featured: false, hot: true, status: 'published',
+    views: 7420, likes: 512, comment_count: 33, featured: false, hot: true, status: 'published',
     content: md(
       '> 一个好的 API 工程，结构清晰是第一位的。本文分享我常用的 Gin 项目分层与中间件设计。',
       '',
@@ -507,10 +503,10 @@ const RAW_ARTICLES: RawArticle[] = [
     ),
   },
   {
-    id: 5, slug: 'websocket-go-realtime-push', title: 'WebSocket 实战：Go 实现实时消息推送服务', coverImage: '',
+    id: 5, slug: 'websocket-go-realtime-push', title: 'WebSocket 实战：Go 实现实时消息推送服务', cover_image: '',
     summary: '从握手原理到心跳保活，用 gorilla/websocket 实现一个支持广播、私聊、断线重连的实时消息服务。',
     category: 'WebSocket', tags: ['WebSocket', 'Go', '并发'], date: '2026-07-15', updated: '2026-07-18',
-    views: 5630, likes: 398, commentCount: 27, featured: false, hot: false, status: 'published',
+    views: 5630, likes: 398, comment_count: 27, featured: false, hot: false, status: 'published',
     content: md(
       '> WebSocket 让「服务器主动推」成为可能。本文实现一个带心跳检测与广播能力的实时推送中心。',
       '',
@@ -551,10 +547,10 @@ const RAW_ARTICLES: RawArticle[] = [
     ),
   },
   {
-    id: 6, slug: 'sse-streaming-go-ai', title: 'SSE 与流式响应：把 AI 聊天接入你的 Go 服务', coverImage: '',
+    id: 6, slug: 'sse-streaming-go-ai', title: 'SSE 与流式响应：把 AI 聊天接入你的 Go 服务', cover_image: '',
     summary: '相比 WebSocket，SSE 用最简单的 HTTP 协议实现服务端单向推送，是 AI 流式输出的绝配。本文用标准库手写一个 SSE 服务。',
     category: 'SSE', tags: ['SSE', 'Go', 'WebSocket'], date: '2026-07-02', updated: '2026-07-05',
-    views: 4120, likes: 287, commentCount: 19, featured: false, hot: false, status: 'published',
+    views: 4120, likes: 287, comment_count: 19, featured: false, hot: false, status: 'published',
     content: md(
       '> SSE（Server-Sent Events）基于 HTTP，天然支持断线重连与事件 ID 恢复，实现成本比 WebSocket 低一个量级。',
       '',
@@ -607,10 +603,10 @@ const RAW_ARTICLES: RawArticle[] = [
     ),
   },
   {
-    id: 7, slug: 'docker-guide-compose', title: 'Docker 入门到实践：从镜像到 Compose 编排', coverImage: '',
+    id: 7, slug: 'docker-guide-compose', title: 'Docker 入门到实践：从镜像到 Compose 编排', cover_image: '',
     summary: '镜像、容器、数据卷、网络、Compose，一条龙讲清楚 Docker 的核心概念与日常用法，附一个 Go 服务的完整部署示例。',
     category: 'Docker', tags: ['Docker', 'Linux', '部署'], date: '2026-06-20', updated: '2026-06-22',
-    views: 6840, likes: 445, commentCount: 31, featured: false, hot: false, status: 'published',
+    views: 6840, likes: 445, comment_count: 31, featured: false, hot: false, status: 'published',
     content: md(
       '> 容器不是虚拟机。理解「镜像只读层 + 容器可写层」是理解 Docker 一切行为的基础。',
       '',
@@ -669,10 +665,10 @@ const RAW_ARTICLES: RawArticle[] = [
     ),
   },
   {
-    id: 8, slug: 'linux-troubleshooting-guide', title: 'Linux 服务排查手册：CPU、内存、磁盘与网络', coverImage: '',
+    id: 8, slug: 'linux-troubleshooting-guide', title: 'Linux 服务排查手册：CPU、内存、磁盘与网络', cover_image: '',
     summary: '线上服务出问题别慌，按 CPU / 内存 / 磁盘 / 网络四步走。本文整理了一份可直接照着做的排查清单与常用命令。',
     category: 'Linux', tags: ['Linux', '性能优化', '运维'], date: '2026-06-05', updated: '2026-06-08',
-    views: 5890, likes: 367, commentCount: 22, featured: false, hot: false, status: 'published',
+    views: 5890, likes: 367, comment_count: 22, featured: false, hot: false, status: 'published',
     content: md(
       '> 排查问题的第一原则：先看现象，再定假设，最后用命令验证，不要瞎重启。',
       '',
@@ -717,10 +713,10 @@ const RAW_ARTICLES: RawArticle[] = [
     ),
   },
   {
-    id: 9, slug: 'git-workflow-best-practices', title: 'Git 工作流最佳实践：提交规范、分支策略与 Code Review', coverImage: '',
+    id: 9, slug: 'git-workflow-best-practices', title: 'Git 工作流最佳实践：提交规范、分支策略与 Code Review', cover_image: '',
     summary: '好的 Git 规范能让团队协作事半功倍。本文分享 Angular 提交规范、Git Flow / Trunk Based 的选择与 PR 评审要点。',
     category: 'Git', tags: ['Git', '规范'], date: '2026-05-18', updated: '2026-05-20',
-    views: 3340, likes: 246, commentCount: 15, featured: false, hot: false, status: 'published',
+    views: 3340, likes: 246, comment_count: 15, featured: false, hot: false, status: 'published',
     content: md(
       '> 提交信息是写给未来的自己和其他协作者的。规范的提交历史，本身就是最好的文档。',
       '',
@@ -759,10 +755,10 @@ const RAW_ARTICLES: RawArticle[] = [
     ),
   },
   {
-    id: 10, slug: 'lru-cache-handwrite', title: '手写 LRU 缓存：数据结构与算法实战', coverImage: '',
+    id: 10, slug: 'lru-cache-handwrite', title: '手写 LRU 缓存：数据结构与算法实战', cover_image: '',
     summary: 'LRU 是高频面试题，也是真实系统里的常客。本文用哈希表 + 双向链表实现一个线程安全的 LRU，并聊聊在 Redis 里它是怎么做的。',
     category: '数据结构与算法', tags: ['数据结构', '算法', '面试', 'Redis'], date: '2025-05-02', updated: '2025-05-04',
-    views: 4780, likes: 355, commentCount: 18, featured: false, hot: false, status: 'published',
+    views: 4780, likes: 355, comment_count: 18, featured: false, hot: false, status: 'published',
     content: md(
       '> 手写 LRU 之前，先想明白为什么是「哈希表 + 双向链表」：哈希表保证 O(1) 查找，链表保证 O(1) 插入删除。',
       '',
@@ -828,10 +824,10 @@ const RAW_ARTICLES: RawArticle[] = [
     ),
   },
   {
-    id: 11, slug: 'os-process-thread-concurrency', title: '操作系统进程与线程：从内核角度看并发', coverImage: '',
+    id: 11, slug: 'os-process-thread-concurrency', title: '操作系统进程与线程：从内核角度看并发', cover_image: '',
     summary: '进程、线程、协程到底差在哪？本文从内核调度、上下文切换、地址空间三个维度讲清楚，为理解 Go 协程与高并发打好地基。',
     category: '计算机基础', tags: ['计算机基础', '并发', '面试'], date: '2025-04-15', updated: '2025-04-16',
-    views: 3960, likes: 302, commentCount: 14, featured: false, hot: false, status: 'published',
+    views: 3960, likes: 302, comment_count: 14, featured: false, hot: false, status: 'published',
     content: md(
       '> 不懂操作系统，就永远不懂并发。进程、线程、协程这三层概念，是每个后端工程师的必修课。',
       '',
@@ -864,10 +860,10 @@ const RAW_ARTICLES: RawArticle[] = [
     ),
   },
   {
-    id: 12, slug: 'jwt-auth-go-refresh-token', title: 'JWT 认证原理与 Go 实现：从签名算法到刷新令牌', coverImage: '',
+    id: 12, slug: 'jwt-auth-go-refresh-token', title: 'JWT 认证原理与 Go 实现：从签名算法到刷新令牌', cover_image: '',
     summary: 'JWT 不是「更安全」，而是「更轻量」。本文讲清 Header / Payload / Signature 三段式结构，并用 Go 实现完整的登录与刷新流程。',
     category: 'Go', tags: ['JWT', 'JWT认证', 'Go', 'Gin'], date: '2025-03-28', updated: '2025-03-30',
-    views: 6210, likes: 428, commentCount: 25, featured: false, hot: false, status: 'published',
+    views: 6210, likes: 428, comment_count: 25, featured: false, hot: false, status: 'published',
     content: md(
       '> JWT 适合无状态服务的认证，但它也有原生缺陷：无法主动注销。理解原理之后，才知道什么时候该用、怎么用。',
       '',
@@ -921,14 +917,14 @@ export const articleSummaries: ArticleSummary[] = RAW_ARTICLES
     slug: a.slug,
     title: a.title,
     summary: a.summary,
-    coverImage: a.coverImage,
+    cover_image: a.cover_image,
     category: categoryRef(a.category),
     tags: a.tags,
     date: a.date,
     updated: a.updated,
     views: a.views,
     likes: a.likes,
-    commentCount: a.commentCount,
+    comment_count: a.comment_count,
     featured: a.featured,
     hot: a.hot,
   }))
@@ -942,14 +938,14 @@ export function getArticleDetail(slugOrId: string | number): ArticleDetail | und
     slug: raw.slug,
     title: raw.title,
     summary: raw.summary,
-    coverImage: raw.coverImage,
+    cover_image: raw.cover_image,
     category: categoryRef(raw.category),
     tags: raw.tags,
     date: raw.date,
     updated: raw.updated,
     views: raw.views,
     likes: raw.likes,
-    commentCount: raw.commentCount,
+    comment_count: raw.comment_count,
     featured: raw.featured,
     hot: raw.hot,
     author: { nickname: SITE.author, avatar: AUTHOR_AVATAR, role: SITE.role },
@@ -994,17 +990,17 @@ const RAW_COMMENTS: RawComment[] = [
 ]
 
 /** 某文章状态为正常的评论列表 */
-export function commentsForArticle(articleId: number): CommentItem[] {
+export function commentsForArticle(article_id: number): CommentItem[] {
   return RAW_COMMENTS
-    .filter(c => c.article === articleId && c.status === 'normal')
+    .filter(c => c.article === article_id && c.status === 'normal')
     .map(c => ({
       id: c.id,
-      parentId: null,
-      userName: c.user,
+      parent_id: null,
+      user_name: c.user,
       avatar: c.avatar,
       content: c.content,
       time: c.time,
-      likeCount: COMMENT_LIKES[c.id] ?? 0,
+      like_count: COMMENT_LIKES[c.id] ?? 0,
       liked: false,
       replies: [],
     }))

@@ -144,8 +144,8 @@ onMounted(load)
               <span style="display: inline-flex; align-items: center; gap: 8px"><Tag :size="14" style="color: var(--accent)" /> {{ t.name }}</span>
             </td>
             <td style="font-family: 'JetBrains Mono', monospace">{{ t.count }}</td>
-            <td>{{ t.createdAt }}</td>
-            <td>{{ t.updatedAt }}</td>
+            <td>{{ t.created_at }}</td>
+            <td>{{ t.updated_at }}</td>
             <td style="text-align: right; white-space: nowrap">
               <button class="tb-btn edit" title="编辑" @click="openEdit(t)"><Pencil :size="15" /></button>
               <button class="tb-btn del" title="删除" @click="removeTag(t)"><Trash2 :size="15" /></button>

@@ -28,7 +28,7 @@ onMounted(async () => {
 })
 
 function thumbOf(a: ArticleSummary): string {
-  return a.coverImage || coverArt(a.title, a.category.name, a.id, 96, 72)
+  return a.cover_image || coverArt(a.title, a.category.name, a.id, 96, 72)
 }
 </script>
 

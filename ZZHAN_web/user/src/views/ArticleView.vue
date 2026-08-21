@@ -17,6 +17,7 @@ import {
 } from 'lucide-vue-next'
 import { getArticle, getArticles } from '@/api/articles'
 import { getComments } from '@/api/comments'
+import { useSiteStore } from '@/stores/site'
 import type { ArticleDetail, ArticleSummary, CommentItem } from '@/types/models'
 import { renderMarkdown, buildTOC, decorateCode } from '@/utils/markdown'
 import { fmtNum, readTime } from '@/utils/format'
@@ -58,7 +59,7 @@ async function loadComments(): Promise<void> {
   if (!article.value) return
   try {
     const res = await getComments(article.value.slug)
-    comments.value = res.list.filter((c) => c.parentId == null)
+    comments.value = res.list.filter((c) => c.parent_id == null)
   } catch {
     comments.value = []
   }
@@ -68,7 +69,8 @@ onMounted(async () => {
   const slug = String(route.params.slug)
   try {
     article.value = await getArticle(slug)
-    document.title = article.value.title + ' - CodeThink'
+    const siteStore = useSiteStore()
+    document.title = article.value.title + ' - ' + (siteStore.site?.name ?? '小猫的个人博客')
     await nextTick()
     if (postBody.value) {
       postBody.value.innerHTML = renderMarkdown(article.value.content)
@@ -128,7 +130,7 @@ function jumpTo(id: string): void {
           <span><RefreshCw :size="14" />更新于 {{ article.updated }}</span>
           <span><Eye :size="14" />{{ fmtNum(article.views) }} 阅读</span>
           <span><Clock :size="14" />{{ readTime(article.content) }} 分钟</span>
-          <span><MessageCircle :size="14" />{{ article.commentCount }} 评论</span>
+          <span><MessageCircle :size="14" />{{ article.comment_count }} 评论</span>
         </div>
       </div>
     </header>

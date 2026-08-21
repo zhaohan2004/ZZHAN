@@ -16,8 +16,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function login(username: string, password: string, captcha: string): Promise<boolean> {
     const res = await adminLogin(username, password, captcha)
-    token.value = res.accessToken
-    localStorage.setItem(TOKEN_KEY, res.accessToken)
+    token.value = res.access_token
+    localStorage.setItem(TOKEN_KEY, res.access_token)
     profile.value = res.profile
     return true
   }

@@ -1,6 +1,6 @@
 /**
  * 认证 store — 微信 / GitHub OAuth 登录、完善资料、退出。
- * token 持久化到 localStorage `ct-access-token`；user / needProfile 为内存态。
+ * token 持久化到 localStorage `ct-access-token`；user / need_profile 为内存态。
  * `ensureAuth()` 未登录时置 `loginModalOpen = true`（LoginModal 组件消费该标志）并返回 false。
  */
 import { defineStore } from 'pinia'
@@ -15,29 +15,29 @@ const TOKEN_KEY = 'ct-access-token'
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem(TOKEN_KEY))
   const user = ref<AuthUser | null>(null)
-  const needProfile = ref(false)
+  const need_profile = ref(false)
   /** 登录弹窗开关（Task 17 的 LoginModal 读取渲染） */
   const loginModalOpen = ref(false)
 
   const isLoggedIn = computed(() => !!token.value)
 
-  /** OAuth 登录：填写 token / user / needProfile，返回是否成功 */
+  /** OAuth 登录：填写 token / user / need_profile，返回是否成功 */
   async function loginWith(provider: LoginProvider, code: string): Promise<boolean> {
     const fn = provider === 'github' ? githubLogin : wechatLogin
     const res = await fn(code)
-    token.value = res.accessToken
-    localStorage.setItem(TOKEN_KEY, res.accessToken)
+    token.value = res.access_token
+    localStorage.setItem(TOKEN_KEY, res.access_token)
     user.value = res.user
-    needProfile.value = res.needProfile
+    need_profile.value = res.need_profile
     loginModalOpen.value = false
     return true
   }
 
-  /** 完善资料：PUT /auth/profile，更新本地 user 并清除 needProfile */
+  /** 完善资料：PUT /auth/profile，更新本地 user 并清除 need_profile */
   async function completeProfile(p: Pick<AuthUser, 'nickname' | 'avatar'>): Promise<boolean> {
     await updateProfile(p)
     user.value = { ...(user.value ?? ({} as AuthUser)), ...p }
-    needProfile.value = false
+    need_profile.value = false
     return true
   }
 
@@ -50,7 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
     token.value = null
     user.value = null
-    needProfile.value = false
+    need_profile.value = false
     localStorage.removeItem(TOKEN_KEY)
   }
 
@@ -61,5 +61,5 @@ export const useAuthStore = defineStore('auth', () => {
     return false
   }
 
-  return { token, user, needProfile, loginModalOpen, isLoggedIn, loginWith, completeProfile, logout, ensureAuth }
+  return { token, user, need_profile, loginModalOpen, isLoggedIn, loginWith, completeProfile, logout, ensureAuth }
 })

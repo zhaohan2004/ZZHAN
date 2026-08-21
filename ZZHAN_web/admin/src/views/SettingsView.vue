@@ -80,17 +80,17 @@ onMounted(load)
         <div style="display: grid; gap: 4px; grid-template-columns: 1fr 1fr">
           <div class="form-group">
             <label class="form-label">博客名称</label>
-            <input v-model="form.blogName" class="input" type="text" />
+            <input v-model="form.blog_name" class="input" type="text" />
           </div>
           <div class="form-group">
             <label class="form-label">博客简介</label>
-            <input v-model="form.blogDesc" class="input" type="text" />
+            <input v-model="form.blog_desc" class="input" type="text" />
           </div>
           <div class="form-group">
             <label class="form-label">Logo 文字</label>
             <div style="display: flex; gap: 10px; align-items: center">
-              <input v-model="form.logoText" class="input" type="text" maxlength="3" style="width: 110px" />
-              <span class="brand-logo" style="width: 38px; height: 38px; font-size: 15px">{{ form.logoText }}</span>
+              <input v-model="form.logo_text" class="input" type="text" maxlength="3" style="width: 110px" />
+              <span class="brand-logo" style="width: 38px; height: 38px; font-size: 15px">{{ form.logo_text }}</span>
             </div>
           </div>
           <div class="form-group" style="grid-column: 1 / -1">
@@ -98,7 +98,7 @@ onMounted(load)
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
               <span class="brand-logo" style="width: 48px; height: 48px; font-size: 18px; flex: none; overflow: hidden; padding: 0">
                 <img v-if="form.avatar" :src="form.avatar" alt="头像预览" style="width: 100%; height: 100%; object-fit: cover" />
-                <span v-else>{{ form.authorName?.slice(0, 1) || 'U' }}</span>
+                <span v-else>{{ form.author_name?.slice(0, 1) || 'U' }}</span>
               </span>
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
                 <label class="btn btn-ghost btn-sm" style="cursor: pointer; margin: 0">
@@ -114,15 +114,15 @@ onMounted(load)
           </div>
           <div class="form-group">
             <label class="form-label">作者昵称</label>
-            <input v-model="form.authorName" class="input" type="text" />
+            <input v-model="form.author_name" class="input" type="text" />
           </div>
           <div class="form-group">
             <label class="form-label">作者头衔</label>
-            <input v-model="form.authorRole" class="input" type="text" />
+            <input v-model="form.author_role" class="input" type="text" />
           </div>
           <div class="form-group" style="grid-column: 1 / -1">
             <label class="form-label">作者介绍</label>
-            <textarea v-model="form.authorIntro" class="textarea" rows="2"></textarea>
+            <textarea v-model="form.author_intro" class="textarea" rows="2"></textarea>
           </div>
           <div class="form-group">
             <label class="form-label">GitHub 地址</label>
@@ -165,9 +165,33 @@ onMounted(load)
         </div>
         <div class="form-group" style="margin-top: 18px; margin-bottom: 0">
           <label class="form-label">首页终端内容 <span class="muted" style="font-size: 11px; margin-left: 4px">（首页 hero 打字机）</span></label>
-          <textarea v-model="form.heroTerminal" class="textarea" rows="8" style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px"></textarea>
+          <textarea v-model="form.hero_terminal" class="textarea" rows="8" style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px"></textarea>
           <div class="form-hint">每行一条，格式：<code>类型|文本</code>（tk=蓝色命令 / cm=灰色注释 / fn=紫色输出；不带类型默认蓝色）。空行会被忽略。</div>
         </div>
+      </div>
+
+      <!-- 社交链接 -->
+      <div class="settings-sec reveal in" style="grid-column: 1 / -1">
+        <h3>
+          <span class="st-ico" style="width: 30px; height: 30px"><Sparkles :size="15" /></span>社交链接
+        </h3>
+        <p class="sec-desc">展示在前台「关于我」页面与首页侧边栏，支持自定义图标与排序。</p>
+        <div v-for="(item, idx) in form.socials" :key="idx" style="display: grid; gap: 8px; grid-template-columns: 1fr 1fr 1fr auto; align-items: end; margin-bottom: 8px">
+          <div class="form-group" style="margin: 0">
+            <label v-if="idx === 0" class="form-label">名称</label>
+            <input v-model="item.name" class="input" type="text" placeholder="如：GitHub" />
+          </div>
+          <div class="form-group" style="margin: 0">
+            <label v-if="idx === 0" class="form-label">图标</label>
+            <input v-model="item.icon" class="input" type="text" placeholder="如：github" />
+          </div>
+          <div class="form-group" style="margin: 0">
+            <label v-if="idx === 0" class="form-label">链接</label>
+            <input v-model="item.url" class="input" type="text" placeholder="https://..." />
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" style="margin-bottom: 2px" @click="form.socials.splice(idx, 1)"><Trash2 :size="14" /></button>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" style="margin-top: 4px" @click="form.socials.push({ name: '', icon: '', url: '' })">+ 添加社交链接</button>
       </div>
     </div>
 

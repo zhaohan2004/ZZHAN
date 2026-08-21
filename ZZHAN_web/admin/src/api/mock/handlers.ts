@@ -85,7 +85,7 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
       if (!u || !p) throw new MockError(40001, '请输入用户名和密码')
       if (!c) throw new MockError(40001, '请输入验证码')
       if (u !== credentials.username || p !== credentials.password) throw new MockError(40100, '用户名或密码错误')
-      return { accessToken: 'mock-admin-token', expiresIn: 7200, profile: { ...profile, username: credentials.username } }
+      return { access_token: 'mock-admin-token', expires_in: 7200, profile: { ...profile, username: credentials.username } }
     }
     if (key === 'POST /admin/auth/logout') return null
     if (key === 'GET /admin/profile') return { ...profile, username: credentials.username }
@@ -132,12 +132,12 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
         slug: String(data.slug || 'article-' + Date.now()),
         title: String(data.title || '未命名文章'),
         summary: String(data.summary || ''),
-        coverImage: String(data.coverImage || ''),
+        cover_image: String(data.cover_image || ''),
         category: String(data.category || 'Go'),
         tags: (data.tags as string[]) || [],
         status: (data.status as MockArticle['status']) || 'draft',
         views: 0,
-        date: String(data.publishedAt || new Date().toISOString().slice(0, 10)),
+        date: String(data.published_at || new Date().toISOString().slice(0, 10)),
         updated: new Date().toISOString().slice(0, 10),
         content: String(data.content || ''),
       }
@@ -151,7 +151,7 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
       Object.assign(a, {
         title: data.title !== undefined ? String(data.title) : a.title,
         summary: data.summary !== undefined ? String(data.summary) : a.summary,
-        coverImage: data.coverImage !== undefined ? String(data.coverImage) : a.coverImage,
+        cover_image: data.cover_image !== undefined ? String(data.cover_image) : a.cover_image,
         category: data.category !== undefined ? String(data.category) : a.category,
         tags: data.tags !== undefined ? (data.tags as string[]) : a.tags,
         status: data.status !== undefined ? (data.status as MockArticle['status']) : a.status,
@@ -197,8 +197,8 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
         desc: String(data.desc || ''),
         color: String(data.color || '#3b82f6'),
         count: 0,
-        createdAt: new Date().toISOString().slice(0, 10),
-        updatedAt: new Date().toISOString().slice(0, 10),
+        created_at: new Date().toISOString().slice(0, 10),
+        updated_at: new Date().toISOString().slice(0, 10),
       }
       categories.push(c)
       return c
@@ -208,7 +208,7 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
       const c = categories.find((x) => x.id === Number(putCat[1]))
       if (!c) notFound()
       Object.assign(c, data)
-      c.updatedAt = new Date().toISOString().slice(0, 10)
+      c.updated_at = new Date().toISOString().slice(0, 10)
       return c
     }
     const delCat = /^DELETE \/admin\/categories\/(\d+)$/.exec(key)
@@ -233,7 +233,7 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
     }
     if (key === 'POST /admin/tags') {
       const today = new Date().toISOString().slice(0, 10)
-      const t = { id: Math.max(0, ...tags.map((x) => x.id)) + 1, name: String(data.name || ''), count: 0, createdAt: today, updatedAt: today }
+      const t = { id: Math.max(0, ...tags.map((x) => x.id)) + 1, name: String(data.name || ''), count: 0, created_at: today, updated_at: today }
       tags.push(t)
       return t
     }
@@ -242,7 +242,7 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
       const t = tags.find((x) => x.id === Number(putTag[1]))
       if (!t) notFound()
       t.name = String(data.name || t.name)
-      t.updatedAt = new Date().toISOString().slice(0, 10)
+      t.updated_at = new Date().toISOString().slice(0, 10)
       return t
     }
     const delTag = /^DELETE \/admin\/tags\/(\d+)$/.exec(key)
@@ -255,8 +255,8 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
     if (key === 'GET /admin/comments') {
       let list = comments
       if (params.status && params.status !== 'all') list = list.filter((c) => c.status === params.status)
-      const articleId = Number(params.article_id ?? params.articleId)
-      if (!Number.isNaN(articleId) && articleId > 0) list = list.filter((c) => c.articleId === articleId)
+      const article_id = Number(params.article_id ?? params.article_id)
+      if (!Number.isNaN(article_id) && article_id > 0) list = list.filter((c) => c.article_id === article_id)
       const startDate = String((params.start_date ?? params.startDate) || '')
       const endDate = String((params.end_date ?? params.endDate) || '')
       if (startDate) list = list.filter((c) => c.time >= startDate)
