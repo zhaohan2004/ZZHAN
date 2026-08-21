@@ -40,7 +40,7 @@ func RequestLogger() gin.HandlerFunc {
 		end := time.Now()
 		latency := end.Sub(start)
 
-		logger.Info("HTTP Request",
+		fields := []zap.Field{
 			zap.String("method", c.Request.Method),
 			zap.String("path", path),
 			zap.String("query", query),
@@ -49,6 +49,13 @@ func RequestLogger() gin.HandlerFunc {
 			zap.String("ip", c.ClientIP()),
 			zap.String("user_agent", c.Request.UserAgent()),
 			zap.Duration("latency", latency),
-		)
+		}
+
+		// 记录请求错误信息
+		if len(c.Errors) > 0 {
+			fields = append(fields, zap.String("errors", c.Errors.String()))
+		}
+
+		logger.Info("HTTP Request", fields...)
 	}
 }
