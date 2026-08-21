@@ -25,7 +25,7 @@ func Load(configPath string) (*Config, error) {
 	}
 
 	// 环境变量前缀
-	v.SetEnvPrefix("TUYOU")
+	v.SetEnvPrefix("ZZHAN")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 

@@ -14,15 +14,23 @@ var (
 	ErrTokenExpired = errors.New("token 已过期")
 )
 
-// GenerateToken 生成 JWT Token
-func GenerateToken(userID uint, username string) (string, error) {
+// GenerateToken 生成指定类型的 JWT Token
+func GenerateToken(userID uint, username string, tokenType string) (string, error) {
 	cfg := config.Get().JWT
 
+	var expireDuration time.Duration
+	if tokenType == "refresh" {
+		expireDuration = cfg.RefreshExpireHours * time.Hour
+	} else {
+		expireDuration = cfg.AccessExpireHours * time.Hour
+	}
+
 	claims := CustomClaims{
-		UserID:   userID,
-		Username: username,
+		UserID:    userID,
+		Username:  username,
+		TokenType: tokenType,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(cfg.ExpireHours * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expireDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Issuer:    "ZZHAN",
@@ -33,8 +41,21 @@ func GenerateToken(userID uint, username string) (string, error) {
 	return token.SignedString([]byte(cfg.Secret))
 }
 
+// GenerateTokenPair 生成access + refresh token 对
+func GenerateTokenPair(userID uint, username string) (accessToken, refreshToken string, err error) {
+	accessToken, err = GenerateToken(userID, username, "access")
+	if err != nil {
+		return "", "", err
+	}
+	refreshToken, err = GenerateToken(userID, username, "refresh")
+	if err != nil {
+		return "", "", err
+	}
+	return accessToken, refreshToken, nil
+}
+
 // ParseToken 解析 JWT Token
-func ParseToken(tokenString string) (*CustomClaims, error) {
+func ParseToken(tokenString string, expectedType string) (*CustomClaims, error) {
 	cfg := config.Get().JWT
 
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -49,18 +70,11 @@ func ParseToken(tokenString string) (*CustomClaims, error) {
 	}
 
 	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
+		if expectedType != "" && claims.TokenType != expectedType {
+			return nil, ErrTokenInvalid
+		}
 		return claims, nil
 	}
 
 	return nil, ErrTokenInvalid
-}
-
-// RefreshToken 刷新 Token
-func RefreshToken(tokenString string) (string, error) {
-	claims, err := ParseToken(tokenString)
-	if err != nil {
-		return "", err
-	}
-
-	return GenerateToken(claims.UserID, claims.Username)
 }

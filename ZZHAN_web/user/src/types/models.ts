@@ -167,7 +167,7 @@ export interface AuthUser {
   avatar: string
 }
 
-/** 登录结果（微信 / GitHub） */
+/** 登录结果（GitHub OAuth） */
 export interface LoginResult {
   access_token: string
   refresh_token: string

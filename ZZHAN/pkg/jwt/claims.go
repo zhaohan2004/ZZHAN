@@ -4,8 +4,9 @@ import "github.com/golang-jwt/jwt/v5"
 
 // CustomClaims 自定义 JWT Claims
 type CustomClaims struct {
-	UserID   uint   `json:"user_id"`
-	Username string `json:"username"`
+	UserID    uint   `json:"user_id"`
+	Username  string `json:"username"`
+	TokenType string `json:"token_type"` //为 access 或 refresh
 	jwt.RegisteredClaims
 }
 

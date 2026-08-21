@@ -36,7 +36,7 @@ func Auth() gin.HandlerFunc {
 		}
 
 		// 解析 Token
-		claims, err := jwt.ParseToken(parts[1])
+		claims, err := jwt.ParseToken(parts[1], "access")
 		if err != nil {
 			response.Unauthorized(c, err.Error())
 			c.Abort()
@@ -82,7 +82,7 @@ func OptionalAuth() gin.HandlerFunc {
 			return
 		}
 
-		claims, err := jwt.ParseToken(parts[1])
+		claims, err := jwt.ParseToken(parts[1], "access")
 		if err == nil {
 			c.Set(ContextUserID, claims.GetUserID())
 			c.Set(ContextUsername, claims.GetUsername())

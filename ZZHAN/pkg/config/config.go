@@ -7,6 +7,7 @@ type Config struct {
 	App      AppConfig      `mapstructure:"app"`
 	Database DatabaseConfig `mapstructure:"database"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
+	GitHub   GitHubConfig   `mapstructure:"github"`
 	Log      LogConfig      `mapstructure:"log"`
 	CORS     CORSConfig     `mapstructure:"cors"`
 }
@@ -47,8 +48,16 @@ type RedisConfig struct {
 
 // JWTConfig JWT 配置
 type JWTConfig struct {
-	Secret      string        `mapstructure:"secret"`
-	ExpireHours time.Duration `mapstructure:"expire_hours"`
+	Secret             string        `mapstructure:"secret"`
+	AccessExpireHours  time.Duration `mapstructure:"access_expire_hours"`
+	RefreshExpireHours time.Duration `mapstructure:"refresh_expire_hours"`
+}
+
+// GitHubConfig GitHub OAuth 配置
+type GitHubConfig struct {
+	ClientID     string `mapstructure:"client_id"`
+	ClientSecret string `mapstructure:"client_secret"`
+	RedirectURL  string `mapstructure:"redirect_url"`
 }
 
 // LogConfig 日志配置
