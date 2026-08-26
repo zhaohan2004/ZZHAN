@@ -4,7 +4,7 @@
  * DOM 结构与静态原型 main.js articleCardHTML 完全一致。
  */
 import { computed } from 'vue'
-import { ArrowRight, Calendar, Eye, Flame, ThumbsUp } from 'lucide-vue-next'
+import { ArrowRight, Calendar, Eye, MessageCircle, ThumbsUp } from 'lucide-vue-next'
 import type { ArticleSummary } from '@/types/models'
 import { coverArt } from '@/utils/cover'
 import { fmtNum } from '@/utils/format'
@@ -21,23 +21,16 @@ const props = withDefaults(
 )
 
 const cover = computed(() =>
-  props.article.cover_image || coverArt(props.article.title, props.article.category.name, props.article.id),
+  props.article.cover_image || coverArt(props.article.title, props.article.category_name, props.article.id),
 )
-const catColor = computed(() => props.article.category.color || '#3b82f6')
+const catColor = computed(() => '#3b82f6') // 默认主题色
 </script>
 
 <template>
   <article class="article-card reveal" :class="{ horizontal, reverse }">
     <router-link :to="`/article/${article.slug}`" class="ac-cover" :aria-label="article.title">
       <span class="badge ac-cat" :style="{ background: catColor + '1f', color: catColor, border: '1px solid ' + catColor + '44' }">
-        {{ article.category.name }}
-      </span>
-      <span
-        v-if="article.hot"
-        class="badge hot-badge"
-        style="background:rgba(239,68,68,.14);color:#ef4444;position:absolute;top:12px;right:12px;z-index:2"
-      >
-        <Flame :size="12" /> 热门
+        {{ article.category_name }}
       </span>
       <img :src="cover" :alt="article.title" loading="lazy" />
     </router-link>
@@ -46,12 +39,13 @@ const catColor = computed(() => props.article.category.color || '#3b82f6')
       <router-link :to="`/article/${article.slug}`" class="ac-title">{{ article.title }}</router-link>
       <p class="ac-summary">{{ article.summary }}</p>
       <div v-if="article.tags?.length" class="ac-tags">
-        <TagMini v-for="t in article.tags.slice(0, tagLimit)" :key="t" :tag="t" />
+        <TagMini v-for="t in article.tags.slice(0, tagLimit)" :key="t.id" :tag-id="t.id" :tag-name="t.name" />
       </div>
       <div class="ac-meta">
-        <span><Calendar :size="13" /> {{ article.date }}</span>
+        <span><Calendar :size="13" /> {{ article.published_at }}</span>
         <span><Eye :size="13" /> {{ fmtNum(article.views) }}</span>
         <span><ThumbsUp :size="13" /> {{ fmtNum(article.likes) }}</span>
+        <span><MessageCircle :size="13" /> {{ fmtNum(article.comment_count) }}</span>
         <router-link
           :to="`/article/${article.slug}`"
           class="read-more"

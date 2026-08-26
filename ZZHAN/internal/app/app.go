@@ -150,21 +150,39 @@ func (a *App) initDependencies() {
 	siteAdminRepo := repository.NewSiteRepository(a.mysqlDB)
 	authRepo := repository.NewAuthRepository(a.mysqlDB)
 	adminAuthRepo := repository.NewAdminAuthRepository(a.mysqlDB)
+	articlesRepo := repository.NewArticlesRepository(a.mysqlDB)
+	categoriesRepo := repository.NewCategoriesRepository(a.mysqlDB)
+	tagsRepo := repository.NewTagsRepository(a.mysqlDB)
+	archivesRepo := repository.NewArchivesRepository(a.mysqlDB)
+	statsRepo := repository.NewStatsRepository(a.mysqlDB)
+	aboutRepo := repository.NewAboutRepository(a.mysqlDB)
 
 	// ========== 创建 Service ==========
 	siteService := service.NewSiteService(siteRepo)
 	siteAdminService := service.NewSiteService(siteAdminRepo)
 	authService := service.NewAuthService(authRepo, redisRepo)
 	adminAuthService := service.NewAdminAuthService(adminAuthRepo, redisRepo)
+	articlesService := service.NewArticlesService(articlesRepo)
+	categoriesService := service.NewCategoriesService(categoriesRepo)
+	tagsService := service.NewTagsService(tagsRepo)
+	archivesService := service.NewArchivesService(archivesRepo)
+	statsService := service.NewStatsService(statsRepo)
+	aboutService := service.NewAboutService(aboutRepo)
 
 	//// ========== 创建 Controller ==========
 	siteController := web.NewSiteController(siteService)
 	siteAdminController := admin.NewSiteAdminController(siteAdminService, redisRepo)
 	adminAuthController := admin.NewAdminAuthController(adminAuthService, redisRepo)
 	authController := web.NewAuthController(authService, redisRepo)
+	articlesController := web.NewArticlesController(articlesService)
+	categoriesController := web.NewCategoriesController(categoriesService)
+	tagsController := web.NewTagsController(tagsService)
+	archivesController := web.NewArchivesController(archivesService)
+	statsController := web.NewStatsController(statsService)
+	aboutController := web.NewAboutController(aboutService)
 
 	// ========== 创建 Router ==========
-	a.router = api.NewRouter(siteController, siteAdminController, adminAuthController, authController)
+	a.router = api.NewRouter(siteController, siteAdminController, adminAuthController, authController, articlesController, categoriesController, tagsController, archivesController, statsController, aboutController)
 }
 
 // initRouter 初始化路由

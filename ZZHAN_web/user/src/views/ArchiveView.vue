@@ -61,7 +61,7 @@ onMounted(async () => {
           <div class="ay-badge"><Calendar :size="18" style="color:var(--accent)" />{{ year }} 年</div>
           <div v-for="m in [...months].sort((a, b) => b.month.localeCompare(a.month))" :key="m.month" class="archive-month">
             <div class="am-head"><span class="am-dot" />{{ Number(m.month) }} 月 · {{ m.count }} 篇</div>
-            <router-link v-for="a in m.articles" :key="a.id" class="arc-item" :to="`/article/${a.id}`">
+            <router-link v-for="a in m.articles" :key="a.id" class="arc-item" :to="`/article/${a.slug}`">
               <span class="arc-date">{{ a.date.slice(5) }}</span>
               <span class="ac-title" style="flex:1;font-size:14.5px;font-weight:600">{{ a.title }}</span>
               <span class="meta">

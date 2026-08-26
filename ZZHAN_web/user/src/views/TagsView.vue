@@ -35,7 +35,7 @@ onMounted(async () => {
             <router-link
               v-for="t in tags"
               :key="t.id"
-              :to="`/articles?tag=${encodeURIComponent(t.name)}`"
+              :to="`/articles?tag_id=${t.id}`"
               style="font-size:15px"
             >
               {{ t.name }}
@@ -47,7 +47,7 @@ onMounted(async () => {
           <router-link
             v-for="t in tags"
             :key="t.id"
-            :to="`/articles?tag=${encodeURIComponent(t.name)}`"
+            :to="`/articles?tag_id=${t.id}`"
             class="glass-card card-hover"
             style="padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px"
           >

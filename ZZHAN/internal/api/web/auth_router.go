@@ -11,9 +11,9 @@ func (c *AuthController) RegisterRoutes(r *gin.RouterGroup) {
 	auth.Use(middleware.Auth(c.redisRepo))
 	{
 		auth.GET("/me", c.GetCurrentUser)
-		auth.POST("/refresh", c.RefreshToken)
 		auth.POST("/logout", c.Logout)
 	}
 
+	r.POST("/auth/refresh", c.RefreshToken)
 	r.POST("/auth/github", c.GitHubLogin)
 }

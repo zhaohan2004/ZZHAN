@@ -9,16 +9,16 @@ describe('mock adapter', () => {
     const ab = await getAbout(); expect(ab.skills.length).toBeGreaterThan(0)
   })
   it('returns paged articles with category/tags', async () => {
-    const { list, total } = await getArticles({ page: 1, pageSize: 6 })
-    expect(total).toBeGreaterThan(0); expect(list[0]).toHaveProperty('slug'); expect(list[0]).toHaveProperty('category')
+    const { list, total } = await getArticles({ page: 1, size: 6 })
+    expect(total).toBeGreaterThan(0); expect(list[0]).toHaveProperty('slug'); expect(list[0]).toHaveProperty('category_name')
   })
   it('returns article detail with content', async () => {
-    const { list } = await getArticles({ page: 1, pageSize: 1 })
+    const { list } = await getArticles({ page: 1, size: 1 })
     const a = await getArticle(list[0].slug)
     expect((a as ArticleDetail).content).toContain('#')
   })
-  it('filters by category slug', async () => {
-    const cats = await getCategories(); const { list } = await getArticles({ category: cats[0].slug })
-    expect(list.every(x => x.category.slug === cats[0].slug)).toBe(true)
+  it('filters by category id', async () => {
+    const cats = await getCategories(); const { list } = await getArticles({ category_id: cats[0].id })
+    expect(list.every(x => x.category_id === cats[0].id)).toBe(true)
   })
 })

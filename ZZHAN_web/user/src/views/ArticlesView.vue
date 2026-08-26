@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** 文章列表页 — 搜索 + 分类/标签/时间筛选 + 分页 + 侧边栏。URL query 同步（q/category/tag）。 */
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Calendar, ChevronLeft, ChevronRight, Folder, Search, Tag as TagIcon } from 'lucide-vue-next'
 import ArticleCard from '@/components/article/ArticleCard.vue'
@@ -8,22 +8,32 @@ import WidgetSidebar from '@/components/widget/WidgetSidebar.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import { getArticles } from '@/api/articles'
 import { getCategories, getTags } from '@/api/site'
-import { useReveal } from '@/composables/useReveal'
 import type { ArticleSummary, Category, Tag } from '@/types/models'
 
 const route = useRoute()
 const router = useRouter()
 
-/** 滚动渐入观察根 — ArticleCard 含 .reveal，进入视口后加 .in 才可见。 */
+/** 滚动渐入观察根 */
 const root = ref<HTMLElement | null>(null)
-useReveal(root)
+
+/** 手动触发 reveal 动画 */
+function triggerReveal(): void {
+  nextTick(() => {
+    setTimeout(() => {
+      if (!root.value) return
+      root.value.querySelectorAll('.reveal:not(.in)').forEach((el) => {
+        el.classList.add('in')
+      })
+    }, 100)
+  })
+}
 
 const state = ref({
   page: 1,
-  pageSize: 6,
-  q: (route.query.q as string) || '',
-  cat: (route.query.category as string) || '',
-  tag: (route.query.tag as string) || '',
+  size: 6,
+  keyword: (route.query.keyword as string) || '',
+  category_id: Number(route.query.category_id) || 0,
+  tag_id: Number(route.query.tag_id) || 0,
   time: 'all',
 })
 const cats = ref<Category[]>([])
@@ -32,21 +42,21 @@ const list = ref<ArticleSummary[]>([])
 const total = ref(0)
 const loading = ref(true)
 
-const pages = computed(() => Math.max(1, Math.ceil(total.value / state.value.pageSize)))
+const pages = computed(() => Math.max(1, Math.ceil(total.value / state.value.size)))
 
 async function load(): Promise<void> {
   loading.value = true
   try {
     const { list: l, total: t } = await getArticles({
       page: state.value.page,
-      pageSize: state.value.pageSize,
-      category: state.value.cat || undefined,
-      tag: state.value.tag || undefined,
-      q: state.value.q || undefined,
+      size: state.value.size,
+      category_id: state.value.category_id || undefined,
+      tag_id: state.value.tag_id || undefined,
+      keyword: state.value.keyword || undefined,
     })
     let rows = l
     // 时间筛选在前端按年份过滤（对齐静态页行为）
-    if (state.value.time !== 'all') rows = rows.filter((a) => a.date.startsWith(state.value.time))
+    if (state.value.time !== 'all') rows = rows.filter((a) => a.published_at.startsWith(state.value.time))
     list.value = rows
     total.value = t
   } catch {
@@ -54,14 +64,15 @@ async function load(): Promise<void> {
     total.value = 0
   } finally {
     loading.value = false
+    triggerReveal()
   }
 }
 
 function applyQuery(next: Record<string, string | number | undefined>, resetPage = true): void {
   const q: Record<string, string | number | undefined> = {
-    q: state.value.q || undefined,
-    category: state.value.cat || undefined,
-    tag: state.value.tag || undefined,
+    keyword: state.value.keyword || undefined,
+    category_id: state.value.category_id || undefined,
+    tag_id: state.value.tag_id || undefined,
     page: resetPage ? 1 : state.value.page,
     ...next,
   }
@@ -69,9 +80,9 @@ function applyQuery(next: Record<string, string | number | undefined>, resetPage
 }
 
 function syncFromQuery(): void {
-  state.value.q = (route.query.q as string) || ''
-  state.value.cat = (route.query.category as string) || ''
-  state.value.tag = (route.query.tag as string) || ''
+  state.value.keyword = (route.query.keyword as string) || ''
+  state.value.category_id = Number(route.query.category_id) || 0
+  state.value.tag_id = Number(route.query.tag_id) || 0
   state.value.page = Number(route.query.page) || 1
   load()
 }
@@ -93,7 +104,7 @@ onMounted(async () => {
   try {
     const [c, t] = await Promise.all([getCategories(), getTags()])
     cats.value = c
-    tags.value = [...t].sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).slice(0, 12)
+    tags.value = [...t].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
   } catch {
     /* 静默 */
   }
@@ -121,33 +132,33 @@ onMounted(async () => {
       <div class="container">
         <div class="widget" style="padding:18px 20px">
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
-            <input v-model="state.q" class="input" type="search" placeholder="搜索标题 / 摘要 / 标签…" style="max-width:320px" @keyup.enter="applyQuery({ q: state.q })" />
-            <button class="btn btn-primary btn-sm" type="button" @click="applyQuery({ q: state.q })"><Search :size="15" />搜索</button>
+            <input v-model="state.keyword" class="input" type="search" placeholder="搜索标题 / 摘要 / 标签…" style="max-width:320px" @keyup.enter="applyQuery({ keyword: state.keyword })" />
+            <button class="btn btn-primary btn-sm" type="button" @click="applyQuery({ keyword: state.keyword })"><Search :size="15" />搜索</button>
           </div>
           <div style="font-size:12.5px;color:var(--text-3);margin-bottom:8px;display:flex;align-items:center;gap:6px"><Folder :size="13" />分类筛选</div>
           <div class="flex gap-2 flex-wrap" style="margin-bottom:14px">
-            <button class="chip" :class="{ active: state.cat === '' }" type="button" @click="applyQuery({ category: undefined })">全部</button>
+            <button class="chip" :class="{ active: state.category_id === 0 }" type="button" @click="applyQuery({ category_id: undefined })">全部</button>
             <button
               v-for="c in cats"
-              :key="c.slug"
+              :key="c.id"
               class="chip"
-              :class="{ active: state.cat === c.slug }"
+              :class="{ active: state.category_id === c.id }"
               type="button"
-              @click="applyQuery({ category: c.slug })"
+              @click="applyQuery({ category_id: c.id })"
             >
               {{ c.name }}
             </button>
           </div>
           <div style="font-size:12.5px;color:var(--text-3);margin-bottom:8px;display:flex;align-items:center;gap:6px"><TagIcon :size="13" />标签筛选</div>
           <div class="flex gap-2 flex-wrap" style="margin-bottom:14px">
-            <button class="chip" :class="{ active: state.tag === '' }" type="button" @click="applyQuery({ tag: undefined })">全部</button>
+            <button class="chip" :class="{ active: state.tag_id === 0 }" type="button" @click="applyQuery({ tag_id: undefined })">全部</button>
             <button
               v-for="t in tags"
               :key="t.id"
               class="chip"
-              :class="{ active: state.tag === t.name }"
+              :class="{ active: state.tag_id === t.id }"
               type="button"
-              @click="applyQuery({ tag: t.name })"
+              @click="applyQuery({ tag_id: t.id })"
             >
               {{ t.name }}
             </button>

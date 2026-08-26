@@ -8,14 +8,12 @@ import type {
   ArticleDetail,
   ArticleSummary,
   Category,
-  CategoryRef,
   CommentItem,
   Dynamic,
   SiteInfo,
   StatsData,
   Tag,
 } from '@/types/models'
-import { initialsAvatar } from '@/utils/avatar'
 
 /** 将多行字符串以 \n 连接（复刻 data.js 的 md()） */
 function md(...lines: string[]): string {
@@ -71,8 +69,6 @@ export const siteData: SiteInfo = {
     'tk|git push origin main ✓ done',
   ].join('\n'),
 }
-
-const AUTHOR_AVATAR = initialsAvatar(SITE.author, '#3b82f6', '#38bdf8')
 
 /* ============ 分类 ============ */
 const CATEGORIES: Array<Omit<Category, 'count'>> = [
@@ -903,12 +899,6 @@ const RAW_ARTICLES: RawArticle[] = [
   },
 ]
 
-/** 按分类名 → 嵌套 CategoryRef（{name,slug,color}） */
-function categoryRef(name: string): CategoryRef {
-  const c = CATEGORIES.find(x => x.name === name)
-  return { name, slug: c ? c.slug : name, color: c ? c.color : '#3b82f6' }
-}
-
 /** 已发布文章摘要列表（保持 date 倒序的插入顺序） */
 export const articleSummaries: ArticleSummary[] = RAW_ARTICLES
   .filter(a => a.status === 'published')
@@ -918,18 +908,17 @@ export const articleSummaries: ArticleSummary[] = RAW_ARTICLES
     title: a.title,
     summary: a.summary,
     cover_image: a.cover_image,
-    category: categoryRef(a.category),
-    tags: a.tags,
-    date: a.date,
-    updated: a.updated,
+    category_id: CATEGORIES.find(c => c.name === a.category)?.id ?? 0,
+    category_name: a.category,
+    author_name: SITE.author,
+    tags: a.tags.map(t => ({ id: 0, name: t, slug: t.toLowerCase().replace(/\s+/g, '-') })),
     views: a.views,
     likes: a.likes,
     comment_count: a.comment_count,
-    featured: a.featured,
-    hot: a.hot,
+    published_at: a.date,
   }))
 
-/** 文章详情 = 摘要字段 + author + content（slug 或数字 id） */
+/** 文章详情 = 摘要字段 + content（slug 或数字 id） */
 export function getArticleDetail(slugOrId: string | number): ArticleDetail | undefined {
   const raw = RAW_ARTICLES.find(a => a.slug === slugOrId || String(a.id) === String(slugOrId))
   if (!raw || raw.status !== 'published') return undefined
@@ -939,16 +928,14 @@ export function getArticleDetail(slugOrId: string | number): ArticleDetail | und
     title: raw.title,
     summary: raw.summary,
     cover_image: raw.cover_image,
-    category: categoryRef(raw.category),
-    tags: raw.tags,
-    date: raw.date,
-    updated: raw.updated,
+    category_id: CATEGORIES.find(c => c.name === raw.category)?.id ?? 0,
+    category_name: raw.category,
+    author_name: SITE.author,
+    tags: raw.tags.map(t => ({ id: 0, name: t, slug: t.toLowerCase().replace(/\s+/g, '-') })),
     views: raw.views,
     likes: raw.likes,
     comment_count: raw.comment_count,
-    featured: raw.featured,
-    hot: raw.hot,
-    author: { nickname: SITE.author, avatar: AUTHOR_AVATAR, role: SITE.role },
+    published_at: raw.date,
     content: raw.content,
   }
 }
@@ -956,13 +943,13 @@ export function getArticleDetail(slugOrId: string | number): ArticleDetail | und
 /** 分类列表（含文章数） */
 export const categories: Category[] = CATEGORIES.map(c => ({
   ...c,
-  count: articleSummaries.filter(a => a.category.slug === c.slug).length,
+  count: articleSummaries.filter(a => a.category_id === c.id).length,
 }))
 
 /** 标签列表（含文章数） */
 export const tags: Tag[] = TAGS.map(t => ({
   ...t,
-  count: articleSummaries.reduce((n, a) => n + (a.tags.includes(t.name) ? 1 : 0), 0),
+  count: articleSummaries.reduce((n, a) => n + (a.tags.some(tag => tag.name === t.name) ? 1 : 0), 0),
 }))
 
 /* ============ 评论 ============ */
@@ -1010,12 +997,12 @@ export function commentsForArticle(article_id: number): CommentItem[] {
 export function archives(): ArchiveItem[] {
   const map = new Map<string, ArchiveItem>()
   for (const a of articleSummaries) {
-    const [year, month] = a.date.split('-')
+    const [year, month] = a.published_at.split('-')
     const key = year + '-' + month
     if (!map.has(key)) map.set(key, { year, month, count: 0, articles: [] })
     const item = map.get(key)!
     item.count++
-    item.articles.push({ id: a.id, title: a.title, date: a.date, category: a.category.name, views: a.views })
+    item.articles.push({ id: a.id, title: a.title, date: a.published_at, category: a.category_name, views: a.views })
   }
   return [...map.values()].sort((x, y) => (x.year + x.month < y.year + y.month ? 1 : -1))
 }

@@ -1,6 +1,6 @@
 /**
  * 文章接口：列表 / 详情 / 点赞。
- * 参数与 docs/api.md 完全一致（page / page_size / category / tag / q / sort）。
+ * 参数与后端保持一致（page / size / category_id / tag_id / keyword）。
  */
 import { request } from './http'
 import type { ArticleDetail, ArticleSummary, LikeResult } from '@/types/models'
@@ -8,19 +8,16 @@ import type { Paged } from '@/types/api'
 
 export interface ArticleQuery {
   page?: number
-  pageSize?: number
-  category?: string
-  tag?: string
-  q?: string
+  size?: number
+  category_id?: number
+  tag_id?: number
+  keyword?: string
   sort?: 'latest' | 'hot'
 }
 
 /** 文章列表 GET /articles */
 export function getArticles(params: ArticleQuery = {}): Promise<Paged<ArticleSummary>> {
-  const { pageSize, ...rest } = params
-  const query: Record<string, string | number | undefined> = { ...rest }
-  if (pageSize !== undefined) query.page_size = pageSize
-  return request<Paged<ArticleSummary>>({ method: 'GET', url: '/articles', params: query })
+  return request<Paged<ArticleSummary>>({ method: 'GET', url: '/articles', params })
 }
 
 /** 文章详情 GET /articles/{slug}（slug 或数字 id） */

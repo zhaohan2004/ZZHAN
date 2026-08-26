@@ -20,13 +20,6 @@ export interface Tag {
   count?: number
 }
 
-/** 文章内嵌分类对象：{ name, slug, color } */
-export interface CategoryRef {
-  name: string
-  slug: string
-  color: string
-}
-
 /** 文章摘要（列表项） */
 export interface ArticleSummary {
   id: number
@@ -34,27 +27,25 @@ export interface ArticleSummary {
   title: string
   summary: string
   cover_image: string
-  category: CategoryRef
-  tags: string[]
-  date: string
-  updated: string
+  category_id: number
+  category_name: string
+  author_name: string
+  tags: TagItem[]
   views: number
   likes: number
   comment_count: number
-  featured: boolean
-  hot: boolean
+  published_at: string
 }
 
-/** 作者 */
-export interface Author {
-  nickname: string
-  avatar: string
-  role: string
+/** 标单项 */
+export interface TagItem {
+  id: number
+  name: string
+  slug: string
 }
 
-/** 文章详情 = 摘要字段 + author + content */
+/** 文章详情 = 摘要字段 + content */
 export interface ArticleDetail extends ArticleSummary {
-  author: Author
   content: string
 }
 
@@ -156,7 +147,7 @@ export interface ArchiveItem {
   year: string
   month: string
   count: number
-  articles: { id: number; title: string; date: string; category: string; views: number }[]
+  articles: { id: number; slug: string; title: string; date: string; category: string; views: number }[]
 }
 
 /** 前台登录用户 */
