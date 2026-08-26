@@ -15,6 +15,10 @@ async function load() {
   loading.value = true
   try {
     const s = await getSettings()
+    // socials 后端返回的是 JSON 字符串，需要解析为数组
+    if (typeof s.socials === 'string') {
+      try { s.socials = JSON.parse(s.socials as string) } catch { s.socials = [] }
+    }
     Object.assign(form, s)
   } catch {
     toast.error('加载设置失败')

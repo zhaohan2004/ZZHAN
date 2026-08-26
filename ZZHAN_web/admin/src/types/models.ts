@@ -109,7 +109,6 @@ export interface Operation {
 export interface AdminProfile {
   nickname: string
   avatar: string
-  email: string
   /** 登录账号（GET /admin/profile 返回，用于展示/修改） */
   username?: string
 }

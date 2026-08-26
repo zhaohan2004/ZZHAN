@@ -14,11 +14,23 @@ export const useAuthStore = defineStore('auth', () => {
 
   const loggedIn = computed(() => !!token.value)
 
-  async function login(username: string, password: string, captcha: string): Promise<boolean> {
-    const res = await adminLogin(username, password, captcha)
+  // 监听 storage 事件，当 token 被其他地方清除时自动更新状态
+  function onStorage(e: StorageEvent) {
+    if (e.key === TOKEN_KEY) {
+      token.value = e.newValue
+      if (!e.newValue) {
+        profile.value = null
+      }
+    }
+  }
+  window.addEventListener('storage', onStorage)
+
+  async function login(username: string, password: string, captchaId: string, captchaCode: string): Promise<boolean> {
+    const res = await adminLogin(username, password, captchaId, captchaCode)
     token.value = res.access_token
     localStorage.setItem(TOKEN_KEY, res.access_token)
-    profile.value = res.profile
+    // 登录后立即加载管理员资料
+    await loadProfile()
     return true
   }
 

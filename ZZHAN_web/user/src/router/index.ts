@@ -13,6 +13,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/tags', name: 'tags', component: () => import('@/views/TagsView.vue'), meta: { title: '标签' } },
   { path: '/archive', name: 'archive', component: () => import('@/views/ArchiveView.vue'), meta: { title: '归档' } },
   { path: '/about', name: 'about', component: () => import('@/views/AboutView.vue'), meta: { title: '关于我' } },
+  { path: '/auth/github/callback', name: 'github-callback', component: () => import('@/views/GitHubCallback.vue'), meta: { title: 'GitHub 登录' } },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 

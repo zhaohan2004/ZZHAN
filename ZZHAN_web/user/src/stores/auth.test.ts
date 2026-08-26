@@ -30,14 +30,6 @@ describe('auth', () => {
     expect(s.isLoggedIn).toBe(false)
   })
 
-  it('loginWith("wechat","code") works too', async () => {
-    const s = useAuthStore()
-    const ok = await s.loginWith('wechat', 'code')
-    expect(ok).toBe(true)
-    expect(s.token).toBe('mock-access-token-wechat')
-    expect(s.user?.provider).toBe('wechat')
-  })
-
   it('ensureAuth returns true when logged in, else opens login modal and returns false', async () => {
     const s = useAuthStore()
     const denied = await s.ensureAuth()

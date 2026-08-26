@@ -15,11 +15,11 @@ var (
 )
 
 // GenerateToken 生成指定类型的 JWT Token
-func GenerateToken(userID uint, username string, tokenType string) (string, error) {
+func GenerateToken(userID int, username string, tokenType string) (string, error) {
 	cfg := config.Get().JWT
 
 	var expireDuration time.Duration
-	if tokenType == "refresh" {
+	if tokenType == "refresh_token" {
 		expireDuration = cfg.RefreshExpireHours * time.Hour
 	} else {
 		expireDuration = cfg.AccessExpireHours * time.Hour
@@ -42,12 +42,12 @@ func GenerateToken(userID uint, username string, tokenType string) (string, erro
 }
 
 // GenerateTokenPair 生成access + refresh token 对
-func GenerateTokenPair(userID uint, username string) (accessToken, refreshToken string, err error) {
-	accessToken, err = GenerateToken(userID, username, "access")
+func GenerateTokenPair(userID int, username string) (accessToken, refreshToken string, err error) {
+	accessToken, err = GenerateToken(userID, username, "access_token")
 	if err != nil {
 		return "", "", err
 	}
-	refreshToken, err = GenerateToken(userID, username, "refresh")
+	refreshToken, err = GenerateToken(userID, username, "refresh_token")
 	if err != nil {
 		return "", "", err
 	}

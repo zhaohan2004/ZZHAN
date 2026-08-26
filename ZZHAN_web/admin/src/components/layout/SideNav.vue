@@ -7,11 +7,13 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { FileText, Folder, Home, MessageCircle, Settings, Tag } from 'lucide-vue-next'
 import { listComments } from '@/api/admin'
+import { useSettingsStore } from '@/stores/settings'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
 const route = useRoute()
+const settings = useSettingsStore()
 const bannedCount = ref(0)
 
 onMounted(async () => {
@@ -60,8 +62,8 @@ function isActive(item: NavItem): boolean {
 <template>
   <aside class="admin-sidebar" :class="{ open }">
     <div class="side-brand">
-      <span class="brand-logo">CT</span>
-      <span class="brand-text">CodeThink<span class="brand-dot">.</span><span style="font-size:11px;color:var(--text-3);font-weight:400;margin-left:8px">管理后台</span></span>
+      <span class="brand-logo">{{ settings.settings?.logo_text || 'CT' }}</span>
+      <span class="brand-text">{{ settings.settings?.blog_name || 'Blog' }}<span class="brand-dot">.</span><span style="font-size:11px;color:var(--text-3);font-weight:400;margin-left:8px">管理后台</span></span>
     </div>
     <nav class="side-nav">
       <template v-for="g in groups" :key="g.label">

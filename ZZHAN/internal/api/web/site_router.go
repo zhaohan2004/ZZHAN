@@ -5,6 +5,5 @@ import (
 )
 
 func (c *SiteController) RegisterRoutes(r *gin.RouterGroup) {
-
 	r.GET("/site", c.GetSite)
 }

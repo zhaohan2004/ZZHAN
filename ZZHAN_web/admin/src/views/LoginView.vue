@@ -1,60 +1,64 @@
 <script setup lang="ts">
-/** 后台登录页 — 1:1 复刻静态 login.html（.login-card / .form-group / .input / .captcha-row / .btn）。
- *  去 Element Plus：用自写 toast + lucide-vue-next 图标。 */
-import { ref } from 'vue'
+/** 后台登录页 — 服务端 base64 验证码 */
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Loader2, Lock, LogIn, Moon, RefreshCw, Sun, User } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
+import { useSettingsStore } from '@/stores/settings'
 import { toast } from '@/composables/useToast'
-import CaptchaCanvas from '@/components/auth/CaptchaCanvas.vue'
+import { getCaptcha } from '@/api/admin'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const theme = useThemeStore()
+const settings = useSettingsStore()
 
 const username = ref('admin')
 const password = ref('123456')
-const captcha = ref('')
-const captchaText = ref('')
+const captchaCode = ref('')
 const remember = ref(true)
 const loading = ref(false)
 
-const captchaRef = ref<InstanceType<typeof CaptchaCanvas> | null>(null)
+// 服务端验证码
+const captchaId = ref('')
+const captchaB64 = ref('')
+
+async function loadCaptcha(): Promise<void> {
+  try {
+    const res = await getCaptcha()
+    captchaId.value = res.captcha_id
+    captchaB64.value = res.captcha_image
+    captchaCode.value = ''
+  } catch {
+    toast.error('获取验证码失败')
+  }
+}
+
+onMounted(loadCaptcha)
 
 async function onLogin(): Promise<void> {
   if (!username.value.trim() || !password.value.trim()) {
     toast.error('请输入用户名和密码')
     return
   }
-  if (!captcha.value) {
+  if (!captchaCode.value.trim()) {
     toast.error('请输入验证码')
-    return
-  }
-  if (captcha.value.trim().toUpperCase() !== captchaText.value) {
-    toast.error('验证码错误，请重新输入')
-    captcha.value = ''
-    captchaRef.value?.refresh()
     return
   }
   loading.value = true
   try {
-    await auth.login(username.value.trim(), password.value.trim(), captcha.value.trim())
+    await auth.login(username.value.trim(), password.value.trim(), captchaId.value, captchaCode.value.trim())
     toast.success('登录成功，欢迎回来')
     const redirect = (route.query.redirect as string) || '/'
     router.push(redirect)
   } catch (e) {
     toast.error((e as Error).message || '登录失败')
-    captcha.value = ''
-    captchaRef.value?.refresh()
+    await loadCaptcha()
   } finally {
     loading.value = false
   }
-}
-
-function onCaptchaChange(text: string): void {
-  captchaText.value = text
 }
 </script>
 
@@ -72,9 +76,9 @@ function onCaptchaChange(text: string): void {
 
     <div class="login-card anim-fade">
       <div class="login-logo">
-        <span class="brand-logo">CT</span>
-        <h1>CodeThink <span class="grad-text">管理后台</span></h1>
-        <p>代码、思考、创造 · 后台管理系统</p>
+        <span class="brand-logo">{{ settings.settings?.logo_text || 'CT' }}</span>
+        <h1>{{ settings.settings?.blog_name || 'Blog' }} <span class="grad-text">管理后台</span></h1>
+        <p>{{ settings.settings?.blog_desc || '后台管理系统' }}</p>
       </div>
       <form novalidate @submit.prevent="onLogin">
         <div class="form-group">
@@ -94,8 +98,21 @@ function onCaptchaChange(text: string): void {
         <div class="form-group">
           <label class="form-label" for="loginCaptcha">图形验证码 <span class="req">*</span></label>
           <div class="captcha-row">
-            <input id="loginCaptcha" v-model="captcha" class="input" type="text" maxlength="4" placeholder="验证码" style="text-transform: uppercase; font-family: 'JetBrains Mono', monospace" autocomplete="off">
-            <CaptchaCanvas ref="captchaRef" @change="onCaptchaChange" />
+            <input id="loginCaptcha" v-model="captchaCode" class="input" type="text" maxlength="5" placeholder="验证码" style="text-transform: uppercase; font-family: 'JetBrains Mono', monospace" autocomplete="off">
+            <img
+              v-if="captchaB64"
+              :src="captchaB64"
+              alt="验证码"
+              title="点击刷新验证码"
+              style="cursor: pointer; height: 42px; border-radius: 12px; border: 1px solid var(--border-strong)"
+              @click="loadCaptcha"
+            >
+            <div
+              v-else
+              style="width: 120px; height: 42px; border-radius: 12px; border: 1px solid var(--border-strong); display: flex; align-items: center; justify-content: center; color: var(--text-3); font-size: 12px"
+            >
+              加载中...
+            </div>
           </div>
           <div class="form-hint"><RefreshCw :size="12" style="vertical-align: -2px" /> 点击图片可刷新验证码</div>
         </div>
@@ -112,7 +129,6 @@ function onCaptchaChange(text: string): void {
         </button>
       </form>
       <div class="form-hint" style="text-align: center; margin-top: 16px; line-height: 1.9">
-        演示环境：任意账号密码 + 正确验证码即可登录<br>
         推荐账号：admin / 123456
       </div>
     </div>

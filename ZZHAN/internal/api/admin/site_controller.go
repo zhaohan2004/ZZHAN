@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"ZZHAN/internal/repository"
 	"ZZHAN/internal/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -8,10 +9,11 @@ import (
 
 type SiteAdminController struct {
 	siteService service.SiteService
+	redisRepo   repository.RedisRepository
 }
 
-func NewSiteAdminController(siteService service.SiteService) *SiteAdminController {
-	return &SiteAdminController{siteService: siteService}
+func NewSiteAdminController(siteService service.SiteService, redisRepo repository.RedisRepository) *SiteAdminController {
+	return &SiteAdminController{siteService: siteService, redisRepo: redisRepo}
 }
 
 // GetSettings 获取所有设置

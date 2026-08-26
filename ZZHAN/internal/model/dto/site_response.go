@@ -1,5 +1,6 @@
 package dto
 
+// SiteResponse 站点响应
 type SiteResponse struct {
 	Name         string        `json:"name"`
 	LogoText     string        `json:"logo_text"`
@@ -17,6 +18,7 @@ type SiteResponse struct {
 	HeroTerminal string        `json:"hero_terminal"`
 }
 
+// SocialsList 社交列表
 type SocialsList struct {
 	Name string `json:"name"`
 	Icon string `json:"icon"`
