@@ -142,20 +142,29 @@ func (a *App) initDatabase() error {
 
 // initDependencies 初始化依赖注入
 func (a *App) initDependencies() {
+	// ========== 创建 Redis 仓储 ==========
+	redisRepo := repository.NewRedisRepository(a.redis)
+
 	// ========== 创建 Repository ==========
 	siteRepo := repository.NewSiteRepository(a.mysqlDB)
 	siteAdminRepo := repository.NewSiteRepository(a.mysqlDB)
+	authRepo := repository.NewAuthRepository(a.mysqlDB)
+	adminAuthRepo := repository.NewAdminAuthRepository(a.mysqlDB)
 
 	// ========== 创建 Service ==========
 	siteService := service.NewSiteService(siteRepo)
 	siteAdminService := service.NewSiteService(siteAdminRepo)
+	authService := service.NewAuthService(authRepo, redisRepo)
+	adminAuthService := service.NewAdminAuthService(adminAuthRepo, redisRepo)
 
 	//// ========== 创建 Controller ==========
 	siteController := web.NewSiteController(siteService)
-	siteAdminController := admin.NewSiteAdminController(siteAdminService)
+	siteAdminController := admin.NewSiteAdminController(siteAdminService, redisRepo)
+	adminAuthController := admin.NewAdminAuthController(adminAuthService, redisRepo)
+	authController := web.NewAuthController(authService, redisRepo)
 
 	// ========== 创建 Router ==========
-	a.router = api.NewRouter(siteController, siteAdminController)
+	a.router = api.NewRouter(siteController, siteAdminController, adminAuthController, authController)
 }
 
 // initRouter 初始化路由

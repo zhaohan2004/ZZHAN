@@ -111,17 +111,15 @@ function articleLike(ctx: MockContext) {
   return { liked: true, likes: article.likes }
 }
 
-function loginResult(provider: 'wechat' | 'github'): LoginResult {
-  // 模拟 OAuth 直接返回真实昵称+头像（前端不再提供编辑入口）
-  const nickname = provider === 'wechat' ? '微信用户' : 'GitHub User'
-  const colors: [string, string] =
-    provider === 'wechat' ? ['#07c160', '#00d866'] : ['#24292e', '#58a6ff']
-  const avatar = initialsAvatar(nickname.charAt(0), colors[0], colors[1], 160)
+function loginResult(): LoginResult {
+  // 模拟 GitHub OAuth 直接返回用户信息
+  const nickname = 'GitHub User'
+  const avatar = initialsAvatar(nickname.charAt(0), '#24292e', '#58a6ff', 160)
   return {
-    access_token: 'mock-access-token-' + provider,
-    refresh_token: 'mock-refresh-token-' + provider,
+    access_token: 'mock-access-token-github',
+    refresh_token: 'mock-refresh-token-github',
     expires_in: 7200,
-    user: { id: provider === 'wechat' ? 1 : 2, provider, nickname, avatar },
+    user: { id: 1, provider: 'github', nickname, avatar },
     need_profile: false,
   }
 }
@@ -176,8 +174,7 @@ const routes: MockRoute[] = [
   { pattern: buildPattern('POST /articles/*/comments'), handler: postComment },
   { pattern: buildPattern('POST /articles/*/like'), handler: articleLike },
   { pattern: buildPattern('POST /comments/*/like'), handler: () => ({ liked: true, like_count: 13 }) },
-  { pattern: buildPattern('POST /auth/wechat'), handler: () => loginResult('wechat') },
-  { pattern: buildPattern('POST /auth/github'), handler: () => loginResult('github') },
+  { pattern: buildPattern('POST /auth/github'), handler: () => loginResult() },
   { pattern: buildPattern('POST /auth/refresh'), handler: () => ({ access_token: 'mock-refreshed-token', expires_in: 7200 }) },
   { pattern: buildPattern('POST /auth/logout'), handler: () => null },
   { pattern: buildPattern('PUT /auth/profile'), handler: (ctx) => ({ user: (ctx.data ?? {}) }) },

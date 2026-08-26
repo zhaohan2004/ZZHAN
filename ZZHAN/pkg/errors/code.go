@@ -36,6 +36,7 @@ const (
 	CodeResourceNotFound      = 3001
 	CodeResourceAlreadyExists = 3002
 	CodeResourceLocked        = 3003
+	CodeCaptchaInvalid        = 3004 // 图形验证码错误
 )
 
 // 错误码对应的文本消息
@@ -63,6 +64,7 @@ var codeMessages = map[int]string{
 	CodeResourceNotFound:      "资源不存在",
 	CodeResourceAlreadyExists: "资源已存在",
 	CodeResourceLocked:        "资源已被锁定",
+	CodeCaptchaInvalid:        "图形验证码错误",
 }
 
 // GetMessage 获取错误码对应的文本消息

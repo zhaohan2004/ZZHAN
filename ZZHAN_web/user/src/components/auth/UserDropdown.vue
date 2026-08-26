@@ -14,7 +14,7 @@ function avatarFor(): string {
   const u = auth.user
   if (!u) return initialsAvatar('?', '#3b82f6', '#38bdf8', 64)
   if (u.avatar) return u.avatar
-  const color = u.provider === 'wechat' ? '#07c160' : '#24292f'
+  const color = '#24292f'
   return initialsAvatar(u.nickname || '我', color, color, 64)
 }
 
@@ -46,7 +46,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutside))
       <div v-if="menuOpen" class="ud-menu">
         <div class="px-3 pb-2 pt-1">
           <div class="text-[14px] font-semibold text-text">{{ auth.user?.nickname || '用户' }}</div>
-          <div class="text-[12px] text-text-3">{{ auth.user?.provider === 'wechat' ? '微信用户' : 'GitHub 用户' }}</div>
+          <div class="text-[12px] text-text-3">GitHub 用户</div>
         </div>
         <button class="ud-item" type="button" @click="auth.loginModalOpen = true; auth.need_profile = true; menuOpen = false">
           <UserRound :size="15" /> 完善资料

@@ -18,13 +18,22 @@ import type {
 
 export interface LoginResult {
   access_token: string
-  expires_in: number
-  profile: AdminProfile
+  refresh_token: string
+  user: { id: number; provider: string; nickname: string; avatar: string }
+}
+
+export interface CaptchaResult {
+  captcha_id: string
+  captcha_image: string
 }
 
 /* ---------- 认证 ---------- */
-export function adminLogin(username: string, password: string, captcha: string): Promise<LoginResult> {
-  return request<LoginResult>({ method: 'POST', url: '/admin/auth/login', data: { username, password, captcha } })
+export function getCaptcha(): Promise<CaptchaResult> {
+  return request<CaptchaResult>({ method: 'GET', url: '/admin/auth/captcha' })
+}
+
+export function adminLogin(username: string, password: string, captchaId: string, captchaCode: string): Promise<LoginResult> {
+  return request<LoginResult>({ method: 'POST', url: '/admin/auth/login', data: { username, password, captcha_id: captchaId, captcha: captchaCode } })
 }
 export function adminLogout(): Promise<null> {
   return request<null>({ method: 'POST', url: '/admin/auth/logout' })

@@ -41,7 +41,7 @@ router.beforeEach((to) => {
 })
 
 router.afterEach((to) => {
-  document.title = `${String(to.meta.title || '管理后台')} - CodeThink 管理后台`
+  document.title = `${String(to.meta.title || '管理后台')} - 管理后台`
 })
 
 export default router

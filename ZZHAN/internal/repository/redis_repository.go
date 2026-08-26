@@ -55,3 +55,35 @@ func (r *redisRepository) Exists(ctx context.Context, key string) (bool, error) 
 	n, err := r.redis.Exists(ctx, key).Result()
 	return n > 0, err
 }
+
+// Available 判断 Redis 是否可用
+func (r *redisRepository) Available(ctx context.Context) bool {
+	if r.redis == nil {
+		return false
+	}
+	return r.redis.Ping(ctx).Err() == nil
+}
+
+// ========== Token 黑名单方法 ==========
+
+// blacklistKeyPrefix 黑名单 key 前缀
+const blacklistKeyPrefix = "token:blacklist:"
+
+// AddToBlacklist 将 token 加入黑名单
+func (r *redisRepository) AddToBlacklist(ctx context.Context, token string, expiration time.Duration) error {
+	if r.redis == nil {
+		return nil
+	}
+	key := blacklistKeyPrefix + token
+	return r.redis.Set(ctx, key, "1", expiration).Err()
+}
+
+// IsBlacklisted 检查 token 是否在黑名单中
+func (r *redisRepository) IsBlacklisted(ctx context.Context, token string) (bool, error) {
+	if r.redis == nil {
+		return false, nil
+	}
+	key := blacklistKeyPrefix + token
+	n, err := r.redis.Exists(ctx, key).Result()
+	return n > 0, err
+}

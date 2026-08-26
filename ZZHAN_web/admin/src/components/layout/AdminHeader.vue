@@ -8,6 +8,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ChevronDown, LogOut, Menu, Moon, Sun, Trash2, Upload, UserCog, X } from 'lucide-vue-next'
 import { useThemeStore } from '@/stores/theme'
 import { useAuthStore } from '@/stores/auth'
+import { useSettingsStore } from '@/stores/settings'
 import { confirm, toast } from '@/composables/useToast'
 import { initialsAvatar } from '@/utils/cover'
 import type { AdminProfile } from '@/types/models'
@@ -18,6 +19,7 @@ const route = useRoute()
 const router = useRouter()
 const theme = useThemeStore()
 const auth = useAuthStore()
+const settings = useSettingsStore()
 const menuOpen = ref(false)
 
 const title = computed(() => String(route.meta.title || '管理后台'))
@@ -29,14 +31,12 @@ const avatar = computed(() => {
 })
 
 const profileOpen = ref(false)
-const editEmail = ref('')
 const editUsername = ref('')
 const editPassword = ref('')
 const editPassword2 = ref('')
 const avatarUrl = ref('')
 function openProfile(): void {
   menuOpen.value = false
-  editEmail.value = auth.profile?.email || ''
   editUsername.value = auth.profile?.username || ''
   editPassword.value = ''
   editPassword2.value = ''
@@ -76,7 +76,6 @@ async function saveProfile(): Promise<void> {
   try {
     const payload: AdminProfile & { password?: string } = {
       ...auth.profile,
-      email: editEmail.value,
       username: editUsername.value,
       avatar: avatarUrl.value,
     }
@@ -112,28 +111,33 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
     <button class="icon-btn" type="button" aria-label="菜单" @click="emit('toggle')"><Menu :size="19" /></button>
     <div>
       <div class="h-title"><span style="color: var(--accent)">{{ title }}</span></div>
-      <div class="h-crumb">CodeThink 管理后台</div>
+      <div class="h-crumb">{{ settings.settings?.blog_name || 'Blog' }} 管理后台</div>
     </div>
     <div class="h-right">
       <button class="icon-btn" type="button" :title="theme.dark ? '切换浅色' : '切换深色'" @click="theme.toggle()">
         <component :is="theme.dark ? Sun : Moon" :size="18" />
       </button>
-      <div class="admin-user" :class="{ open: menuOpen }">
-        <button class="icon-btn" type="button" title="账号" @click.stop="menuOpen = !menuOpen">
-          <img :src="avatar" alt="头像" style="width: 32px; height: 32px; border-radius: 9px">
-          <ChevronDown class="au-caret" :size="12" />
-        </button>
-        <div class="nav-dd" v-show="menuOpen" @click.stop>
-          <div class="au-head">
-            <img :src="avatar" alt="">
-            <div><b>{{ auth.profile?.nickname || '阿轩' }}</b><span>超级管理员</span></div>
+      <template v-if="auth.loggedIn">
+        <div class="admin-user" :class="{ open: menuOpen }">
+          <button class="icon-btn" type="button" title="账号" @click.stop="menuOpen = !menuOpen">
+            <img :src="avatar" alt="头像" style="width: 32px; height: 32px; border-radius: 9px">
+            <ChevronDown class="au-caret" :size="12" />
+          </button>
+          <div class="nav-dd" v-show="menuOpen" @click.stop>
+            <div class="au-head">
+              <img :src="avatar" alt="">
+              <div><b>{{ auth.profile?.nickname || '管理员' }}</b><span>超级管理员</span></div>
+            </div>
+            <div class="dd-sep"></div>
+            <button class="nav-dd-item" type="button" @click="openProfile"><UserCog :size="15" /> 个人信息</button>
+            <div class="dd-sep"></div>
+            <button class="nav-dd-item danger" type="button" @click="onLogout"><LogOut :size="15" /> 退出登录</button>
           </div>
-          <div class="dd-sep"></div>
-          <button class="nav-dd-item" type="button" @click="openProfile"><UserCog :size="15" /> 个人信息</button>
-          <div class="dd-sep"></div>
-          <button class="nav-dd-item danger" type="button" @click="onLogout"><LogOut :size="15" /> 退出登录</button>
         </div>
-      </div>
+      </template>
+      <template v-else>
+        <button class="btn btn-primary btn-sm" type="button" @click="router.push('/login')">登录</button>
+      </template>
     </div>
   </header>
 
@@ -163,15 +167,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
             </div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px">
-          <div class="form-group">
-            <label class="form-label">账号</label>
-            <input class="input" v-model="editUsername" type="text" placeholder="登录账号" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">邮箱</label>
-            <input class="input" v-model="editEmail" type="email" placeholder="admin@example.com" />
-          </div>
+        <div class="form-group">
+          <label class="form-label">账号</label>
+          <input class="input" v-model="editUsername" type="text" placeholder="登录账号" />
         </div>
         <div class="form-group">
           <label class="form-label">新密码 <span class="form-hint" style="display:inline;margin-left:6px">留空则不修改</span></label>

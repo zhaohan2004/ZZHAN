@@ -59,7 +59,7 @@ const userAvatar = computed(() => {
   return initialsAvatar(auth.user?.nickname || '用', '#3b82f6', '#38bdf8', 64)
 })
 const providerLabel = computed(() =>
-  auth.user?.provider === 'wechat' ? '微信用户' : auth.user?.provider === 'github' ? 'GitHub 用户' : '访客',
+  auth.user?.provider === 'github' ? 'GitHub 用户' : '访客',
 )
 
 function onDocClick(): void {

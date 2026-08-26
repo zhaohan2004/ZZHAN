@@ -7,7 +7,7 @@ import (
 
 func (c *SiteAdminController) RegisterRoutes(r *gin.RouterGroup) {
 	admin := r.Group("/admin")
-	admin.Use(middleware.Auth())
+	admin.Use(middleware.Auth(c.redisRepo))
 	{
 		admin.GET("/settings", c.GetSettings)
 		admin.PUT("/settings", c.UpdateSettings)

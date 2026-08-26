@@ -12,16 +12,22 @@ import (
 type Router struct {
 	siteController      *web.SiteController
 	siteAdminController *admin.SiteAdminController
+	adminAuthController *admin.AdminAuthController
+	authController      *web.AuthController
 }
 
 // NewRouter 创建路由
 func NewRouter(
 	siteController *web.SiteController,
 	siteAdminController *admin.SiteAdminController,
+	adminAuthController *admin.AdminAuthController,
+	authController *web.AuthController,
 ) *Router {
 	return &Router{
 		siteController:      siteController,
 		siteAdminController: siteAdminController,
+		adminAuthController: adminAuthController,
+		authController:      authController,
 	}
 }
 
@@ -48,8 +54,14 @@ func (r *Router) Setup(engine *gin.Engine) {
 		//前台获取站点信息路由
 		r.siteController.RegisterRoutes(apiGroup)
 
+		//后台认证路由（验证码 + 登录）
+		r.adminAuthController.RegisterRoutes(apiGroup)
+
 		//后台系统设置路由
 		r.siteAdminController.RegisterRoutes(apiGroup)
+
+		//前台认证路由
+		r.authController.RegisterRoutes(apiGroup)
 	}
 }
 

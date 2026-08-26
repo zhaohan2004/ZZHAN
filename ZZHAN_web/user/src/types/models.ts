@@ -167,22 +167,15 @@ export interface AuthUser {
   avatar: string
 }
 
-/** 登录结果（微信 / GitHub） */
+/** 登录结果（GitHub OAuth） */
 export interface LoginResult {
   access_token: string
   refresh_token: string
-  expires_in: number
   user: AuthUser
-  need_profile: boolean
 }
 
 /** 刷新令牌结果 */
 export interface RefreshResult {
   access_token: string
-  expires_in: number
 }
 
-/** 完善资料结果 */
-export interface UpdateProfileResult {
-  user: Pick<AuthUser, 'nickname' | 'avatar'>
-}
