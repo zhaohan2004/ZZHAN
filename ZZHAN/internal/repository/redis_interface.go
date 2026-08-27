@@ -24,4 +24,13 @@ type RedisRepository interface {
 
 	// IsBlacklisted 检查 token 是否在黑名单中
 	IsBlacklisted(ctx context.Context, token string) (bool, error)
+
+	// ========== 浏览量去重方法 ==========
+
+	// CheckViewAccess 检查是否已访问过文章（用于浏览量去重）
+	// 返回 true 表示已访问过，false 表示首次访问
+	CheckViewAccess(ctx context.Context, articleID int64, clientIP string) (bool, error)
+
+	// SetViewAccess 设置文章访问标记
+	SetViewAccess(ctx context.Context, articleID int64, clientIP string, expiration time.Duration) error
 }

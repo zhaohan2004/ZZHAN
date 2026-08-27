@@ -48,7 +48,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutside))
           <div class="text-[14px] font-semibold text-text">{{ auth.user?.nickname || '用户' }}</div>
           <div class="text-[12px] text-text-3">GitHub 用户</div>
         </div>
-        <button class="ud-item" type="button" @click="auth.loginModalOpen = true; auth.need_profile = true; menuOpen = false">
+        <button class="ud-item" type="button" @click="auth.loginModalOpen = true; menuOpen = false">
           <UserRound :size="15" /> 完善资料
         </button>
         <button class="ud-item" type="button" @click="onLogout">

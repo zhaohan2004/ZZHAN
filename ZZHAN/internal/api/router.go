@@ -10,10 +10,17 @@ import (
 
 // Router 路由
 type Router struct {
-	siteController      *web.SiteController
-	siteAdminController *admin.SiteAdminController
-	adminAuthController *admin.AdminAuthController
-	authController      *web.AuthController
+	siteController       *web.SiteController
+	siteAdminController  *admin.SiteAdminController
+	adminAuthController  *admin.AdminAuthController
+	authController       *web.AuthController
+	articlesController   *web.ArticlesController
+	categoriesController *web.CategoriesController
+	tagsController       *web.TagsController
+	archivesController   *web.ArchivesController
+	statsController      *web.StatsController
+	aboutController      *web.AboutController
+	commentsController   *web.CommentsController
 }
 
 // NewRouter 创建路由
@@ -22,12 +29,26 @@ func NewRouter(
 	siteAdminController *admin.SiteAdminController,
 	adminAuthController *admin.AdminAuthController,
 	authController *web.AuthController,
+	articlesController *web.ArticlesController,
+	categoriesController *web.CategoriesController,
+	tagsController *web.TagsController,
+	archivesController *web.ArchivesController,
+	statsController *web.StatsController,
+	aboutController *web.AboutController,
+	commentsController *web.CommentsController,
 ) *Router {
 	return &Router{
-		siteController:      siteController,
-		siteAdminController: siteAdminController,
-		adminAuthController: adminAuthController,
-		authController:      authController,
+		siteController:       siteController,
+		siteAdminController:  siteAdminController,
+		adminAuthController:  adminAuthController,
+		authController:       authController,
+		articlesController:   articlesController,
+		categoriesController: categoriesController,
+		tagsController:       tagsController,
+		archivesController:   archivesController,
+		statsController:      statsController,
+		aboutController:      aboutController,
+		commentsController:   commentsController,
 	}
 }
 
@@ -62,6 +83,27 @@ func (r *Router) Setup(engine *gin.Engine) {
 
 		//前台认证路由
 		r.authController.RegisterRoutes(apiGroup)
+
+		//前台文章路由
+		r.articlesController.RegisterRoutes(apiGroup)
+
+		//前台分类路由
+		r.categoriesController.RegisterRoutes(apiGroup)
+
+		//前台标签路由
+		r.tagsController.RegisterRoutes(apiGroup)
+
+		//前台归档路由
+		r.archivesController.RegisterRoutes(apiGroup)
+
+		//前台统计路由
+		r.statsController.RegisterRoutes(apiGroup)
+
+		//前台关于我路由
+		r.aboutController.RegisterRoutes(apiGroup)
+
+		//前台评论路由
+		r.commentsController.RegisterRoutes(apiGroup)
 	}
 }
 

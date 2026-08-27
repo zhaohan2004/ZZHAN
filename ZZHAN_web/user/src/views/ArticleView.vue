@@ -13,7 +13,6 @@ import {
   Clock,
   Eye,
   MessageCircle,
-  RefreshCw,
 } from 'lucide-vue-next'
 import { getArticle, getArticles } from '@/api/articles'
 import { getComments } from '@/api/comments'
@@ -44,7 +43,12 @@ const postBody = ref<HTMLElement | null>(null)
 const root = ref<HTMLElement | null>(null)
 useReveal(root)
 
-const catColor = computed(() => article.value?.category.color || '#3b82f6')
+const onScroll = () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight
+  progress.value = h > 0 ? (window.scrollY / h) * 100 : 0
+}
+
+const catColor = computed(() => '#3b82f6') // 默认主题色
 
 const prev = computed(() => {
   const i = list.value.findIndex((a) => a.slug === article.value?.slug)
@@ -66,6 +70,8 @@ async function loadComments(): Promise<void> {
 }
 
 onMounted(async () => {
+  window.addEventListener('scroll', onScroll, { passive: true })
+
   const slug = String(route.params.slug)
   try {
     article.value = await getArticle(slug)
@@ -86,19 +92,16 @@ onMounted(async () => {
       )
       postBody.value.querySelectorAll('h2,h3').forEach((h) => io.observe(h))
     }
-    const all = await getArticles({ pageSize: 50 })
-    list.value = [...all.list].sort((a, b) => b.date.localeCompare(a.date))
+    const all = await getArticles({ size: 50 }).catch(() => ({ list: [] as ArticleSummary[] }))
+    list.value = [...all.list].sort((a, b) => b.published_at.localeCompare(a.published_at))
     await loadComments()
   } catch {
     /* 静默 */
   }
+})
 
-  const onScroll = () => {
-    const h = document.documentElement.scrollHeight - window.innerHeight
-    progress.value = h > 0 ? (window.scrollY / h) * 100 : 0
-  }
-  window.addEventListener('scroll', onScroll, { passive: true })
-  onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
 })
 
 function jumpTo(id: string): void {
@@ -120,14 +123,13 @@ function jumpTo(id: string): void {
           <router-link to="/articles" class="muted">文章</router-link>
           <ChevronRight :size="13" />
           <span v-if="article" class="badge" :style="{ background: catColor + '1f', color: catColor, border: '1px solid ' + catColor + '44' }">
-            {{ article.category.name }}
+            {{ article.category_name }}
           </span>
         </div>
         <h1 class="post-title">{{ article?.title }}</h1>
         <div class="post-summary">{{ article?.summary }}</div>
         <div v-if="article" class="post-meta">
-          <span><Calendar :size="14" />发布于 {{ article.date }}</span>
-          <span><RefreshCw :size="14" />更新于 {{ article.updated }}</span>
+          <span><Calendar :size="14" />发布于 {{ article.published_at }}</span>
           <span><Eye :size="14" />{{ fmtNum(article.views) }} 阅读</span>
           <span><Clock :size="14" />{{ readTime(article.content) }} 分钟</span>
           <span><MessageCircle :size="14" />{{ article.comment_count }} 评论</span>
@@ -145,10 +147,10 @@ function jumpTo(id: string): void {
         <div class="flex flex-wrap gap-2" style="margin-bottom:26px">
           <router-link
             v-for="t in article.tags"
-            :key="t"
+            :key="t.id"
             class="chip"
-            :to="`/articles?tag=${encodeURIComponent(t)}`"
-          >#{{ t }}</router-link>
+            :to="`/articles?tag_id=${t.id}`"
+          >#{{ t.name }}</router-link>
         </div>
 
         <!-- 上一篇 / 下一篇 -->
@@ -173,7 +175,7 @@ function jumpTo(id: string): void {
           </div>
           <CommentForm v-if="auth.isLoggedIn" :slug="article.slug" @done="loadComments" />
           <CommentGate v-else />
-          <CommentList :comments="comments" :slug="article.slug" />
+          <CommentList :comments="comments" :slug="article.slug" @done="loadComments" />
         </div>
       </div>
 

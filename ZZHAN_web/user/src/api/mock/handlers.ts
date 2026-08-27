@@ -61,23 +61,23 @@ function buildPattern(template: string): RegExp {
 function listArticles(ctx: MockContext) {
   const p = ctx.params as Record<string, string | number | undefined>
   let list = articleSummaries
-  const category = p.category
-  const tag = p.tag
-  const q = p.q
+  const category_id = p.category_id
+  const tag_id = p.tag_id
+  const keyword = p.keyword
   const sort = p.sort
-  if (category) list = list.filter(a => a.category.slug === category)
-  if (tag) list = list.filter(a => a.tags.includes(String(tag)))
-  if (q) {
-    const kw = String(q)
+  if (category_id) list = list.filter(a => a.category_id === Number(category_id))
+  if (tag_id) list = list.filter(a => a.tags.some(t => t.id === Number(tag_id)))
+  if (keyword) {
+    const kw = String(keyword)
     list = list.filter(a => a.title.includes(kw) || a.summary.includes(kw))
   }
   let ordered = list
   if (sort === 'hot') ordered = [...list].sort((a, b) => b.views - a.views)
   const total = ordered.length
   const page = Number(p.page || 1)
-  const pageSize = Number(p.page_size ?? p.pageSize ?? 10)
-  const start = (page - 1) * pageSize
-  return { list: ordered.slice(start, start + pageSize), total }
+  const size = Number(p.size ?? 10)
+  const start = (page - 1) * size
+  return { list: ordered.slice(start, start + size), total }
 }
 
 function getArticleHandler(ctx: MockContext) {
@@ -111,6 +111,17 @@ function articleLike(ctx: MockContext) {
   return { liked: true, likes: article.likes }
 }
 
+function toggleLikeHandler(ctx: MockContext) {
+  const param = ctx.path[0]
+  // 数字 → 评论点赞，字符串 → 文章点赞
+  if (/^\d+$/.test(param)) {
+    return { liked: true, like_count: 13 }
+  }
+  const article = articleSummaries.find(a => a.slug === param)
+  if (!article) notFound()
+  return { liked: true, likes: article.likes }
+}
+
 function loginResult(): LoginResult {
   // 模拟 GitHub OAuth 直接返回用户信息
   const nickname = 'GitHub User'
@@ -118,9 +129,7 @@ function loginResult(): LoginResult {
   return {
     access_token: 'mock-access-token-github',
     refresh_token: 'mock-refresh-token-github',
-    expires_in: 7200,
     user: { id: 1, provider: 'github', nickname, avatar },
-    need_profile: false,
   }
 }
 
@@ -164,18 +173,17 @@ function siteHandler(): SiteInfo {
 const routes: MockRoute[] = [
   { pattern: buildPattern('GET /site'), handler: siteHandler },
   { pattern: buildPattern('GET /articles'), handler: listArticles },
-  { pattern: buildPattern('GET /articles/*/comments'), handler: listComments },
+  { pattern: buildPattern('GET /comments/*'), handler: listComments },
   { pattern: buildPattern('GET /articles/*'), handler: getArticleHandler },
   { pattern: buildPattern('GET /categories'), handler: () => categories },
   { pattern: buildPattern('GET /tags'), handler: () => tags },
   { pattern: buildPattern('GET /archives'), handler: () => archives() },
   { pattern: buildPattern('GET /about'), handler: () => aboutData },
   { pattern: buildPattern('GET /stats'), handler: () => statsData() },
-  { pattern: buildPattern('POST /articles/*/comments'), handler: postComment },
-  { pattern: buildPattern('POST /articles/*/like'), handler: articleLike },
-  { pattern: buildPattern('POST /comments/*/like'), handler: () => ({ liked: true, like_count: 13 }) },
+  { pattern: buildPattern('POST /comments/*'), handler: postComment },
+  { pattern: buildPattern('POST /like/*'), handler: toggleLikeHandler },
   { pattern: buildPattern('POST /auth/github'), handler: () => loginResult() },
-  { pattern: buildPattern('POST /auth/refresh'), handler: () => ({ access_token: 'mock-refreshed-token', expires_in: 7200 }) },
+  { pattern: buildPattern('POST /auth/refresh'), handler: () => ({ access_token: 'mock-refreshed-token' }) },
   { pattern: buildPattern('POST /auth/logout'), handler: () => null },
   { pattern: buildPattern('PUT /auth/profile'), handler: (ctx) => ({ user: (ctx.data ?? {}) }) },
 ]

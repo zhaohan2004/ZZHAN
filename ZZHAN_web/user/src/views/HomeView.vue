@@ -22,7 +22,7 @@ const latest = ref<ArticleSummary[]>([])
 onMounted(async () => {
   site.fetchStats()
   try {
-    const l = await getArticles({ pageSize: 4, sort: 'latest' })
+    const l = await getArticles({ size: 4, sort: 'latest' })
     latest.value = l.list
   } catch {
     /* 静默 */

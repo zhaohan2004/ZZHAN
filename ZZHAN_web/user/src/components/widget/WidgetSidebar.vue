@@ -18,7 +18,7 @@ const tags = ref<Tag[]>([])
 
 onMounted(async () => {
   try {
-    const [r, c, t] = await Promise.all([getArticles({ pageSize: 5, sort: 'latest' }), getCategories(), getTags()])
+    const [r, c, t] = await Promise.all([getArticles({ page: 1, size: 5 }), getCategories(), getTags()])
     recent.value = r.list
     cats.value = c
     tags.value = [...t].sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).slice(0, 14)
@@ -28,7 +28,7 @@ onMounted(async () => {
 })
 
 function thumbOf(a: ArticleSummary): string {
-  return a.cover_image || coverArt(a.title, a.category.name, a.id, 96, 72)
+  return a.cover_image || coverArt(a.title, a.category_name, a.id, 96, 72)
 }
 </script>
 
@@ -41,7 +41,7 @@ function thumbOf(a: ArticleSummary): string {
           <router-link :to="`/article/${a.slug}`" style="width:100%">
             <span class="thumb-mini" :style="{ backgroundImage: 'url(' + thumbOf(a) + ')' }" />
             <span class="t">{{ a.title }}</span>
-            <span class="d">{{ a.date.slice(5) }}</span>
+            <span class="d">{{ a.published_at.slice(5) }}</span>
           </router-link>
         </li>
       </ul>
@@ -52,7 +52,7 @@ function thumbOf(a: ArticleSummary): string {
         <h3 class="widget-title"><FolderTree :size="16" style="color:var(--accent)" />分类列表</h3>
         <ul class="widget-list">
           <li v-for="c in cats" :key="c.id">
-            <router-link :to="`/articles?category=${c.slug}`"><i data-lucide="folder" :style="{ color: c.color }" />{{ c.name }}</router-link>
+            <router-link :to="`/articles?category_id=${c.id}`"><i data-lucide="folder" :style="{ color: c.color }" />{{ c.name }}</router-link>
             <span class="cnt">{{ c.count ?? 0 }}</span>
           </li>
         </ul>
@@ -61,7 +61,7 @@ function thumbOf(a: ArticleSummary): string {
       <div class="widget reveal in">
         <h3 class="widget-title"><Tags :size="16" style="color:var(--accent)" />标签云</h3>
         <div class="tag-cloud">
-          <router-link v-for="t in tags" :key="t.id" :to="`/articles?tag=${encodeURIComponent(t.name)}`">{{ t.name }}</router-link>
+          <router-link v-for="t in tags" :key="t.id" :to="`/articles?tag_id=${t.id}`">{{ t.name }}</router-link>
         </div>
       </div>
     </template>

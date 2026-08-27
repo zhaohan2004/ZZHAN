@@ -3,10 +3,10 @@
  * token 持久化到 localStorage；user 为内存态。
  * `ensureAuth()` 未登录时置 `loginModalOpen = true`（LoginModal 组件消费该标志）并返回 false。
  */
-import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
-import { githubLogin, logout as apiLogout, refresh_token, getCurrentUser } from '@/api/auth'
-import type { AuthUser } from '@/types/models'
+import {defineStore} from 'pinia'
+import {computed, ref} from 'vue'
+import {getCurrentUser, githubLogin, logout as apiLogout, refresh_token} from '@/api/auth'
+import type {AuthUser} from '@/types/models'
 
 const ACCESS_TOKEN_KEY = 'ct-access-token'
 const REFRESH_TOKEN_KEY = 'ct-refresh-token'
@@ -34,8 +34,8 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = userData
       } catch (error) {
         console.error('获取用户信息失败:', error)
-        // 不清除登录状态，让用户继续使用
-        // clearAuth()
+        // http.ts 已处理 token 刷新；走到这里说明刷新也失败了，清空登录态
+        clearAuth()
       }
     } else {
       console.log('Token 不存在，跳过获取用户信息')
@@ -51,8 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (!code) {
         // 没有 code，重定向到 GitHub 授权页面
-        const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(GITHUB_REDIRECT_URI)}`
-        window.location.href = githubAuthUrl
+        window.location.href = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(GITHUB_REDIRECT_URI)}`
         return false
       }
 

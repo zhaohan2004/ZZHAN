@@ -9,23 +9,21 @@ beforeEach(() => {
 })
 
 describe('auth', () => {
-  it('loginWith("github","code") fills token/user and logout clears', async () => {
+  it('loginWith fills token/user and logout clears', async () => {
     const s = useAuthStore()
     expect(s.isLoggedIn).toBe(false)
 
-    const ok = await s.loginWith('github', 'code')
+    const ok = await s.loginWith('github')
     expect(ok).toBe(true)
     expect(s.token).toBe('mock-access-token-github')
     expect(s.user?.provider).toBe('github')
     expect(s.user?.nickname).toBe('GitHub User')
-    expect(s.need_profile).toBe(false)
     expect(localStorage.getItem('ct-access-token')).toBe('mock-access-token-github')
     expect(s.isLoggedIn).toBe(true)
 
     await s.logout()
     expect(s.token).toBeNull()
     expect(s.user).toBeNull()
-    expect(s.need_profile).toBe(false)
     expect(localStorage.getItem('ct-access-token')).toBeNull()
     expect(s.isLoggedIn).toBe(false)
   })
@@ -36,7 +34,7 @@ describe('auth', () => {
     expect(denied).toBe(false)
     expect(s.loginModalOpen).toBe(true)
 
-    await s.loginWith('github', 'code')
+    await s.loginWith('github')
     expect(s.loginModalOpen).toBe(false)
     const allowed = await s.ensureAuth()
     expect(allowed).toBe(true)
