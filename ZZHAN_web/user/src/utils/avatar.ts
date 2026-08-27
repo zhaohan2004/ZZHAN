@@ -9,7 +9,7 @@ export function initialsAvatar(name: string, c1: string, c2: string, size?: numb
   const svg =
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + s + '" height="' + s + '">' +
     '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
-    '<stop offset="0" stop-color="' + (c1 || '#3b82f6') + '"/><stop offset="1" stop-color="' + (c2 || '#3b82f6') + '"/>' +
+    '<stop offset="0" stop-color="' + (c1 || '#6b7280') + '"/><stop offset="1" stop-color="' + (c2 || '#9ca3af') + '"/>' +
     '</linearGradient></defs>' +
     '<rect width="' + s + '" height="' + s + '" rx="' + Math.round(s * 0.24) + '" fill="url(#g)"/>' +
     '<text x="50%" y="50%" dy=".35em" font-family="Arial,sans-serif" font-size="' + Math.round(s * 0.42) +

@@ -157,6 +157,7 @@ func (a *App) initDependencies() {
 	statsRepo := repository.NewStatsRepository(a.mysqlDB)
 	aboutRepo := repository.NewAboutRepository(a.mysqlDB)
 	commentsRepo := repository.NewCommentsRepository(a.mysqlDB)
+	likeRepo := repository.NewLikeRepository(a.mysqlDB)
 
 	// ========== 创建 Service ==========
 	siteService := service.NewSiteService(siteRepo)
@@ -170,6 +171,7 @@ func (a *App) initDependencies() {
 	statsService := service.NewStatsService(statsRepo)
 	aboutService := service.NewAboutService(aboutRepo)
 	commentsService := service.NewCommentsService(commentsRepo)
+	likeService := service.NewLikeService(likeRepo)
 
 	//// ========== 创建 Controller ==========
 	siteController := web.NewSiteController(siteService)
@@ -183,9 +185,14 @@ func (a *App) initDependencies() {
 	statsController := web.NewStatsController(statsService)
 	aboutController := web.NewAboutController(aboutService)
 	commentsController := web.NewCommentsController(commentsService, redisRepo, commentsRepo)
+	likeController := web.NewLikeController(likeService, redisRepo)
 
 	// ========== 创建 Router ==========
-	a.router = api.NewRouter(siteController, siteAdminController, adminAuthController, authController, articlesController, categoriesController, tagsController, archivesController, statsController, aboutController, commentsController)
+	a.router = api.NewRouter(siteController, siteAdminController,
+		adminAuthController, authController, articlesController,
+		categoriesController, tagsController, archivesController,
+		statsController, aboutController, commentsController,
+		likeController)
 }
 
 // initRouter 初始化路由

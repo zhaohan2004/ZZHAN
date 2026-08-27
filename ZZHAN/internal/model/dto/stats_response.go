@@ -12,5 +12,6 @@ type Dynamic struct {
 type StatsResponse struct {
 	Articles int       `json:"articles"`
 	Views    int64     `json:"views"`
+	Comments int64     `json:"comments"`
 	Dynamics []Dynamic `json:"dynamics"`
 }

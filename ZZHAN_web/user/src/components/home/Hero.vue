@@ -6,12 +6,11 @@
  */
 import { computed } from 'vue'
 import { BookOpen, Calendar, Github, MapPin, User } from 'lucide-vue-next'
-import type { SiteInfo, StatsData } from '@/types/models'
+import type { SiteInfo } from '@/types/models'
 import { initialsAvatar } from '@/utils/avatar'
-import StatsGrid from './StatsGrid.vue'
 import HeroTerminal from './HeroTerminal.vue'
 
-const props = defineProps<{ site: SiteInfo | null; stats: StatsData | null }>()
+const props = defineProps<{ site: SiteInfo | null }>()
 
 const name = computed(() => props.site?.name ?? '小猫的个人博客')
 const nameHead = computed(() => name.value.slice(0, Math.max(0, name.value.length - 4)))
@@ -19,7 +18,7 @@ const nameTail = computed(() => name.value.slice(-4))
 
 /** 头像 — 优先取后台设置的自定义头像，否则按站点短名生成 initials。 */
 const avatarSrc = computed(
-  () => props.site?.avatar || initialsAvatar(props.site?.logo_text || props.site?.short_name || props.site?.name || 'CT', '#3b82f6', '#38bdf8', 224),
+  () => props.site?.avatar || initialsAvatar(props.site?.logo_text || props.site?.short_name || props.site?.name || 'CT', '#6b7280', '#9ca3af', 224),
 )
 
 /** 位置 — 来自 site.location。 */
@@ -60,7 +59,6 @@ const yearCount = computed(() => {
         </div>
       </div>
       <div>
-        <StatsGrid :articles="stats?.articles ?? 0" :views="stats?.views ?? 0" />
         <HeroTerminal />
       </div>
     </div>

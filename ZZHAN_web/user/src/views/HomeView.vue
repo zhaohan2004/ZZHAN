@@ -22,7 +22,7 @@ const latest = ref<ArticleSummary[]>([])
 onMounted(async () => {
   site.fetchStats()
   try {
-    const l = await getArticles({ size: 4, sort: 'latest' })
+    const l = await getArticles({ page: 1, size: 4, sort: 'latest' })
     latest.value = l.list
   } catch {
     /* 静默 */
@@ -32,7 +32,7 @@ onMounted(async () => {
 
 <template>
   <div ref="root">
-    <Hero :site="site.site" :stats="stats" />
+    <Hero :site="site.site" />
 
     <!-- 最新文章（横向全宽卡片，图左/图右交替） -->
     <div class="section">

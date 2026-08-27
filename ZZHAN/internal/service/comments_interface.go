@@ -10,6 +10,9 @@ type CommentsService interface {
 	// GetByArticleSlug 获取文章评论列表
 	GetByArticleSlug(ctx context.Context, slug string, page, pageSize int) (*dto.CommentListResponse, error)
 
+	// GetReplies 获取评论的回复列表
+	GetReplies(ctx context.Context, commentID int64, page, pageSize int) (*dto.CommentListResponse, error)
+
 	// Create 创建评论
 	Create(ctx context.Context, slug string, userID int64, userName, userAvatar, ip string, req *dto.CommentCreateRequest) (*dto.CommentCreateResult, error)
 }

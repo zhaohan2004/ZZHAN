@@ -95,6 +95,16 @@ function setTime(v: string): void {
   load()
 }
 
+function resetFilters(): void {
+  state.value.keyword = ''
+  state.value.category_id = 0
+  state.value.tag_id = 0
+  state.value.time = 'all'
+  state.value.page = 1
+  router.push({ query: {} })
+  load()
+}
+
 function goPage(p: number): void {
   if (p < 1 || p > pages.value) return
   applyQuery({ page: p }, false)
@@ -134,6 +144,7 @@ onMounted(async () => {
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
             <input v-model="state.keyword" class="input" type="search" placeholder="搜索标题 / 摘要 / 标签…" style="max-width:320px" @keyup.enter="applyQuery({ keyword: state.keyword })" />
             <button class="btn btn-primary btn-sm" type="button" @click="applyQuery({ keyword: state.keyword })"><Search :size="15" />搜索</button>
+            <button class="btn btn-ghost btn-sm" type="button" @click="resetFilters">重置</button>
           </div>
           <div style="font-size:12.5px;color:var(--text-3);margin-bottom:8px;display:flex;align-items:center;gap:6px"><Folder :size="13" />分类筛选</div>
           <div class="flex gap-2 flex-wrap" style="margin-bottom:14px">

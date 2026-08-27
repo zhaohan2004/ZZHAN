@@ -94,7 +94,31 @@ function listComments(ctx: MockContext) {
   const page = Number(p.page || 1)
   const pageSize = Number(p.page_size ?? p.pageSize ?? 10)
   const start = (page - 1) * pageSize
-  return { list: all.slice(start, start + pageSize), total: all.length }
+  // 为每条评论添加 reply_total 和 has_more_reply
+  const list = all.slice(start, start + pageSize).map(c => ({
+    ...c,
+    reply_total: c.replies?.length || 0,
+    has_more_reply: (c.replies?.length || 0) > 2,
+    replies: c.replies?.slice(0, 2) || [],
+  }))
+  return { list, total: all.length }
+}
+
+function listReplies(ctx: MockContext) {
+  const commentId = Number(ctx.path[0])
+  // 遍历所有文章的评论，找到目标评论的回复
+  for (const article of articleSummaries) {
+    const all = commentsForArticle(article.id)
+    const parent = all.find(c => c.id === commentId)
+    if (parent?.replies) {
+      const p = ctx.params as Record<string, string | number | undefined>
+      const page = Number(p.page || 1)
+      const pageSize = Number(p.page_size ?? p.pageSize ?? 10)
+      const start = (page - 1) * pageSize
+      return { list: parent.replies.slice(start, start + pageSize), total: parent.replies.length }
+    }
+  }
+  return { list: [], total: 0 }
 }
 
 function postComment(ctx: MockContext) {
@@ -105,21 +129,15 @@ function postComment(ctx: MockContext) {
   return { id: 9000 + Math.floor(Math.random() * 999), status: 'normal', message: '评论已提交' }
 }
 
-function articleLike(ctx: MockContext) {
-  const article = articleSummaries.find(a => a.slug === ctx.path[0])
+function toggleArticleLikeHandler(ctx: MockContext) {
+  const slug = ctx.path[0]
+  const article = articleSummaries.find(a => a.slug === slug)
   if (!article) notFound()
   return { liked: true, likes: article.likes }
 }
 
-function toggleLikeHandler(ctx: MockContext) {
-  const param = ctx.path[0]
-  // 数字 → 评论点赞，字符串 → 文章点赞
-  if (/^\d+$/.test(param)) {
-    return { liked: true, like_count: 13 }
-  }
-  const article = articleSummaries.find(a => a.slug === param)
-  if (!article) notFound()
-  return { liked: true, likes: article.likes }
+function toggleCommentLikeHandler(_ctx: MockContext) {
+  return { liked: true, like_count: 13 }
 }
 
 function loginResult(): LoginResult {
@@ -173,6 +191,7 @@ function siteHandler(): SiteInfo {
 const routes: MockRoute[] = [
   { pattern: buildPattern('GET /site'), handler: siteHandler },
   { pattern: buildPattern('GET /articles'), handler: listArticles },
+  { pattern: buildPattern('GET /comments/replies/*'), handler: listReplies },
   { pattern: buildPattern('GET /comments/*'), handler: listComments },
   { pattern: buildPattern('GET /articles/*'), handler: getArticleHandler },
   { pattern: buildPattern('GET /categories'), handler: () => categories },
@@ -181,7 +200,8 @@ const routes: MockRoute[] = [
   { pattern: buildPattern('GET /about'), handler: () => aboutData },
   { pattern: buildPattern('GET /stats'), handler: () => statsData() },
   { pattern: buildPattern('POST /comments/*'), handler: postComment },
-  { pattern: buildPattern('POST /like/*'), handler: toggleLikeHandler },
+  { pattern: buildPattern('POST /like/article/*'), handler: toggleArticleLikeHandler },
+  { pattern: buildPattern('POST /like/comment/*'), handler: toggleCommentLikeHandler },
   { pattern: buildPattern('POST /auth/github'), handler: () => loginResult() },
   { pattern: buildPattern('POST /auth/refresh'), handler: () => ({ access_token: 'mock-refreshed-token' }) },
   { pattern: buildPattern('POST /auth/logout'), handler: () => null },

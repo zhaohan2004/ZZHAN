@@ -15,8 +15,12 @@ const ICONS: Record<string, any> = { write: PenTool, star: Star, talk: MessageSq
         <span class="tl-date">{{ d.time }}</span>
         <component :is="ICONS[d.type] || MessageSquare" :size="13" style="color:var(--accent)" />
       </div>
-      <router-link v-if="d.link" class="tl-title" style="display:block" :to="d.link">{{ d.text }}</router-link>
-      <div v-else class="tl-title">{{ d.text }}</div>
+      <span class="tl-title">
+        <template v-if="d.link">
+          {{ d.text.slice(0, d.text.indexOf('《')) }}<router-link :to="d.link">{{ d.text.slice(d.text.indexOf('《'), d.text.indexOf('》') + 1) }}</router-link>{{ d.text.slice(d.text.indexOf('》') + 1) }}
+        </template>
+        <template v-else>{{ d.text }}</template>
+      </span>
     </div>
   </div>
 </template>

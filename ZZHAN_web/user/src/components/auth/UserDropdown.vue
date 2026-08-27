@@ -12,7 +12,7 @@ const menuOpen = ref(false)
 
 function avatarFor(): string {
   const u = auth.user
-  if (!u) return initialsAvatar('?', '#3b82f6', '#38bdf8', 64)
+  if (!u) return initialsAvatar('?', '#6b7280', '#9ca3af', 64)
   if (u.avatar) return u.avatar
   const color = '#24292f'
   return initialsAvatar(u.nickname || '我', color, color, 64)
@@ -41,7 +41,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutside))
     <!-- 已登录 -->
     <template v-else>
       <button class="icon-btn ml-1" type="button" aria-label="用户菜单" @click.stop="menuOpen = !menuOpen">
-        <img :src="avatarFor()" alt="头像" style="width:32px;height:32px;border-radius:9px" />
+        <img :src="avatarFor()" alt="头像" style="width:32px;height:32px;border-radius:8px" />
       </button>
       <div v-if="menuOpen" class="ud-menu">
         <div class="px-3 pb-2 pt-1">
