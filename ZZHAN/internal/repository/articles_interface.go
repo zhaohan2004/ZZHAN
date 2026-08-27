@@ -13,5 +13,6 @@ type ArticlesRepository interface {
 
 	// GetBySlug 通过 slug 获取文章详情
 	// 只返回 status=published 的文章
-	GetBySlug(ctx context.Context, slug string) (*dto.ArticleDetail, error)
+	// clientIP 用于浏览量去重
+	GetBySlug(ctx context.Context, slug string, clientIP string) (*dto.ArticleDetail, error)
 }

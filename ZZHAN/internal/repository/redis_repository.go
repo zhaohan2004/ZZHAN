@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -86,4 +87,28 @@ func (r *redisRepository) IsBlacklisted(ctx context.Context, token string) (bool
 	key := blacklistKeyPrefix + token
 	n, err := r.redis.Exists(ctx, key).Result()
 	return n > 0, err
+}
+
+// ========== 浏览量去重方法 ==========
+
+// viewAccessKeyPrefix 浏览量去重 key 前缀
+const viewAccessKeyPrefix = "article:views:"
+
+// CheckViewAccess 检查是否已访问过文章
+func (r *redisRepository) CheckViewAccess(ctx context.Context, articleID int64, clientIP string) (bool, error) {
+	if r.redis == nil {
+		return false, nil
+	}
+	key := fmt.Sprintf("%s%d:%s", viewAccessKeyPrefix, articleID, clientIP)
+	n, err := r.redis.Exists(ctx, key).Result()
+	return n > 0, err
+}
+
+// SetViewAccess 设置文章访问标记
+func (r *redisRepository) SetViewAccess(ctx context.Context, articleID int64, clientIP string, expiration time.Duration) error {
+	if r.redis == nil {
+		return nil
+	}
+	key := fmt.Sprintf("%s%d:%s", viewAccessKeyPrefix, articleID, clientIP)
+	return r.redis.Set(ctx, key, "1", expiration).Err()
 }

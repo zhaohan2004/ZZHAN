@@ -25,9 +25,9 @@ export function getArticle(slug: string): Promise<ArticleDetail> {
   return request<ArticleDetail>({ method: 'GET', url: `/articles/${slug}` })
 }
 
-/** 文章点赞 POST /articles/{slug}/like（幂等切换） */
+/** 文章点赞 POST /like/{slug}（幂等切换） */
 export function toggleLike(slug: string): Promise<LikeResult> {
-  return request<LikeResult>({ method: 'POST', url: `/articles/${slug}/like` })
+  return request<LikeResult>({ method: 'POST', url: `/like/${slug}` })
 }
 
 // 站点/分类/标签/关于我 — 供统一入口与 mock 测试从 './articles' 导入

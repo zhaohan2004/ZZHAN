@@ -111,6 +111,17 @@ function articleLike(ctx: MockContext) {
   return { liked: true, likes: article.likes }
 }
 
+function toggleLikeHandler(ctx: MockContext) {
+  const param = ctx.path[0]
+  // 数字 → 评论点赞，字符串 → 文章点赞
+  if (/^\d+$/.test(param)) {
+    return { liked: true, like_count: 13 }
+  }
+  const article = articleSummaries.find(a => a.slug === param)
+  if (!article) notFound()
+  return { liked: true, likes: article.likes }
+}
+
 function loginResult(): LoginResult {
   // 模拟 GitHub OAuth 直接返回用户信息
   const nickname = 'GitHub User'
@@ -162,16 +173,15 @@ function siteHandler(): SiteInfo {
 const routes: MockRoute[] = [
   { pattern: buildPattern('GET /site'), handler: siteHandler },
   { pattern: buildPattern('GET /articles'), handler: listArticles },
-  { pattern: buildPattern('GET /articles/*/comments'), handler: listComments },
+  { pattern: buildPattern('GET /comments/*'), handler: listComments },
   { pattern: buildPattern('GET /articles/*'), handler: getArticleHandler },
   { pattern: buildPattern('GET /categories'), handler: () => categories },
   { pattern: buildPattern('GET /tags'), handler: () => tags },
   { pattern: buildPattern('GET /archives'), handler: () => archives() },
   { pattern: buildPattern('GET /about'), handler: () => aboutData },
   { pattern: buildPattern('GET /stats'), handler: () => statsData() },
-  { pattern: buildPattern('POST /articles/*/comments'), handler: postComment },
-  { pattern: buildPattern('POST /articles/*/like'), handler: articleLike },
-  { pattern: buildPattern('POST /comments/*/like'), handler: () => ({ liked: true, like_count: 13 }) },
+  { pattern: buildPattern('POST /comments/*'), handler: postComment },
+  { pattern: buildPattern('POST /like/*'), handler: toggleLikeHandler },
   { pattern: buildPattern('POST /auth/github'), handler: () => loginResult() },
   { pattern: buildPattern('POST /auth/refresh'), handler: () => ({ access_token: 'mock-refreshed-token' }) },
   { pattern: buildPattern('POST /auth/logout'), handler: () => null },

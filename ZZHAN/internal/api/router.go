@@ -20,6 +20,7 @@ type Router struct {
 	archivesController   *web.ArchivesController
 	statsController      *web.StatsController
 	aboutController      *web.AboutController
+	commentsController   *web.CommentsController
 }
 
 // NewRouter 创建路由
@@ -34,6 +35,7 @@ func NewRouter(
 	archivesController *web.ArchivesController,
 	statsController *web.StatsController,
 	aboutController *web.AboutController,
+	commentsController *web.CommentsController,
 ) *Router {
 	return &Router{
 		siteController:       siteController,
@@ -46,6 +48,7 @@ func NewRouter(
 		archivesController:   archivesController,
 		statsController:      statsController,
 		aboutController:      aboutController,
+		commentsController:   commentsController,
 	}
 }
 
@@ -98,6 +101,9 @@ func (r *Router) Setup(engine *gin.Engine) {
 
 		//前台关于我路由
 		r.aboutController.RegisterRoutes(apiGroup)
+
+		//前台评论路由
+		r.commentsController.RegisterRoutes(apiGroup)
 	}
 }
 

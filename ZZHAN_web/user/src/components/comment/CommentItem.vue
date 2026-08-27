@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/auth'
 import CommentForm from './CommentForm.vue'
 
 const props = defineProps<{ comment: CommentItem; slug: string }>()
+const emit = defineEmits<{ (e: 'done'): void }>()
 
 const auth = useAuthStore()
 const liked = ref(props.comment.liked)
@@ -16,8 +17,9 @@ const like_count = ref(props.comment.like_count)
 const replying = ref(false)
 const busy = ref(false)
 
-function avatarOf(name: string, color: string): string {
-  return initialsAvatar(name, color, color, 84)
+function avatarOf(name: string, avatar?: string): string {
+  if (avatar) return avatar
+  return initialsAvatar(name, '#6b7280', '#6b7280', 84)
 }
 
 async function onLike(): Promise<void> {
@@ -54,7 +56,7 @@ async function onLike(): Promise<void> {
         </button>
       </div>
 
-      <CommentForm v-if="replying" :slug="slug" :parent-id="comment.id" class="mt-3" @done="replying = false" />
+      <CommentForm v-if="replying" :slug="slug" :parent-id="comment.id" class="mt-3" @done="replying = false; emit('done')" />
 
       <div v-if="comment.replies?.length" class="mt-3 space-y-3">
         <div v-for="r in comment.replies" :key="r.id" class="comment-item reply" style="border-bottom:none;padding:10px 0">

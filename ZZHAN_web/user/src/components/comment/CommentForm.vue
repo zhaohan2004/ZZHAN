@@ -5,7 +5,7 @@ import { Send } from 'lucide-vue-next'
 import { postComment } from '@/api/comments'
 import { useToast } from '@/composables/useToast'
 
-const props = withDefaults(defineProps<{ slug: string; parent_id?: number | null }>(), { parent_id: null })
+const props = withDefaults(defineProps<{ slug: string; parentId?: number | null }>(), { parentId: null })
 const emit = defineEmits<{ (e: 'done'): void }>()
 
 const { toast } = useToast()
@@ -20,9 +20,9 @@ async function submit(): Promise<void> {
   }
   submitting.value = true
   try {
-    await postComment(props.slug, { content: text, parent_id: props.parent_id })
+    await postComment(props.slug, { content: text, parent_id: props.parentId })
     content.value = ''
-    toast('评论已提交，审核后展示', 'success')
+    toast('评论已发布', 'success')
     emit('done')
   } catch {
     toast('评论提交失败，请重试', 'error')
@@ -39,7 +39,7 @@ async function submit(): Promise<void> {
         v-model="content"
         class="textarea"
         rows="3"
-        :placeholder="parent_id ? '写下你的回复…' : '写下你的看法…'"
+        :placeholder="parentId ? '写下你的回复…' : '写下你的看法…'"
       />
       <div style="display:flex;justify-content:flex-end;margin-top:10px">
         <button class="btn btn-primary btn-sm" type="button" :disabled="submitting" @click="submit">

@@ -48,8 +48,11 @@ func (c *ArticlesController) GetArticleDetail(ctx *gin.Context) {
 		return
 	}
 
+	// 获取客户端 IP（用于浏览量去重）
+	clientIP := ctx.ClientIP()
+
 	// 调用 service
-	article, err := c.articlesService.GetBySlug(ctx.Request.Context(), req.Slug)
+	article, err := c.articlesService.GetBySlug(ctx.Request.Context(), req.Slug, clientIP)
 	if err != nil {
 		// 判断是否是记录不存在
 		if err.Error() == "record not found" {

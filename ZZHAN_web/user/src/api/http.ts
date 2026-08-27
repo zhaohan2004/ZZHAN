@@ -58,8 +58,8 @@ export async function request<T>(cfg: RequestConfig): Promise<T> {
 
   let resp = await doRequest()
 
-  // 如果返回 401，尝试刷新 token 后重试
-  if (resp.data.code === 40100) {
+  // 如果返回 401 或 40100（token 过期/无效），尝试刷新 token 后重试
+  if (resp.data.code === 401 || resp.data.code === 40100) {
     const refreshed = await tryRefreshToken()
     if (refreshed) {
       resp = await doRequest()

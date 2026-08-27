@@ -4,11 +4,12 @@ import type { CommentItem as CommentModel } from '@/types/models'
 import CommentItem from './CommentItem.vue'
 
 defineProps<{ comments: CommentModel[]; slug: string }>()
+const emit = defineEmits<{ (e: 'done'): void }>()
 </script>
 
 <template>
   <div v-if="comments.length">
-    <CommentItem v-for="c in comments" :key="c.id" :comment="c" :slug="slug" />
+    <CommentItem v-for="c in comments" :key="c.id" :comment="c" :slug="slug" @done="emit('done')" />
   </div>
   <p v-else class="muted" style="padding:18px 0">还没有评论，快来抢沙发～</p>
 </template>

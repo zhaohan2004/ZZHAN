@@ -5,17 +5,17 @@ import { request } from './http'
 import type { CommentDraft, CommentItem, CommentLikeResult, CommentPostResult } from '@/types/models'
 import type { Paged } from '@/types/api'
 
-/** 评论列表 GET /articles/{slug}/comments */
+/** 评论列表 GET /comments/{slug} */
 export function getComments(slug: string, params?: { page?: number; page_size?: number }): Promise<Paged<CommentItem>> {
-  return request<Paged<CommentItem>>({ method: 'GET', url: `/articles/${slug}/comments`, params })
+  return request<Paged<CommentItem>>({ method: 'GET', url: `/comments/${slug}`, params })
 }
 
-/** 发表评论 POST /articles/{slug}/comments */
+/** 发表评论 POST /comments/{slug} */
 export function postComment(slug: string, draft: CommentDraft): Promise<CommentPostResult> {
-  return request<CommentPostResult>({ method: 'POST', url: `/articles/${slug}/comments`, data: draft })
+  return request<CommentPostResult>({ method: 'POST', url: `/comments/${slug}`, data: draft })
 }
 
-/** 评论点赞 POST /comments/{id}/like（幂等切换） */
+/** 评论点赞 POST /like/{id}（幂等切换） */
 export function toggleCommentLike(id: number | string): Promise<CommentLikeResult> {
-  return request<CommentLikeResult>({ method: 'POST', url: `/comments/${id}/like` })
+  return request<CommentLikeResult>({ method: 'POST', url: `/like/${id}` })
 }

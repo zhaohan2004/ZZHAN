@@ -92,7 +92,7 @@ onMounted(async () => {
       )
       postBody.value.querySelectorAll('h2,h3').forEach((h) => io.observe(h))
     }
-    const all = await getArticles({ size: 50 })
+    const all = await getArticles({ size: 50 }).catch(() => ({ list: [] as ArticleSummary[] }))
     list.value = [...all.list].sort((a, b) => b.published_at.localeCompare(a.published_at))
     await loadComments()
   } catch {
@@ -175,7 +175,7 @@ function jumpTo(id: string): void {
           </div>
           <CommentForm v-if="auth.isLoggedIn" :slug="article.slug" @done="loadComments" />
           <CommentGate v-else />
-          <CommentList :comments="comments" :slug="article.slug" />
+          <CommentList :comments="comments" :slug="article.slug" @done="loadComments" />
         </div>
       </div>
 

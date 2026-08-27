@@ -4,17 +4,21 @@ import (
 	"ZZHAN/internal/model/dto"
 	"ZZHAN/internal/model/entity"
 	"context"
-
 	"gorm.io/gorm"
+	"time"
 )
 
 type articlesRepository struct {
-	db *gorm.DB
+	db        *gorm.DB
+	redisRepo RedisRepository
 }
 
 // NewArticlesRepository 创建文章仓储实例
-func NewArticlesRepository(db *gorm.DB) ArticlesRepository {
-	return &articlesRepository{db: db}
+func NewArticlesRepository(db *gorm.DB, redisRepo RedisRepository) ArticlesRepository {
+	return &articlesRepository{
+		db:        db,
+		redisRepo: redisRepo,
+	}
 }
 
 // GetPublishedList 获取已发布文章列表
@@ -104,7 +108,7 @@ func (r *articlesRepository) GetPublishedList(ctx context.Context, req *dto.Arti
 }
 
 // GetBySlug 通过 slug 获取文章详情
-func (r *articlesRepository) GetBySlug(ctx context.Context, slug string) (*dto.ArticleDetail, error) {
+func (r *articlesRepository) GetBySlug(ctx context.Context, slug string, clientIP string) (*dto.ArticleDetail, error) {
 	var article entity.Article
 
 	// 查询文章
@@ -148,8 +152,21 @@ func (r *articlesRepository) GetBySlug(ctx context.Context, slug string) (*dto.A
 		detail.AuthorName = admin.Username
 	}
 
-	// 浏览量 +1（异步更新，不影响响应）
-	go r.incrementViews(article.ID)
+	// 浏览量去重：检查是否在 10 分钟内访问过
+	if clientIP != "" && r.redisRepo != nil {
+		visited, err := r.redisRepo.CheckViewAccess(ctx, article.ID, clientIP)
+		if err != nil {
+			// Redis查询出错，直接降级
+			go r.incrementViews(article.ID)
+		} else if !visited {
+			// 首次访问，设置标记并增加浏览量
+			_ = r.redisRepo.SetViewAccess(ctx, article.ID, clientIP, 10*time.Minute)
+			go r.incrementViews(article.ID)
+		}
+	} else {
+		// Redis 不可用时，降级为直接计数
+		go r.incrementViews(article.ID)
+	}
 
 	return detail, nil
 }

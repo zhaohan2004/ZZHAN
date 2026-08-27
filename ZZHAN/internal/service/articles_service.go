@@ -29,6 +29,6 @@ func (s *articlesService) GetPublishedList(ctx context.Context, req *dto.Article
 }
 
 // GetBySlug 通过 slug 获取文章详情
-func (s *articlesService) GetBySlug(ctx context.Context, slug string) (*dto.ArticleDetail, error) {
-	return s.articlesRepo.GetBySlug(ctx, slug)
+func (s *articlesService) GetBySlug(ctx context.Context, slug string, clientIP string) (*dto.ArticleDetail, error) {
+	return s.articlesRepo.GetBySlug(ctx, slug, clientIP)
 }
