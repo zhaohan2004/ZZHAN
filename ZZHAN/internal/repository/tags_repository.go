@@ -21,8 +21,9 @@ func NewTagsRepository(db *gorm.DB) TagsRepository {
 func (r *tagsRepository) GetAll(ctx context.Context) ([]dto.TagListItem, error) {
 	var tags []entity.Tag
 
-	// 查询所有标签
+	// 查询所有启用的标签
 	if err := r.db.WithContext(ctx).
+		Where("status = ?", "active").
 		Order("id ASC").
 		Find(&tags).Error; err != nil {
 		return nil, err

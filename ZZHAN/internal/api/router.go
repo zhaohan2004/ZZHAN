@@ -10,20 +10,22 @@ import (
 
 // Router 路由
 type Router struct {
-	siteController          *web.SiteController
-	siteAdminController     *admin.SiteAdminController
-	adminAuthController     *admin.AdminAuthController
-	authController          *web.AuthController
-	articlesController      *web.ArticlesController
-	adminArticlesController *admin.AdminArticlesController
-	categoriesController    *web.CategoriesController
-	tagsController          *web.TagsController
-	archivesController      *web.ArchivesController
-	statsController         *web.StatsController
-	aboutController         *web.AboutController
-	commentsController      *web.CommentsController
-	likeController          *web.LikeController
-	uploadController        *admin.UploadController
+	siteController            *web.SiteController
+	siteAdminController       *admin.SiteAdminController
+	adminAuthController       *admin.AdminAuthController
+	authController            *web.AuthController
+	articlesController        *web.ArticlesController
+	adminArticlesController   *admin.AdminArticlesController
+	categoriesController      *web.CategoriesController
+	adminCategoriesController *admin.AdminCategoriesController
+	tagsController            *web.TagsController
+	adminTagsController       *admin.AdminTagsController
+	archivesController        *web.ArchivesController
+	statsController           *web.StatsController
+	aboutController           *web.AboutController
+	commentsController        *web.CommentsController
+	likeController            *web.LikeController
+	uploadController          *admin.UploadController
 }
 
 // NewRouter 创建路由
@@ -35,7 +37,9 @@ func NewRouter(
 	articlesController *web.ArticlesController,
 	adminArticlesController *admin.AdminArticlesController,
 	categoriesController *web.CategoriesController,
+	adminCategoriesController *admin.AdminCategoriesController,
 	tagsController *web.TagsController,
+	adminTagsController *admin.AdminTagsController,
 	archivesController *web.ArchivesController,
 	statsController *web.StatsController,
 	aboutController *web.AboutController,
@@ -44,20 +48,22 @@ func NewRouter(
 	uploadController *admin.UploadController,
 ) *Router {
 	return &Router{
-		siteController:          siteController,
-		siteAdminController:     siteAdminController,
-		adminAuthController:     adminAuthController,
-		authController:          authController,
-		articlesController:      articlesController,
-		adminArticlesController: adminArticlesController,
-		categoriesController:    categoriesController,
-		tagsController:          tagsController,
-		archivesController:      archivesController,
-		statsController:         statsController,
-		aboutController:         aboutController,
-		commentsController:      commentsController,
-		likeController:          likeController,
-		uploadController:        uploadController,
+		siteController:            siteController,
+		siteAdminController:       siteAdminController,
+		adminAuthController:       adminAuthController,
+		authController:            authController,
+		articlesController:        articlesController,
+		adminArticlesController:   adminArticlesController,
+		categoriesController:      categoriesController,
+		adminCategoriesController: adminCategoriesController,
+		tagsController:            tagsController,
+		adminTagsController:       adminTagsController,
+		archivesController:        archivesController,
+		statsController:           statsController,
+		aboutController:           aboutController,
+		commentsController:        commentsController,
+		likeController:            likeController,
+		uploadController:          uploadController,
 	}
 }
 
@@ -102,8 +108,14 @@ func (r *Router) Setup(engine *gin.Engine) {
 		//前台分类路由
 		r.categoriesController.RegisterRoutes(apiGroup)
 
+		//后台分类路由
+		r.adminCategoriesController.RegisterRoutes(apiGroup)
+
 		//前台标签路由
 		r.tagsController.RegisterRoutes(apiGroup)
+
+		//后台标签路由
+		r.adminTagsController.RegisterRoutes(apiGroup)
 
 		//前台归档路由
 		r.archivesController.RegisterRoutes(apiGroup)

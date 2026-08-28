@@ -21,8 +21,9 @@ func NewCategoriesRepository(db *gorm.DB) CategoriesRepository {
 func (r *categoriesRepository) GetAll(ctx context.Context) ([]dto.CategoryItem, error) {
 	var categories []entity.Category
 
-	// 查询所有分类，按排序值升序
+	// 查询所有启用的分类，按排序值升序
 	if err := r.db.WithContext(ctx).
+		Where("status = ?", "active").
 		Order("sort_order ASC, id ASC").
 		Find(&categories).Error; err != nil {
 		return nil, err

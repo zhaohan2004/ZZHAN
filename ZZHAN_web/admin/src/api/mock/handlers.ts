@@ -188,8 +188,9 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
     /* ---------- 分类 ---------- */
     if (key === 'GET /admin/categories') {
       let list = categories
-      const q = String(params.q || '').toLowerCase()
+      const q = String(params.keyword || '').toLowerCase()
       if (q) list = list.filter((c) => c.name.toLowerCase().includes(q))
+      if (params.status && params.status !== 'all') list = list.filter((c) => c.status === params.status)
       const minC = Number(params.min_count ?? params.minCount)
       const maxC = Number(params.max_count ?? params.maxCount)
       if (!Number.isNaN(minC)) list = list.filter((c) => c.count >= minC)
@@ -200,6 +201,7 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
       return { list: list.slice(start, start + pageSize), total: list.length }
     }
     if (key === 'POST /admin/categories') {
+      if (categories.some((x) => x.name === String(data.name || ''))) throw new MockError(40001, '分类名称已存在')
       const c = {
         id: Math.max(0, ...categories.map((x) => x.id)) + 1,
         name: String(data.name || ''),
@@ -207,6 +209,7 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
         icon: 'folder',
         desc: String(data.desc || ''),
         color: String(data.color || '#3b82f6'),
+        status: String(data.status || 'active'),
         count: 0,
         created_at: new Date().toISOString().slice(0, 10),
         updated_at: new Date().toISOString().slice(0, 10),
@@ -214,10 +217,18 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
       categories.push(c)
       return c
     }
+    const putCatStatus = /^PUT \/admin\/categories\/(\d+)\/status$/.exec(key)
+    if (putCatStatus) {
+      const c = categories.find((x) => x.id === Number(putCatStatus[1]))
+      if (!c) notFound()
+      c.status = String(data.status || c.status)
+      return null
+    }
     const putCat = /^PUT \/admin\/categories\/(\d+)$/.exec(key)
     if (putCat) {
       const c = categories.find((x) => x.id === Number(putCat[1]))
       if (!c) notFound()
+      if (data.name && categories.some((x) => x.name === data.name && x.id !== c.id)) throw new MockError(40001, '分类名称已存在')
       Object.assign(c, data)
       c.updated_at = new Date().toISOString().slice(0, 10)
       return c
@@ -231,8 +242,9 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
     /* ---------- 标签 ---------- */
     if (key === 'GET /admin/tags') {
       let list = tags
-      const q = String(params.q || '').toLowerCase()
+      const q = String(params.keyword || '').toLowerCase()
       if (q) list = list.filter((t) => t.name.toLowerCase().includes(q))
+      if (params.status && params.status !== 'all') list = list.filter((t) => t.status === params.status)
       const minC = Number(params.min_count ?? params.minCount)
       const maxC = Number(params.max_count ?? params.maxCount)
       if (!Number.isNaN(minC)) list = list.filter((t) => t.count >= minC)
@@ -243,15 +255,24 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
       return { list: list.slice(start, start + pageSize), total: list.length }
     }
     if (key === 'POST /admin/tags') {
+      if (tags.some((x) => x.name === String(data.name || ''))) throw new MockError(40001, '标签名称已存在')
       const today = new Date().toISOString().slice(0, 10)
-      const t = { id: Math.max(0, ...tags.map((x) => x.id)) + 1, name: String(data.name || ''), count: 0, created_at: today, updated_at: today }
+      const t = { id: Math.max(0, ...tags.map((x) => x.id)) + 1, name: String(data.name || ''), status: 'active', count: 0, created_at: today, updated_at: today }
       tags.push(t)
       return t
+    }
+    const putTagStatus = /^PUT \/admin\/tags\/(\d+)\/status$/.exec(key)
+    if (putTagStatus) {
+      const t = tags.find((x) => x.id === Number(putTagStatus[1]))
+      if (!t) notFound()
+      t.status = String(data.status || t.status)
+      return null
     }
     const putTag = /^PUT \/admin\/tags\/(\d+)$/.exec(key)
     if (putTag) {
       const t = tags.find((x) => x.id === Number(putTag[1]))
       if (!t) notFound()
+      if (data.name && tags.some((x) => x.name === data.name && x.id !== t.id)) throw new MockError(40001, '标签名称已存在')
       t.name = String(data.name || t.name)
       t.updated_at = new Date().toISOString().slice(0, 10)
       return t

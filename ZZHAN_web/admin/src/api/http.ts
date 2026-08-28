@@ -76,6 +76,11 @@ instance.interceptors.response.use(
     // 非 token 过期、已重试过、或正在刷新的请求本身失败 → 直接拒绝
     if (!isTokenExpired || originalConfig._retried || originalConfig.url?.includes('/admin/auth/refresh')) {
       if (isTokenExpired) redirectToLogin()
+      // 用后端返回的 message 替换 axios 默认错误信息
+      const serverMsg = error.response?.data?.message
+      if (serverMsg) {
+        return Promise.reject(new Error(serverMsg))
+      }
       return Promise.reject(error)
     }
 

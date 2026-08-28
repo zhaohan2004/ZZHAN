@@ -832,6 +832,8 @@ html.dark{
 .st-pub{background:rgba(16,185,129,.12);color:var(--success)}
 .st-draft{background:rgba(245,158,11,.12);color:var(--warning)}
 .st-down{background:rgba(239,68,68,.12);color:var(--danger)}
+.st-active,.badge-success{background:rgba(16,185,129,.12);color:var(--success);padding:2px 10px;border-radius:10px;font-size:12px;cursor:pointer}
+.st-inactive,.badge-muted{background:rgba(148,163,184,.12);color:var(--text-3);padding:2px 10px;border-radius:10px;font-size:12px;cursor:pointer}
 .st-pend{background:rgba(245,158,11,.12);color:var(--warning)}
 .st-block{background:rgba(239,68,68,.12);color:var(--danger)}
 .st-ok{background:rgba(16,185,129,.12);color:var(--success)}

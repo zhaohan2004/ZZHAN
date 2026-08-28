@@ -2,7 +2,7 @@
 /** 文章管理 — 1:1 复刻静态 articles.html（.admin-tools/.data-table/.pagination）。去 Element Plus。 */
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowDownToLine, Download, Pencil, Plus, RotateCcw, Search, Send, Trash2 } from 'lucide-vue-next'
+import { ArrowDownToLine, Pencil, Plus, RotateCcw, Search, Send, Trash2 } from 'lucide-vue-next'
 import {
   deleteAdminArticle,
   listAdminArticles,
@@ -87,6 +87,18 @@ function editArticle(a: AdminArticle) {
 }
 async function toggleStatus(a: AdminArticle) {
   const map = STATUS_MAP[a.status]
+  // 草稿发布时校验必填信息
+  if (a.status === 'draft' && map.next === 'published') {
+    const missing: string[] = []
+    if (!a.category) missing.push('分类')
+    if (!a.tags?.length) missing.push('标签')
+    if (!a.cover_image) missing.push('封面')
+    if (missing.length) {
+      const ok = await confirm(`文章缺少${missing.join('、')}，请先去编辑页面补充信息。`, '信息不完整')
+      if (ok) router.push('/editor?id=' + a.id)
+      return
+    }
+  }
   const ok = await confirm(`确定将《${a.title}》${map.nextLabel}吗？`, '切换状态')
   if (!ok) return
   try {
@@ -109,10 +121,6 @@ async function removeArticle(a: AdminArticle) {
     toast.error('删除失败')
   }
 }
-function exportArticles() {
-  toast.info('演示环境暂不支持导出')
-}
-
 onMounted(async () => {
   try {
     const [catRes, tagRes] = await Promise.all([
@@ -132,7 +140,6 @@ onMounted(async () => {
   <div>
     <div class="admin-tools">
       <button class="btn btn-primary" @click="newArticle"><Plus :size="16" /> 新建文章</button>
-      <button class="btn btn-ghost" @click="exportArticles"><Download :size="16" /> 导出</button>
       <div style="flex: 1"></div>
       <input
         v-model="query.keyword"

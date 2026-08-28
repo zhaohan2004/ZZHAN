@@ -269,6 +269,31 @@ func (r *articlesAdminRepository) AdminDelete(ctx context.Context, id int64) err
 
 // AdminUpdateStatus 修改文章状态
 func (r *articlesAdminRepository) AdminUpdateStatus(ctx context.Context, id int64, status string) error {
+	// 发布前校验必填信息
+	if status == "published" {
+		var article entity.Article
+		if err := r.db.WithContext(ctx).First(&article, id).Error; err != nil {
+			return fmt.Errorf("文章不存在")
+		}
+
+		missing := []string{}
+		if article.CategoryID == 0 {
+			missing = append(missing, "分类")
+		}
+		if article.CoverImage == "" {
+			missing = append(missing, "封面")
+		}
+		// 检查标签
+		var tagCount int64
+		r.db.WithContext(ctx).Model(&entity.ArticleTag{}).Where("article_id = ?", id).Count(&tagCount)
+		if tagCount == 0 {
+			missing = append(missing, "标签")
+		}
+		if len(missing) > 0 {
+			return fmt.Errorf("文章缺少%s，请先编辑补充", strings.Join(missing, "、"))
+		}
+	}
+
 	updates := map[string]interface{}{
 		"status": status,
 	}

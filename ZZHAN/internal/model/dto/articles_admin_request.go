@@ -14,7 +14,7 @@ type AdminArticleListRequest struct {
 type AdminArticleCreateRequest struct {
 	Title       string   `json:"title" binding:"required,max=200"`
 	Summary     string   `json:"summary" binding:"omitempty,max=500"`
-	CoverImage  string   `json:"cover_image" binding:"omitempty,max=255"`
+	CoverImage  string   `json:"cover_image"`
 	Category    string   `json:"category" binding:"required,max=50"` // 分类名称
 	Tags        []string `json:"tags"`                               // 标签名称列表
 	Content     string   `json:"content" binding:"required"`
@@ -26,7 +26,7 @@ type AdminArticleCreateRequest struct {
 type AdminArticleUpdateRequest struct {
 	Title       string   `json:"title" binding:"required,max=200"`
 	Summary     string   `json:"summary" binding:"omitempty,max=500"`
-	CoverImage  string   `json:"cover_image" binding:"omitempty,max=255"`
+	CoverImage  string   `json:"cover_image"`
 	Category    string   `json:"category" binding:"required,max=50"` // 分类名称
 	Tags        []string `json:"tags"`                               // 标签名称列表
 	Content     string   `json:"content" binding:"required"`

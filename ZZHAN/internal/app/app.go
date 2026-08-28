@@ -160,7 +160,9 @@ func (a *App) initDependencies() {
 	articlesRepo := repository.NewArticlesRepository(a.mysqlDB, redisRepo)
 	articlesAdminRepo := repository.NewArticlesAdminRepository(a.mysqlDB)
 	categoriesRepo := repository.NewCategoriesRepository(a.mysqlDB)
+	categoriesAdminRepo := repository.NewCategoriesAdminRepository(a.mysqlDB)
 	tagsRepo := repository.NewTagsRepository(a.mysqlDB)
+	tagsAdminRepo := repository.NewTagsAdminRepository(a.mysqlDB)
 	archivesRepo := repository.NewArchivesRepository(a.mysqlDB)
 	statsRepo := repository.NewStatsRepository(a.mysqlDB)
 	aboutRepo := repository.NewAboutRepository(a.mysqlDB)
@@ -175,7 +177,9 @@ func (a *App) initDependencies() {
 	articlesService := service.NewArticlesService(articlesRepo)
 	articlesAdminService := service.NewArticlesAdminService(articlesAdminRepo)
 	categoriesService := service.NewCategoriesService(categoriesRepo)
+	categoriesAdminService := service.NewCategoriesAdminService(categoriesAdminRepo)
 	tagsService := service.NewTagsService(tagsRepo)
+	tagsAdminService := service.NewTagsAdminService(tagsAdminRepo)
 	archivesService := service.NewArchivesService(archivesRepo)
 	statsService := service.NewStatsService(statsRepo)
 	aboutService := service.NewAboutService(aboutRepo)
@@ -191,7 +195,9 @@ func (a *App) initDependencies() {
 	articlesController := web.NewArticlesController(articlesService)
 	adminArticlesController := admin.NewAdminArticlesController(articlesAdminService, redisRepo)
 	categoriesController := web.NewCategoriesController(categoriesService)
+	adminCategoriesController := admin.NewAdminCategoriesController(categoriesAdminService, redisRepo)
 	tagsController := web.NewTagsController(tagsService)
+	adminTagsController := admin.NewAdminTagsController(tagsAdminService, redisRepo)
 	archivesController := web.NewArchivesController(archivesService)
 	statsController := web.NewStatsController(statsService)
 	aboutController := web.NewAboutController(aboutService)
@@ -203,7 +209,8 @@ func (a *App) initDependencies() {
 	a.router = api.NewRouter(siteController, siteAdminController,
 		adminAuthController, authController, articlesController,
 		adminArticlesController, categoriesController,
-		tagsController, archivesController, statsController,
+		adminCategoriesController, tagsController,
+		adminTagsController, archivesController, statsController,
 		aboutController, commentsController, likeController,
 		uploadController)
 }

@@ -135,7 +135,7 @@ func (c *AdminArticlesController) UpdateStatus(ctx *gin.Context) {
 
 	detail, err := c.articlesAdminService.AdminUpdateStatus(ctx.Request.Context(), id, req.Status)
 	if err != nil {
-		response.InternalError(ctx, "修改状态失败")
+		response.BadRequest(ctx, err.Error())
 		return
 	}
 

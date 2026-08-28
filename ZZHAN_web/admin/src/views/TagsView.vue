@@ -2,7 +2,7 @@
 /** 标签管理 — 1:1 复刻静态 tags.html（.admin-tools/.data-table + .modal-overlay 新增/编辑弹窗）。去 Element Plus。 */
 import { computed, onMounted, reactive, ref } from 'vue'
 import { Info, Pencil, Plus, RotateCcw, Search, Tag, Trash2 } from 'lucide-vue-next'
-import { createTag, deleteTag, listTags, updateTag } from '@/api/admin'
+import { createTag, deleteTag, listTags, setTagStatus, updateTag } from '@/api/admin'
 import type { TagAdmin } from '@/types/models'
 import { confirm, toast } from '@/composables/useToast'
 
@@ -10,10 +10,11 @@ const tags = ref<TagAdmin[]>([])
 const total = ref(0)
 const loading = ref(false)
 
-const query = reactive<{ page: number; pageSize: number; q: string; minCount: string; maxCount: string }>({
+const query = reactive<{ page: number; pageSize: number; keyword: string; status: string; minCount: string; maxCount: string }>({
   page: 1,
   pageSize: 8,
-  q: '',
+  keyword: '',
+  status: 'all',
   minCount: '',
   maxCount: '',
 })
@@ -29,7 +30,8 @@ async function load() {
     const res = await listTags({
       page: query.page,
       pageSize: query.pageSize,
-      q: query.q.trim() || undefined,
+      keyword: query.keyword.trim() || undefined,
+      status: query.status === 'all' ? undefined : (query.status as any),
       minCount: query.minCount === '' ? undefined : Number(query.minCount),
       maxCount: query.maxCount === '' ? undefined : Number(query.maxCount),
     })
@@ -53,7 +55,8 @@ function search() {
   load()
 }
 function reset() {
-  query.q = ''
+  query.keyword = ''
+  query.status = 'all'
   query.minCount = ''
   query.maxCount = ''
   query.page = 1
@@ -89,10 +92,20 @@ async function save() {
     }
     showModal.value = false
     load()
-  } catch {
-    toast.error('保存失败')
+  } catch (e: any) {
+    toast.error(e?.message || '保存失败')
   } finally {
     submitting.value = false
+  }
+}
+async function toggleStatus(t: TagAdmin) {
+  const next = t.status === 'active' ? 'inactive' : 'active'
+  try {
+    await setTagStatus(t.id, next)
+    toast.success(next === 'active' ? '已启用' : '已停用')
+    load()
+  } catch {
+    toast.error('操作失败')
   }
 }
 async function removeTag(t: TagAdmin) {
@@ -116,7 +129,12 @@ onMounted(load)
       <button class="btn btn-primary" @click="openCreate"><Plus :size="16" /> 新增标签</button>
       <div style="flex: 1"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <input v-model="query.q" class="input" type="text" placeholder="标签名称" style="width:150px" @keyup.enter="search" />
+        <select v-model="query.status" class="input" style="width:90px">
+          <option value="all">全部</option>
+          <option value="active">启用</option>
+          <option value="inactive">停用</option>
+        </select>
+        <input v-model="query.keyword" class="input" type="text" placeholder="标签名称" style="width:150px" @keyup.enter="search" />
         <input v-model="query.minCount" class="input" type="number" min="0" placeholder="次数 ≥" style="width:100px" />
         <input v-model="query.maxCount" class="input" type="number" min="0" placeholder="次数 ≤" style="width:100px" />
         <button class="btn btn-ghost btn-sm" @click="search"><Search :size="14" /> 查询</button>
@@ -131,6 +149,7 @@ onMounted(load)
           <tr>
             <th>标签 ID</th>
             <th>标签名称</th>
+            <th>状态</th>
             <th>使用次数</th>
             <th>创建时间</th>
             <th>更新时间</th>
@@ -143,6 +162,11 @@ onMounted(load)
             <td style="font-weight: 500; color: var(--text-2)">
               <span style="display: inline-flex; align-items: center; gap: 8px"><Tag :size="14" style="color: var(--accent)" /> {{ t.name }}</span>
             </td>
+            <td>
+              <span :class="t.status === 'active' ? 'badge-success' : 'badge-muted'" style="cursor: pointer" @click="toggleStatus(t)" :title="t.status === 'active' ? '点击停用' : '点击启用'">
+                {{ t.status === 'active' ? '启用' : '停用' }}
+              </span>
+            </td>
             <td style="font-family: 'JetBrains Mono', monospace">{{ t.count }}</td>
             <td>{{ t.created_at }}</td>
             <td>{{ t.updated_at }}</td>
@@ -152,7 +176,7 @@ onMounted(load)
             </td>
           </tr>
           <tr v-if="!tags.length">
-            <td colspan="6" style="text-align: center; color: var(--text-3); padding: 40px">暂无标签</td>
+            <td colspan="7" style="text-align: center; color: var(--text-3); padding: 40px">暂无标签</td>
           </tr>
         </tbody>
       </table>
