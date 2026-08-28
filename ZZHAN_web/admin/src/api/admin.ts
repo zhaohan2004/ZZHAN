@@ -10,10 +10,12 @@ import type {
   AdminProfile,
   ArticleStatus,
   CategoryAdmin,
+  CategoryStatus,
   CommentAdmin,
   CommentStatus,
   SettingsKV,
   TagAdmin,
+  TagStatus,
 } from '@/types/models'
 
 export interface LoginResult {
@@ -49,8 +51,9 @@ export function saveProfile(p: AdminProfile): Promise<AdminProfile> {
 export interface AdminArticleQuery {
   page?: number
   pageSize?: number
-  q?: string
+  keyword?: string
   category?: string
+  tag?: string
   status?: ArticleStatus | 'all'
 }
 export function listAdminArticles(params: AdminArticleQuery = {}): Promise<Paged<AdminArticle>> {
@@ -79,7 +82,8 @@ export function setArticleStatus(id: number | string, status: ArticleStatus): Pr
 export interface CategoryQuery {
   page?: number
   pageSize?: number
-  q?: string
+  keyword?: string
+  status?: CategoryStatus | 'all'
   minCount?: number
   maxCount?: number
 }
@@ -98,12 +102,16 @@ export function updateCategory(id: number, p: Partial<{ name: string; slug: stri
 export function deleteCategory(id: number): Promise<null> {
   return request<null>({ method: 'DELETE', url: `/admin/categories/${id}` })
 }
+export function setCategoryStatus(id: number, status: CategoryStatus): Promise<null> {
+  return request<null>({ method: 'PUT', url: `/admin/categories/${id}/status`, data: { status } })
+}
 
 /* ---------- 标签 ---------- */
 export interface TagQuery {
   page?: number
   pageSize?: number
-  q?: string
+  keyword?: string
+  status?: TagStatus | 'all'
   minCount?: number
   maxCount?: number
 }
@@ -121,6 +129,9 @@ export function updateTag(id: number, name: string): Promise<TagAdmin> {
 }
 export function deleteTag(id: number): Promise<null> {
   return request<null>({ method: 'DELETE', url: `/admin/tags/${id}` })
+}
+export function setTagStatus(id: number, status: TagStatus): Promise<null> {
+  return request<null>({ method: 'PUT', url: `/admin/tags/${id}/status`, data: { status } })
 }
 
 /* ---------- 评论 ---------- */

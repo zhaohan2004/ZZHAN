@@ -48,7 +48,7 @@ const onScroll = () => {
   progress.value = h > 0 ? (window.scrollY / h) * 100 : 0
 }
 
-const catColor = computed(() => '#3b82f6') // 默认主题色
+const catColor = computed(() => '#4a8eff') // 默认主题色
 
 const prev = computed(() => {
   const i = list.value.findIndex((a) => a.slug === article.value?.slug)

@@ -3,6 +3,8 @@
  */
 
 /** 分类 */
+export type CategoryStatus = 'active' | 'inactive'
+
 export interface CategoryAdmin {
   id: number
   name: string
@@ -10,15 +12,19 @@ export interface CategoryAdmin {
   icon: string
   desc: string
   color: string
+  status: CategoryStatus
   count: number
   created_at: string
   updated_at: string
 }
 
 /** 标签 */
+export type TagStatus = 'active' | 'inactive'
+
 export interface TagAdmin {
   id: number
   name: string
+  status: TagStatus
   count: number
   created_at: string
   updated_at: string

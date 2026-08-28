@@ -10,6 +10,7 @@ type Config struct {
 	GitHub   GitHubConfig   `mapstructure:"github"`
 	Log      LogConfig      `mapstructure:"log"`
 	CORS     CORSConfig     `mapstructure:"cors"`
+	Storage  StorageConfig  `mapstructure:"storage"`
 }
 
 // AppConfig 应用配置
@@ -79,4 +80,25 @@ type CORSConfig struct {
 	ExposeHeaders    []string `mapstructure:"expose_headers"`
 	AllowCredentials bool     `mapstructure:"allow_credentials"`
 	MaxAge           int      `mapstructure:"max_age"`
+}
+
+// StorageConfig 文件存储配置
+type StorageConfig struct {
+	Driver string             `mapstructure:"driver"` // 存储驱动：oss | local
+	OSS    OSSStorageConfig   `mapstructure:"oss"`
+	Local  LocalStorageConfig `mapstructure:"local"`
+}
+
+// OSSStorageConfig 阿里云 OSS 配置
+type OSSStorageConfig struct {
+	AccessKeyID     string `mapstructure:"access_key_id"`
+	AccessKeySecret string `mapstructure:"access_key_secret"`
+	Endpoint        string `mapstructure:"endpoint"` // OSS 区域名（如 cn-beijing），SDK v2 WithRegion 直接吃区域名
+	Bucket          string `mapstructure:"bucket"`
+}
+
+// LocalStorageConfig 本地磁盘存储配置
+type LocalStorageConfig struct {
+	BaseDir string `mapstructure:"base_dir"` // 文件落盘根目录（如 ./pkg/uploads）
+	BaseURL string `mapstructure:"base_url"` // 对外访问前缀（如 http://127.0.0.1:9300），文件 URL = {base_url}/static/{objectKey}
 }

@@ -1002,7 +1002,7 @@ export function archives(): ArchiveItem[] {
     if (!map.has(key)) map.set(key, { year, month, count: 0, articles: [] })
     const item = map.get(key)!
     item.count++
-    item.articles.push({ id: a.id, title: a.title, date: a.published_at, category: a.category_name, views: a.views })
+    item.articles.push({ id: a.id, slug: a.slug, title: a.title, date: a.published_at, category: a.category_name, views: a.views })
   }
   return [...map.values()].sort((x, y) => (x.year + x.month < y.year + y.month ? 1 : -1))
 }
@@ -1035,6 +1035,7 @@ export function statsData(): StatsData {
   return {
     articles: articleSummaries.length,
     views: articleSummaries.reduce((sum, a) => sum + a.views, 0),
+    comments: articleSummaries.reduce((sum, a) => sum + a.comment_count, 0),
     dynamics: DYNAMICS,
   }
 }

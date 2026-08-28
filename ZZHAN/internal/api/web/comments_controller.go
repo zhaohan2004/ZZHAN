@@ -6,6 +6,8 @@ import (
 	"ZZHAN/internal/repository"
 	"ZZHAN/internal/service"
 	"ZZHAN/pkg/response"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,6 +46,38 @@ func (c *CommentsController) GetComments(ctx *gin.Context) {
 	result, err := c.commentsService.GetByArticleSlug(ctx.Request.Context(), slug, req.Page, req.PageSize)
 	if err != nil {
 		response.InternalError(ctx, "获取评论列表失败")
+		return
+	}
+
+	response.Success(ctx, result)
+}
+
+// GetReplies 获取评论的回复列表
+// GET /api/v1/comments/:id/replies?page=1&page_size=10
+func (c *CommentsController) GetReplies(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	commentID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		response.BadRequest(ctx, "评论ID格式错误")
+		return
+	}
+
+	var req dto.CommentListRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		response.BadRequest(ctx, "参数错误: "+err.Error())
+		return
+	}
+
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
+
+	result, err := c.commentsService.GetReplies(ctx.Request.Context(), commentID, req.Page, req.PageSize)
+	if err != nil {
+		response.InternalError(ctx, "获取回复列表失败")
 		return
 	}
 

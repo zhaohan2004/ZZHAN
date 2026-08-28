@@ -28,10 +28,10 @@ function catColorOf(name: string): string {
 
 function getCategoryColor(name: string): string {
   const PALETTE: Record<string, string> = {
-    Go: '#3b82f6', MySQL: '#38bdf8', Redis: '#fb7185', Linux: '#a3e635', Docker: '#60a5fa',
+    Go: '#4a8eff', MySQL: '#38bdf8', Redis: '#fb7185', Linux: '#a3e635', Docker: '#60a5fa',
     Git: '#fb923c', Gin: '#34d399', WebSocket: '#93c5fd', SSE: '#fbbf24', '数据结构与算法': '#f472b6', '计算机基础': '#94a3b8',
   }
-  return PALETTE[name] || '#3b82f6'
+  return PALETTE[name] || '#4a8eff'
 }
 
 onMounted(async () => {
@@ -45,16 +45,16 @@ onMounted(async () => {
 
 <template>
   <div ref="root">
-    <section style="padding:118px 0 60px">
-      <div class="container" style="max-width:900px">
-        <div class="anim-fade" style="text-align:center;margin-bottom:40px">
-          <div style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;color:var(--text-3);margin-bottom:12px">
+    <section style="padding:118px 0 48px">
+      <div class="container" style="max-width:800px">
+        <div class="anim-fade" style="text-align:center;margin-bottom:32px">
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;color:var(--text-3);margin-bottom:10px">
             <router-link to="/" style="color:var(--text-2)">首页</router-link>
             <ChevronRight :size="13" />
             <span class="grad-text" style="font-weight:600">归档</span>
           </div>
-          <h1 style="font-size:32px;font-weight:800;letter-spacing:-.5px">文章归档</h1>
-          <p class="muted" style="margin-top:10px;font-size:14.5px">时间会流逝，但文字会留下。按时间轴回顾每一篇用心写下的文章。</p>
+          <h1 style="font-size:28px;font-weight:800;letter-spacing:-.4px">文章归档</h1>
+          <p class="muted" style="margin-top:8px;font-size:14px">时间会流逝，但文字会留下。</p>
         </div>
 
         <div v-for="[year, months] in years" :key="year" class="archive-year reveal">
@@ -63,11 +63,11 @@ onMounted(async () => {
             <div class="am-head"><span class="am-dot" />{{ Number(m.month) }} 月 · {{ m.count }} 篇</div>
             <router-link v-for="a in m.articles" :key="a.id" class="arc-item" :to="`/article/${a.slug}`">
               <span class="arc-date">{{ a.date.slice(5) }}</span>
-              <span class="ac-title" style="flex:1;font-size:14.5px;font-weight:600">{{ a.title }}</span>
-              <span class="meta">
-                <span class="badge" :style="{ background: catColorOf(a.category) + '1f', color: catColorOf(a.category) }">{{ a.category }}</span>
-                <span style="display:inline-flex;align-items:center;gap:4px"><Eye :size="13" />{{ fmtNum(a.views) }}</span>
-              </span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:14.5px;font-weight:600;line-height:1.5">{{ a.title }}</div>
+                <span class="badge" style="margin-top:4px;font-size:11px" :style="{ background: catColorOf(a.category) + '12', color: catColorOf(a.category) }">{{ a.category }}</span>
+              </div>
+              <span style="display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:var(--text-3);flex-shrink:0;margin-top:2px"><Eye :size="13" />{{ fmtNum(a.views) }}</span>
             </router-link>
           </div>
         </div>

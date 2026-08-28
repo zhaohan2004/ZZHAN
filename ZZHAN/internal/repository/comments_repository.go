@@ -58,8 +58,11 @@ func (r *commentsRepository) GetByArticleSlug(ctx context.Context, slug string, 
 			Liked:      false,
 		}
 
-		// 查询子评论（回复）
-		item.Replies = r.getReplies(ctx, c.ID)
+		// 查询子评论（回复，默认前2条）
+		replies, replyTotal := r.getReplies(ctx, c.ID)
+		item.Replies = replies
+		item.ReplyTotal = replyTotal
+		item.HasMoreReply = replyTotal > 2
 
 		result = append(result, item)
 	}
@@ -67,12 +70,19 @@ func (r *commentsRepository) GetByArticleSlug(ctx context.Context, slug string, 
 	return result, total, nil
 }
 
-// getReplies 获取评论的回复列表
-func (r *commentsRepository) getReplies(ctx context.Context, parentID int64) []dto.CommentItem {
+// getReplies 获取评论的回复列表（默认前2条）
+func (r *commentsRepository) getReplies(ctx context.Context, parentID int64) ([]dto.CommentItem, int64) {
+	var total int64
+	r.db.WithContext(ctx).
+		Model(&entity.Comment{}).
+		Where("parent_id = ? AND status = ?", parentID, "normal").
+		Count(&total)
+
 	var replies []entity.Comment
 	r.db.WithContext(ctx).
 		Where("parent_id = ? AND status = ?", parentID, "normal").
 		Order("created_at ASC").
+		Limit(2).
 		Find(&replies)
 
 	result := make([]dto.CommentItem, 0, len(replies))
@@ -93,7 +103,49 @@ func (r *commentsRepository) getReplies(ctx context.Context, parentID int64) []d
 		result = []dto.CommentItem{}
 	}
 
-	return result
+	return result, total
+}
+
+// GetReplies 获取评论的回复列表（分页）
+func (r *commentsRepository) GetReplies(ctx context.Context, commentID int64, page, pageSize int) ([]dto.CommentItem, int64, error) {
+	var total int64
+	if err := r.db.WithContext(ctx).
+		Model(&entity.Comment{}).
+		Where("parent_id = ? AND status = ?", commentID, "normal").
+		Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var replies []entity.Comment
+	offset := (page - 1) * pageSize
+	if err := r.db.WithContext(ctx).
+		Where("parent_id = ? AND status = ?", commentID, "normal").
+		Order("created_at ASC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&replies).Error; err != nil {
+		return nil, 0, err
+	}
+
+	result := make([]dto.CommentItem, 0, len(replies))
+	for _, reply := range replies {
+		result = append(result, dto.CommentItem{
+			ID:         reply.ID,
+			ParentID:   reply.ParentID,
+			UserName:   reply.UserName,
+			UserAvatar: reply.UserAvatar,
+			Content:    reply.Content,
+			CreatedAt:  reply.CreatedAt,
+			LikeCount:  reply.LikeCount,
+			Liked:      false,
+		})
+	}
+
+	if result == nil {
+		result = []dto.CommentItem{}
+	}
+
+	return result, total, nil
 }
 
 // Create 创建评论

@@ -87,6 +87,8 @@ export interface CommentItem {
   like_count: number
   liked: boolean
   replies?: CommentItem[]
+  reply_total?: number    // 子评论总数
+  has_more_reply?: boolean // 是否还有更多
 }
 
 /** 发表评论请求体 */
@@ -139,6 +141,7 @@ export interface Dynamic {
 export interface StatsData {
   articles: number
   views: number
+  comments: number
   dynamics: Dynamic[]
 }
 

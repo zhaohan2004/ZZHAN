@@ -5,6 +5,7 @@ import (
 	"ZZHAN/internal/api/web"
 	"ZZHAN/internal/repository"
 	"ZZHAN/internal/service"
+	"ZZHAN/pkg/storage"
 	"context"
 	"fmt"
 	"net/http"
@@ -118,7 +119,7 @@ func (a *App) initDatabase() error {
 		&entity.Comment{},
 		&entity.Like{},
 		&entity.CommentLike{},
-		// 站点与关于模块（2张）
+		// 关于与站点模块（2张）
 		&entity.SiteSetting{},
 		&entity.AboutItem{},
 		// 统计与审计模块（2张）
@@ -145,18 +146,28 @@ func (a *App) initDependencies() {
 	// ========== 创建 Redis 仓储 ==========
 	redisRepo := repository.NewRedisRepository(a.redis)
 
+	// ========== 创建存储（oss / local）==========
+	store, err := storage.New(a.cfg.Storage)
+	if err != nil {
+		logger.Fatal("存储初始化失败", zap.Error(err))
+	}
+
 	// ========== 创建 Repository ==========
 	siteRepo := repository.NewSiteRepository(a.mysqlDB)
 	siteAdminRepo := repository.NewSiteRepository(a.mysqlDB)
 	authRepo := repository.NewAuthRepository(a.mysqlDB)
 	adminAuthRepo := repository.NewAdminAuthRepository(a.mysqlDB)
 	articlesRepo := repository.NewArticlesRepository(a.mysqlDB, redisRepo)
+	articlesAdminRepo := repository.NewArticlesAdminRepository(a.mysqlDB)
 	categoriesRepo := repository.NewCategoriesRepository(a.mysqlDB)
+	categoriesAdminRepo := repository.NewCategoriesAdminRepository(a.mysqlDB)
 	tagsRepo := repository.NewTagsRepository(a.mysqlDB)
+	tagsAdminRepo := repository.NewTagsAdminRepository(a.mysqlDB)
 	archivesRepo := repository.NewArchivesRepository(a.mysqlDB)
 	statsRepo := repository.NewStatsRepository(a.mysqlDB)
 	aboutRepo := repository.NewAboutRepository(a.mysqlDB)
 	commentsRepo := repository.NewCommentsRepository(a.mysqlDB)
+	likeRepo := repository.NewLikeRepository(a.mysqlDB)
 
 	// ========== 创建 Service ==========
 	siteService := service.NewSiteService(siteRepo)
@@ -164,12 +175,17 @@ func (a *App) initDependencies() {
 	authService := service.NewAuthService(authRepo, redisRepo)
 	adminAuthService := service.NewAdminAuthService(adminAuthRepo, redisRepo)
 	articlesService := service.NewArticlesService(articlesRepo)
+	articlesAdminService := service.NewArticlesAdminService(articlesAdminRepo)
 	categoriesService := service.NewCategoriesService(categoriesRepo)
+	categoriesAdminService := service.NewCategoriesAdminService(categoriesAdminRepo)
 	tagsService := service.NewTagsService(tagsRepo)
+	tagsAdminService := service.NewTagsAdminService(tagsAdminRepo)
 	archivesService := service.NewArchivesService(archivesRepo)
 	statsService := service.NewStatsService(statsRepo)
 	aboutService := service.NewAboutService(aboutRepo)
 	commentsService := service.NewCommentsService(commentsRepo)
+	likeService := service.NewLikeService(likeRepo)
+	uploadService := service.NewUploadService(store)
 
 	//// ========== 创建 Controller ==========
 	siteController := web.NewSiteController(siteService)
@@ -177,15 +193,26 @@ func (a *App) initDependencies() {
 	adminAuthController := admin.NewAdminAuthController(adminAuthService, redisRepo)
 	authController := web.NewAuthController(authService, redisRepo)
 	articlesController := web.NewArticlesController(articlesService)
+	adminArticlesController := admin.NewAdminArticlesController(articlesAdminService, redisRepo)
 	categoriesController := web.NewCategoriesController(categoriesService)
+	adminCategoriesController := admin.NewAdminCategoriesController(categoriesAdminService, redisRepo)
 	tagsController := web.NewTagsController(tagsService)
+	adminTagsController := admin.NewAdminTagsController(tagsAdminService, redisRepo)
 	archivesController := web.NewArchivesController(archivesService)
 	statsController := web.NewStatsController(statsService)
 	aboutController := web.NewAboutController(aboutService)
 	commentsController := web.NewCommentsController(commentsService, redisRepo, commentsRepo)
+	likeController := web.NewLikeController(likeService, redisRepo)
+	uploadController := admin.NewUploadController(uploadService, redisRepo)
 
 	// ========== 创建 Router ==========
-	a.router = api.NewRouter(siteController, siteAdminController, adminAuthController, authController, articlesController, categoriesController, tagsController, archivesController, statsController, aboutController, commentsController)
+	a.router = api.NewRouter(siteController, siteAdminController,
+		adminAuthController, authController, articlesController,
+		adminArticlesController, categoriesController,
+		adminCategoriesController, tagsController,
+		adminTagsController, archivesController, statsController,
+		aboutController, commentsController, likeController,
+		uploadController)
 }
 
 // initRouter 初始化路由

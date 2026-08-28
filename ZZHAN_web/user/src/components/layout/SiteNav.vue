@@ -1,8 +1,8 @@
 <script setup lang="ts">
-/** 前台导航 — 品牌 + 6 链接 + 搜索/主题 + 登录用户区（头像下拉：退出）。无 GitHub 外链、无个人资料编辑。 */
+/** 前台导航 — 品牌 + 6 链接 + 主题 + 登录用户区（头像下拉：退出）。 */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ChevronDown, LogIn, LogOut, Menu, Search, X } from 'lucide-vue-next'
+import { useRoute } from 'vue-router'
+import { ChevronDown, LogIn, LogOut, Menu, X } from 'lucide-vue-next'
 import { useSiteStore } from '@/stores/site'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
@@ -10,15 +10,12 @@ import { initialsAvatar } from '@/utils/avatar'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 
 const route = useRoute()
-const router = useRouter()
 const site = useSiteStore()
 const auth = useAuthStore()
 const { toast } = useToast()
 
 const scrolled = ref(false)
 const menuOpen = ref(false)
-const searchOpen = ref(false)
-const searchInput = ref('')
 
 const siteName = computed(() => site.site?.name ?? '小猫的个人博客')
 const logoText = computed(() => site.site?.logo_text ?? 'CT')
@@ -40,23 +37,11 @@ function onScroll(): void {
   scrolled.value = window.scrollY > 10
 }
 
-function submitSearch(): void {
-  const q = searchInput.value.trim()
-  if (!q) {
-    toast('请输入搜索关键词', 'info')
-    return
-  }
-  router.push({ path: '/articles', query: { q } })
-  searchInput.value = ''
-  searchOpen.value = false
-  menuOpen.value = false
-}
-
 /* ---------- 用户区：头像下拉（退出登录） ---------- */
 const userMenuOpen = ref(false)
 const userAvatar = computed(() => {
   if (auth.user?.avatar) return auth.user.avatar
-  return initialsAvatar(auth.user?.nickname || '用', '#3b82f6', '#38bdf8', 64)
+  return initialsAvatar(auth.user?.nickname || '用', '#6b7280', '#9ca3af', 64)
 })
 const providerLabel = computed(() =>
   auth.user?.provider === 'github' ? 'GitHub 用户' : '访客',
@@ -113,9 +98,6 @@ onBeforeUnmount(() => {
       </nav>
 
       <div class="nav-actions">
-        <button class="icon-btn" type="button" title="搜索" aria-label="搜索" @click="searchOpen = !searchOpen">
-          <Search :size="19" />
-        </button>
         <ThemeToggle />
         <!-- 登录用户区：已登录显示头像下拉，未登录显示登录按钮 -->
         <div v-if="auth.isLoggedIn" class="admin-user" :class="{ open: userMenuOpen }">
@@ -139,20 +121,6 @@ onBeforeUnmount(() => {
           <X v-if="menuOpen" :size="20" />
           <Menu v-else :size="20" />
         </button>
-      </div>
-    </div>
-
-    <div class="search-bar" :class="{ open: searchOpen }">
-      <div class="container search-inner">
-        <input
-          v-model="searchInput"
-          class="input"
-          type="search"
-          placeholder="搜索文章标题、标签、内容… 回车跳转"
-          aria-label="搜索关键词"
-          @keyup.enter="submitSearch"
-        />
-        <button class="btn btn-primary" type="button" @click="submitSearch">搜索</button>
       </div>
     </div>
   </header>

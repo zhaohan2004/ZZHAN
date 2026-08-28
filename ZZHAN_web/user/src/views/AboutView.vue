@@ -1,7 +1,7 @@
 <script setup lang="ts">
-/** 关于我 — 头像/简介/座右铭/技术栈/学习方向。所有可编辑项从 site 数据读取（来源：后台系统设置）。 */
+/** 关于我 — 头像/简介/座右铭/统计卡片/技术栈/学习方向。所有可编辑项从 site 数据读取（来源：后台系统设置）。 */
 import { computed, onMounted, ref } from 'vue'
-import { CheckCircle2, Code2, Github, Mail, MapPin, Quote } from 'lucide-vue-next'
+import { BookOpen, Calendar, CheckCircle2, Code2, Eye, Github, Mail, MapPin, MessageCircle, Quote } from 'lucide-vue-next'
 import { useSiteStore } from '@/stores/site'
 import { getAbout } from '@/api/site'
 import type { AboutData } from '@/types/models'
@@ -18,6 +18,7 @@ const DIRECTIONS = ['Go 并发与调度', '分布式系统', '数据库内核', 
 
 onMounted(async () => {
   site.fetchSite()
+  site.fetchStats()
   site.fetchAbout()
   try {
     about.value = await getAbout()
@@ -25,6 +26,18 @@ onMounted(async () => {
     /* 静默 */
   }
 })
+
+/** 统计卡片 */
+const yearCount = computed(() => {
+  const base = site.site?.since ?? new Date().getFullYear() - 7
+  return Math.max(1, new Date().getFullYear() - base)
+})
+const statsCards = computed(() => [
+  { icon: BookOpen, label: '文章', value: site.stats?.articles ?? 0 },
+  { icon: Eye, label: '浏览', value: site.stats?.views ?? 0 },
+  { icon: MessageCircle, label: '评论', value: site.stats?.comments ?? 0 },
+  { icon: Calendar, label: '写作年份', value: yearCount.value, suffix: '年' },
+])
 
 /** 头像 — 优先取后台设置的自定义头像，否则按作者名生成 initials。 */
 const author_name = computed(() => site.site?.author || '小猫')
@@ -34,7 +47,7 @@ const authorMotto = computed(
   () => site.site?.motto || '「写代码是跟计算机对话，写博客是跟自己对话。」',
 )
 const avatarSrc = computed(() =>
-  site.site?.avatar || initialsAvatar(site.site?.logo_text || author_name.value, '#3b82f6', '#3b82f6', 260),
+  site.site?.avatar || initialsAvatar(site.site?.logo_text || author_name.value, '#6b7280', '#9ca3af', 260),
 )
 </script>
 
@@ -73,6 +86,15 @@ const avatarSrc = computed(() =>
         <div class="about-motto">
           <Quote :size="18" style="color:var(--accent);vertical-align:-3px;margin-right:6px" />
           {{ authorMotto }}
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="about-stats reveal">
+          <div v-for="s in statsCards" :key="s.label" class="about-stat glass-card card-hover">
+            <component :is="s.icon" :size="20" style="color:var(--accent);margin-bottom:10px" />
+            <b>{{ typeof s.value === 'number' ? s.value.toLocaleString() : s.value }}{{ s.suffix ?? '' }}</b>
+            <span>{{ s.label }}</span>
+          </div>
         </div>
 
         <div class="grid gap-8 lg:grid-cols-2" style="align-items:start;margin-top:10px">

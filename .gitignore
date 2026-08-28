@@ -4,3 +4,5 @@ assets/
 docs/
 .idea/
 .workbuddy/
+
+config.yaml

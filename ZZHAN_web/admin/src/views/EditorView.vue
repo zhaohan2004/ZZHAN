@@ -27,7 +27,6 @@ const router = useRouter()
 
 const title = ref('')
 const content = ref('')
-const targetStatus = ref<ArticleStatus>('published')
 const viewMode = ref<'split' | 'preview' | 'edit'>('split')
 
 const categories = ref<CategoryAdmin[]>([])
@@ -84,13 +83,21 @@ function buildPayload(status: ArticleStatus): AdminArticlePayload {
 }
 
 async function saveDraft() {
+  if (!title.value.trim()) {
+    toast.warning('请先填写文章标题')
+    return
+  }
+  if (!pubCategory.value) {
+    toast.warning('请先选择分类')
+    return
+  }
   const payload = buildPayload('draft')
   try {
     if (editingId.value == null) await createAdminArticle(payload)
     else await updateAdminArticle(editingId.value, payload)
     toast.success('草稿已保存')
-  } catch {
-    toast.error('保存失败')
+  } catch (e: any) {
+    toast.error(e?.message || '保存失败')
   }
 }
 
@@ -99,7 +106,7 @@ function openPublish() {
     toast.warning('请先填写文章标题')
     return
   }
-  if (!pubCategory.value && categories.value.length) pubCategory.value = categories.value[0].name
+  if (!pubCategory.value) pubCategory.value = ''
   if (!pubDate.value) pubDate.value = new Date().toISOString().slice(0, 10)
   showPublish.value = true
 }
@@ -111,15 +118,15 @@ async function confirmPublish() {
   }
   const ok = await confirm('确定发布这篇文章吗？', '发布文章')
   if (!ok) return
-  const payload = buildPayload(targetStatus.value)
+  const payload = buildPayload('published')
   try {
     if (editingId.value == null) await createAdminArticle(payload)
     else await updateAdminArticle(editingId.value, payload)
     toast.success('文章已发布')
     showPublish.value = false
     router.push('/articles')
-  } catch {
-    toast.error('发布失败')
+  } catch (e: any) {
+    toast.error(e?.message || '发布失败')
   }
 }
 
@@ -131,7 +138,6 @@ async function loadForEdit() {
     editingId.value = a.id
     title.value = a.title
     content.value = a.content || ''
-    targetStatus.value = a.status
     pubCategory.value = a.category
     selectedTags.value = [...(a.tags || [])]
     summary.value = a.summary || ''
@@ -155,8 +161,8 @@ onMounted(async () => {
       listCategories({ page: 1, pageSize: 100 }).then((r) => r.list),
       listTags({ page: 1, pageSize: 100 }).then((r) => r.list),
     ])
-  } catch {
-    /* 静默 */
+  } catch (e: any) {
+    console.error('加载分类/标签失败:', e?.message)
   }
   await loadForEdit()
 })
@@ -170,10 +176,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <label class="ed-title-label" for="mdInput">文章标题</label>
       <input id="edTitle" v-model="title" class="input" type="text" placeholder="输入文章标题…" autocomplete="off" />
       <div class="tb-actions">
-        <select v-model="targetStatus" class="select" style="width: 96px">
-          <option value="draft">草稿</option>
-          <option value="published">发布</option>
-        </select>
         <button class="btn btn-ghost" @click="saveDraft"><Save :size="15" /> 保存草稿</button>
         <select v-model="viewMode" class="select" title="视图模式" style="width: 104px">
           <option value="split">分屏</option>
@@ -220,6 +222,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             <div class="form-group" style="text-align: left">
               <label class="form-label" for="edCat">文章分类 <span class="req">*</span></label>
               <select id="edCat" v-model="pubCategory" class="select">
+                <option value="" disabled>请选择分类</option>
                 <option v-for="c in categories" :key="c.id" :value="c.name">{{ c.name }}</option>
               </select>
             </div>

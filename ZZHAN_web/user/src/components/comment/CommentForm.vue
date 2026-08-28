@@ -5,7 +5,7 @@ import { Send } from 'lucide-vue-next'
 import { postComment } from '@/api/comments'
 import { useToast } from '@/composables/useToast'
 
-const props = withDefaults(defineProps<{ slug: string; parentId?: number | null }>(), { parentId: null })
+const props = withDefaults(defineProps<{ slug: string; parentId?: number | null; replyTo?: string | null }>(), { parentId: null, replyTo: null })
 const emit = defineEmits<{ (e: 'done'): void }>()
 
 const { toast } = useToast()
@@ -18,9 +18,11 @@ async function submit(): Promise<void> {
     toast('请先输入评论内容', 'error')
     return
   }
+  // 回复子评论时，自动加 @某人 前缀
+  const finalContent = props.replyTo ? `@${props.replyTo} ${text}` : text
   submitting.value = true
   try {
-    await postComment(props.slug, { content: text, parent_id: props.parentId })
+    await postComment(props.slug, { content: finalContent, parent_id: props.parentId })
     content.value = ''
     toast('评论已发布', 'success')
     emit('done')

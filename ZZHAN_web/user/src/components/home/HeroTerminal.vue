@@ -8,16 +8,19 @@ interface TermLine {
   text: string
 }
 
-/** 兜底内容（后台未配置时，与原静态文案一致） */
+/** 兜底内容（后台未配置时） */
 const DEFAULT_TERMINAL = [
-  'tk|go run server.go',
-  'cm|# 今天也在认真写代码',
-  'fn|[小猫] ',
-  'tk|server listening on :8080',
-  'tk|curl http://localhost:8080/api/ping',
-  'fn|{"pong":true, ',
-  'fn|"uptime":"3d 14h"}',
-  'tk|git push origin main ✓ done',
+  'tk|$ whoami',
+  'fn|zhaohan',
+  'tk|',
+  'tk|$ cat role.txt',
+  'fn|Gopher · 后端工程师',
+  'tk|',
+  'tk|$ ls tech/',
+  'fn|Go  MySQL  Redis  Linux  Docker',
+  'tk|',
+  'tk|$ echo $MOTTO',
+  'cm|写代码是跟计算机对话，写博客是跟自己对话。',
 ].join('\n')
 
 const site = useSiteStore()

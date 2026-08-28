@@ -10,6 +10,9 @@ type CommentsRepository interface {
 	// GetByArticleSlug 获取文章评论列表（分页）
 	GetByArticleSlug(ctx context.Context, slug string, page, pageSize int) ([]dto.CommentItem, int64, error)
 
+	// GetReplies 获取评论的回复列表（分页）
+	GetReplies(ctx context.Context, commentID int64, page, pageSize int) ([]dto.CommentItem, int64, error)
+
 	// Create 创建评论
 	Create(ctx context.Context, articleID, userID int64, userName, userAvatar, content, ip string, parentID *int64) (int64, error)
 

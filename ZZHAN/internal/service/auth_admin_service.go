@@ -54,6 +54,34 @@ func (s *adminAuthService) Login(ctx context.Context, req *dto.LoginAdminRequest
 	}, nil
 }
 
+// RefreshToken 刷新 access_token
+func (s *adminAuthService) RefreshToken(ctx context.Context, refreshToken string) (*dto.RefreshResponse, error) {
+	// 验证 refresh_token
+	claims, err := jwt.ParseToken(refreshToken, "refresh_token")
+	if err != nil {
+		return nil, fmt.Errorf("refresh_token 无效：%w", err)
+	}
+
+	// 检查是否在黑名单中
+	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
+		blacklisted, err := s.redisRepo.IsBlacklisted(ctx, refreshToken)
+		if err != nil {
+			return nil, fmt.Errorf("检查 token 黑名单失败：%w", err)
+		}
+		if blacklisted {
+			return nil, fmt.Errorf("refresh_token 已失效")
+		}
+	}
+
+	newAccessToken, err := jwt.GenerateToken(claims.UserID, claims.Username, "access_token")
+	if err != nil {
+		return nil, fmt.Errorf("生成新的 access_token 失败：%w", err)
+	}
+	return &dto.RefreshResponse{
+		AccessToken: newAccessToken,
+	}, nil
+}
+
 // Logout 退出登录
 func (s *adminAuthService) Logout(ctx context.Context, accessToken string) error {
 	claims, err := jwt.ParseToken(accessToken, "access_token")

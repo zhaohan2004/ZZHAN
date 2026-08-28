@@ -78,6 +78,33 @@ func (c *AdminAuthController) Login(ctx *gin.Context) {
 	})
 }
 
+// RefreshToken 刷新 access_token
+func (c *AdminAuthController) RefreshToken(ctx *gin.Context) {
+	var req dto.RefreshToken
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code":    40000,
+			"message": "请求参数错误",
+		})
+		return
+	}
+
+	resp, err := c.adminAuthService.RefreshToken(ctx.Request.Context(), req.RefreshToken)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"code":    40100,
+			"message": "刷新失败：" + err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": "刷新成功",
+		"data":    resp,
+	})
+}
+
 // Logout 退出登录
 func (c *AdminAuthController) Logout(ctx *gin.Context) {
 	accessToken := ctx.GetHeader("Authorization")

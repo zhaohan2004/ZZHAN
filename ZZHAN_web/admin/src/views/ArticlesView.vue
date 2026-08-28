@@ -2,14 +2,15 @@
 /** 文章管理 — 1:1 复刻静态 articles.html（.admin-tools/.data-table/.pagination）。去 Element Plus。 */
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowDownToLine, Download, Pencil, Plus, RotateCcw, Search, Send, Trash2 } from 'lucide-vue-next'
+import { ArrowDownToLine, Pencil, Plus, RotateCcw, Search, Send, Trash2 } from 'lucide-vue-next'
 import {
   deleteAdminArticle,
   listAdminArticles,
   listCategories,
+  listTags,
   setArticleStatus,
 } from '@/api/admin'
-import type { AdminArticle, ArticleStatus, CategoryAdmin } from '@/types/models'
+import type { AdminArticle, ArticleStatus, CategoryAdmin, TagAdmin } from '@/types/models'
 import { confirm, toast } from '@/composables/useToast'
 import { fmtNum } from '@/utils/format'
 
@@ -17,17 +18,19 @@ const router = useRouter()
 
 const articles = ref<AdminArticle[]>([])
 const categories = ref<CategoryAdmin[]>([])
+const tags = ref<TagAdmin[]>([])
 const total = ref(0)
 const loading = ref(false)
 
 interface ArticleQueryState {
   page: number
   pageSize: number
-  q: string
+  keyword: string
   category: string
+  tag: string
   status: ArticleStatus | 'all'
 }
-const query = reactive<ArticleQueryState>({ page: 1, pageSize: 8, q: '', category: 'all', status: 'all' })
+const query = reactive<ArticleQueryState>({ page: 1, pageSize: 8, keyword: '', category: 'all', tag: 'all', status: 'all' })
 
 const STATUS_MAP: Record<ArticleStatus, { cls: string; label: string; next: ArticleStatus; nextLabel: string }> = {
   published: { cls: 'st-pub', label: '已发布', next: 'down', nextLabel: '下架' },
@@ -41,9 +44,10 @@ async function load() {
     const res = await listAdminArticles({
       page: query.page,
       pageSize: query.pageSize,
-      q: query.q || undefined,
-      category: query.category,
-      status: query.status,
+      keyword: query.keyword || undefined,
+      category: query.category !== 'all' ? query.category : undefined,
+      tag: query.tag !== 'all' ? query.tag : undefined,
+      status: query.status !== 'all' ? query.status : undefined,
     })
     articles.value = res.list
     total.value = res.total
@@ -67,8 +71,9 @@ function search() {
   load()
 }
 function reset() {
-  query.q = ''
+  query.keyword = ''
   query.category = 'all'
+  query.tag = 'all'
   query.status = 'all'
   query.page = 1
   load()
@@ -82,6 +87,18 @@ function editArticle(a: AdminArticle) {
 }
 async function toggleStatus(a: AdminArticle) {
   const map = STATUS_MAP[a.status]
+  // 草稿发布时校验必填信息
+  if (a.status === 'draft' && map.next === 'published') {
+    const missing: string[] = []
+    if (!a.category) missing.push('分类')
+    if (!a.tags?.length) missing.push('标签')
+    if (!a.cover_image) missing.push('封面')
+    if (missing.length) {
+      const ok = await confirm(`文章缺少${missing.join('、')}，请先去编辑页面补充信息。`, '信息不完整')
+      if (ok) router.push('/editor?id=' + a.id)
+      return
+    }
+  }
   const ok = await confirm(`确定将《${a.title}》${map.nextLabel}吗？`, '切换状态')
   if (!ok) return
   try {
@@ -104,14 +121,14 @@ async function removeArticle(a: AdminArticle) {
     toast.error('删除失败')
   }
 }
-function exportArticles() {
-  toast.info('演示环境暂不支持导出')
-}
-
 onMounted(async () => {
   try {
-    const res = await listCategories({ page: 1, pageSize: 100 })
-    categories.value = res.list
+    const [catRes, tagRes] = await Promise.all([
+      listCategories({ page: 1, pageSize: 100 }),
+      listTags({ page: 1, pageSize: 100 }),
+    ])
+    categories.value = catRes.list
+    tags.value = tagRes.list
   } catch {
     /* 静默 */
   }
@@ -123,10 +140,9 @@ onMounted(async () => {
   <div>
     <div class="admin-tools">
       <button class="btn btn-primary" @click="newArticle"><Plus :size="16" /> 新建文章</button>
-      <button class="btn btn-ghost" @click="exportArticles"><Download :size="16" /> 导出</button>
       <div style="flex: 1"></div>
       <input
-        v-model="query.q"
+        v-model="query.keyword"
         class="input"
         type="search"
         placeholder="搜索文章标题…"
@@ -136,6 +152,10 @@ onMounted(async () => {
       <select v-model="query.category" class="select">
         <option value="all">全部分类</option>
         <option v-for="c in categories" :key="c.id" :value="c.name">{{ c.name }}</option>
+      </select>
+      <select v-model="query.tag" class="select">
+        <option value="all">全部标签</option>
+        <option v-for="t in tags" :key="t.id" :value="t.name">{{ t.name }}</option>
       </select>
       <select v-model="query.status" class="select">
         <option value="all">全部状态</option>

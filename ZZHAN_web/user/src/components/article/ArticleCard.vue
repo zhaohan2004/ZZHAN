@@ -23,20 +23,22 @@ const props = withDefaults(
 const cover = computed(() =>
   props.article.cover_image || coverArt(props.article.title, props.article.category_name, props.article.id),
 )
-const catColor = computed(() => '#3b82f6') // 默认主题色
+const catColor = computed(() => '#4a8eff') // 默认主题色
 </script>
 
 <template>
   <article class="article-card reveal" :class="{ horizontal, reverse }">
     <router-link :to="`/article/${article.slug}`" class="ac-cover" :aria-label="article.title">
-      <span class="badge ac-cat" :style="{ background: catColor + '1f', color: catColor, border: '1px solid ' + catColor + '44' }">
-        {{ article.category_name }}
-      </span>
       <img :src="cover" :alt="article.title" loading="lazy" />
     </router-link>
 
     <div class="ac-body">
-      <router-link :to="`/article/${article.slug}`" class="ac-title">{{ article.title }}</router-link>
+      <div class="ac-title-wrap">
+        <router-link :to="`/article/${article.slug}`" class="ac-title">{{ article.title }}</router-link>
+        <span class="badge ac-cat" :style="{ background: catColor + '1f', color: catColor, border: '1px solid ' + catColor + '44' }">
+          {{ article.category_name }}
+        </span>
+      </div>
       <p class="ac-summary">{{ article.summary }}</p>
       <div v-if="article.tags?.length" class="ac-tags">
         <TagMini v-for="t in article.tags.slice(0, tagLimit)" :key="t.id" :tag-id="t.id" :tag-name="t.name" />
