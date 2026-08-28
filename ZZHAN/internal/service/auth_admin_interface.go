@@ -11,6 +11,9 @@ type AdminAuthService interface {
 	// Login 后台管理员登录
 	Login(ctx context.Context, req *dto.LoginAdminRequest) (*dto.LoginResponse, error)
 
+	// RefreshToken 刷新 access_token
+	RefreshToken(ctx context.Context, refreshToken string) (*dto.RefreshResponse, error)
+
 	// Logout 退出登录（将 token 加入黑名单）
 	Logout(ctx context.Context, accessToken string) error
 

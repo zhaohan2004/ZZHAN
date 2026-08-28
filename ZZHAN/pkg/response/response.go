@@ -34,17 +34,17 @@ func SuccessWithMessage(c *gin.Context, message string, data interface{}) {
 }
 
 // Error 错误响应
-func Error(c *gin.Context, code int, message string) {
-	c.JSON(200, Response{
-		Code:    code,
+func Error(c *gin.Context, httpStatus int, bizCode int, message string) {
+	c.JSON(httpStatus, Response{
+		Code:    bizCode,
 		Message: message,
 	})
 }
 
 // ErrorWithData 错误响应（带数据）
-func ErrorWithData(c *gin.Context, code int, message string, data interface{}) {
-	c.JSON(200, Response{
-		Code:    code,
+func ErrorWithData(c *gin.Context, httpStatus int, bizCode int, message string, data interface{}) {
+	c.JSON(httpStatus, Response{
+		Code:    bizCode,
 		Message: message,
 		Data:    data,
 	})
@@ -60,32 +60,32 @@ func BizError(c *gin.Context, err error) {
 		return
 	}
 	// 其他错误类型
-	Error(c, errors.CodeInternalError, errors.GetMessage(errors.CodeInternalError))
+	InternalError(c, errors.GetMessage(errors.CodeInternalError))
 }
 
 // BadRequest 400 错误
 func BadRequest(c *gin.Context, message string) {
-	Error(c, errors.CodeBadRequest, message)
+	Error(c, 400, errors.CodeBadRequest, message)
 }
 
 // Unauthorized 401 错误
 func Unauthorized(c *gin.Context, message string) {
-	Error(c, errors.CodeUnauthorized, message)
+	Error(c, 401, errors.CodeUnauthorized, message)
 }
 
 // Forbidden 403 错误
 func Forbidden(c *gin.Context, message string) {
-	Error(c, errors.CodeForbidden, message)
+	Error(c, 403, errors.CodeForbidden, message)
 }
 
 // NotFound 404 错误
 func NotFound(c *gin.Context, message string) {
-	Error(c, errors.CodeNotFound, message)
+	Error(c, 404, errors.CodeNotFound, message)
 }
 
 // InternalError 500 错误
 func InternalError(c *gin.Context, message string) {
-	Error(c, errors.CodeInternalError, message)
+	Error(c, 500, errors.CodeInternalError, message)
 }
 
 // PageRequest 分页请求参数

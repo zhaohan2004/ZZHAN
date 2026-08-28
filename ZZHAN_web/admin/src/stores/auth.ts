@@ -7,6 +7,7 @@ import { adminLogin, adminLogout, getProfile, saveProfile } from '@/api/admin'
 import type { AdminProfile } from '@/types/models'
 
 const TOKEN_KEY = 'ct-admin-token'
+const REFRESH_KEY = 'ct-admin-refresh-token'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem(TOKEN_KEY))
@@ -29,6 +30,9 @@ export const useAuthStore = defineStore('auth', () => {
     const res = await adminLogin(username, password, captchaId, captchaCode)
     token.value = res.access_token
     localStorage.setItem(TOKEN_KEY, res.access_token)
+    if (res.refresh_token) {
+      localStorage.setItem(REFRESH_KEY, res.refresh_token)
+    }
     // 登录后立即加载管理员资料
     await loadProfile()
     return true
@@ -56,6 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null
     profile.value = null
     localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(REFRESH_KEY)
   }
 
   return { token, profile, loggedIn, login, loadProfile, updateProfile, logout }

@@ -49,8 +49,9 @@ export function saveProfile(p: AdminProfile): Promise<AdminProfile> {
 export interface AdminArticleQuery {
   page?: number
   pageSize?: number
-  q?: string
+  keyword?: string
   category?: string
+  tag?: string
   status?: ArticleStatus | 'all'
 }
 export function listAdminArticles(params: AdminArticleQuery = {}): Promise<Paged<AdminArticle>> {
