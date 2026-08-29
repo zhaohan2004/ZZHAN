@@ -74,28 +74,16 @@ export interface CommentAdmin {
   status: CommentStatus
 }
 
-/** 仪表盘统计卡 */
-export interface DashboardStat {
-  key: string
-  label: string
-  value: number | string
-  trend: string
-  up: boolean
-  icon: string
-  color: string
+/** 仪表盘统计 — 后端只返回数值，前端自管展示配置 */
+export interface StatItem {
+  value: number
 }
 
-/** 仪表盘图表数据 */
-export interface DashboardCharts {
-  week_visits: { d: string; pv: number; uv: number }[]
-  post_trend: { m: string; n: number }[]
-  cat_dist: { name: string; value: number; color: string }[]
-}
+export type DashboardStatData = Record<string, StatItem>
 
 /** 仪表盘列表数据 */
 export interface DashboardArticles {
   recent_posts: { id: number; title: string; category: string; date: string; views: number }[]
-  hot_posts: { id: number; title: string; views: number }[]
 }
 export interface RecentComment {
   id: number
@@ -109,6 +97,26 @@ export interface Operation {
   user: string
   action: string
   target: string
+}
+
+/** 后台操作日志（分页列表） */
+export interface OperationLogAdmin {
+  id: number
+  admin_id: number | null
+  admin_name: string
+  action: string
+  target: string
+  created_at: string
+}
+
+/** 后台操作日志 */
+export interface OperationLogAdmin {
+  id: number
+  admin_id: number | null
+  admin_name: string
+  action: string
+  target: string
+  created_at: string
 }
 
 /** 管理员资料（password 不回传，仅前端本地输入） */

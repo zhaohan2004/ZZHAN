@@ -16,6 +16,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'categories', name: 'a-categories', component: () => import('@/views/CategoriesView.vue'), meta: { title: '分类管理' } },
       { path: 'tags', name: 'a-tags', component: () => import('@/views/TagsView.vue'), meta: { title: '标签管理' } },
       { path: 'comments', name: 'a-comments', component: () => import('@/views/CommentsView.vue'), meta: { title: '评论管理' } },
+      { path: 'operation-logs', name: 'a-operation-logs', component: () => import('@/views/OperationLogsView.vue'), meta: { title: '操作日志' } },
       { path: 'settings', name: 'a-settings', component: () => import('@/views/SettingsView.vue'), meta: { title: '系统设置' } },
     ],
   },

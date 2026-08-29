@@ -13,6 +13,7 @@ import type {
   CategoryStatus,
   CommentAdmin,
   CommentStatus,
+  OperationLogAdmin,
   SettingsKV,
   TagAdmin,
   TagStatus,
@@ -155,6 +156,23 @@ export function updateCommentStatus(id: number, status: CommentStatus): Promise<
 }
 export function deleteComment(id: number): Promise<null> {
   return request<null>({ method: 'DELETE', url: `/admin/comments/${id}` })
+}
+
+/* ---------- 操作日志 ---------- */
+export function listOperationLogs(
+  params: {
+    page?: number
+    pageSize?: number
+    action?: string
+    target?: string
+    startDate?: string
+    endDate?: string
+  } = {},
+): Promise<Paged<OperationLogAdmin>> {
+  const { pageSize, ...rest } = params
+  const query: Record<string, string | number | undefined> = { ...rest }
+  if (pageSize !== undefined) query.page_size = pageSize
+  return request<Paged<OperationLogAdmin>>({ method: 'GET', url: '/admin/operation-logs', params: query })
 }
 
 /* ---------- 设置 ---------- */

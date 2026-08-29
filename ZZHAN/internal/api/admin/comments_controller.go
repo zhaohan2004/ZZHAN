@@ -8,17 +8,20 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type AdminCommentsController struct {
 	commentsAdminService service.CommentsAdminService
 	redisRepo            repository.RedisRepository
+	db                   *gorm.DB
 }
 
-func NewAdminCommentsController(commentsAdminService service.CommentsAdminService, redisRepo repository.RedisRepository) *AdminCommentsController {
+func NewAdminCommentsController(commentsAdminService service.CommentsAdminService, redisRepo repository.RedisRepository, db *gorm.DB) *AdminCommentsController {
 	return &AdminCommentsController{
 		commentsAdminService: commentsAdminService,
 		redisRepo:            redisRepo,
+		db:                   db,
 	}
 }
 

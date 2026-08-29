@@ -122,8 +122,7 @@ func (a *App) initDatabase() error {
 		// 关于与站点模块（2张）
 		&entity.SiteSetting{},
 		&entity.AboutItem{},
-		// 统计与审计模块（2张）
-		&entity.VisitLog{},
+		// 审计模块
 		&entity.OperationLog{},
 	); err != nil {
 		logger.Warn("数据库迁移警告", zap.Error(err))
@@ -169,6 +168,8 @@ func (a *App) initDependencies() {
 	commentsRepo := repository.NewCommentsRepository(a.mysqlDB)
 	commentsAdminRepo := repository.NewCommentsAdminRepository(a.mysqlDB)
 	likeRepo := repository.NewLikeRepository(a.mysqlDB)
+	dashboardAdminRepo := repository.NewDashboardAdminRepository(a.mysqlDB)
+	operationLogsAdminRepo := repository.NewOperationLogsAdminRepository(a.mysqlDB)
 
 	// ========== 创建 Service ==========
 	siteService := service.NewSiteService(siteRepo)
@@ -188,25 +189,29 @@ func (a *App) initDependencies() {
 	commentsAdminService := service.NewCommentsAdminService(commentsAdminRepo)
 	likeService := service.NewLikeService(likeRepo)
 	uploadService := service.NewUploadService(store)
+	dashboardAdminService := service.NewDashboardAdminService(dashboardAdminRepo)
+	operationLogsAdminService := service.NewOperationLogsAdminService(operationLogsAdminRepo)
 
 	//// ========== 创建 Controller ==========
 	siteController := web.NewSiteController(siteService)
-	siteAdminController := admin.NewSiteAdminController(siteAdminService, redisRepo)
+	siteAdminController := admin.NewSiteAdminController(siteAdminService, redisRepo, a.mysqlDB)
 	adminAuthController := admin.NewAdminAuthController(adminAuthService, redisRepo)
 	authController := web.NewAuthController(authService, redisRepo)
 	articlesController := web.NewArticlesController(articlesService)
-	adminArticlesController := admin.NewAdminArticlesController(articlesAdminService, redisRepo)
+	adminArticlesController := admin.NewAdminArticlesController(articlesAdminService, redisRepo, a.mysqlDB)
 	categoriesController := web.NewCategoriesController(categoriesService)
-	adminCategoriesController := admin.NewAdminCategoriesController(categoriesAdminService, redisRepo)
+	adminCategoriesController := admin.NewAdminCategoriesController(categoriesAdminService, redisRepo, a.mysqlDB)
 	tagsController := web.NewTagsController(tagsService)
-	adminTagsController := admin.NewAdminTagsController(tagsAdminService, redisRepo)
+	adminTagsController := admin.NewAdminTagsController(tagsAdminService, redisRepo, a.mysqlDB)
 	archivesController := web.NewArchivesController(archivesService)
 	statsController := web.NewStatsController(statsService)
 	aboutController := web.NewAboutController(aboutService)
 	commentsController := web.NewCommentsController(commentsService, redisRepo, commentsRepo)
-	adminCommentsController := admin.NewAdminCommentsController(commentsAdminService, redisRepo)
+	adminCommentsController := admin.NewAdminCommentsController(commentsAdminService, redisRepo, a.mysqlDB)
 	likeController := web.NewLikeController(likeService, redisRepo)
 	uploadController := admin.NewUploadController(uploadService, redisRepo)
+	adminDashboardController := admin.NewAdminDashboardController(dashboardAdminService, redisRepo)
+	adminOperationLogsController := admin.NewAdminOperationLogsController(operationLogsAdminService, redisRepo)
 
 	// ========== 创建 Router ==========
 	a.router = api.NewRouter(siteController, siteAdminController,
@@ -215,7 +220,8 @@ func (a *App) initDependencies() {
 		adminCategoriesController, tagsController,
 		adminTagsController, archivesController, statsController,
 		aboutController, commentsController, adminCommentsController,
-		likeController, uploadController)
+		likeController, uploadController, adminDashboardController,
+		adminOperationLogsController)
 }
 
 // initRouter 初始化路由

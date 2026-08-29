@@ -121,36 +121,15 @@ export const MOCK_COMMENTS = [
   { id: 8, article_id: 7, article_title: 'Docker 入门到实践：从镜像到 Compose 编排', user_name: 'Docker小白', avatar: '#60a5fa', content: '多阶段构建太强了，镜像从 1.2G 降到 18M，已收藏！', ip: '113.87.***.7', time: '2026-06-21 11:30', status: 'normal' },
 ]
 
-export const DASHBOARD_STATS = [
-  { key: 'posts', label: '文章总数', value: 128, trend: '+12', up: true, icon: 'Document', color: '#5b9df6' },
-  { key: 'categories', label: '分类数量', value: 11, trend: '+1', up: true, icon: 'Folder', color: '#38bdf8' },
-  { key: 'tags', label: '标签数量', value: 46, trend: '+4', up: true, icon: 'PriceTag', color: '#a78bfa' },
-  { key: 'comments', label: '评论数量', value: 892, trend: '+36', up: true, icon: 'ChatDotRound', color: '#f59e0b' },
-  { key: 'today', label: '今日访问量', value: 4820, trend: '+8.2%', up: true, icon: 'View', color: '#10b981' },
-  { key: 'total', label: '总访问量', value: '1,286,420', trend: '+15.6%', up: true, icon: 'TrendCharts', color: '#ef4444' },
-]
-
-export const DASHBOARD_CHARTS = {
-  week_visits: [
-    { d: '08-16', pv: 3210, uv: 2140 }, { d: '08-17', pv: 2860, uv: 1890 },
-    { d: '08-18', pv: 4120, uv: 2670 }, { d: '08-19', pv: 3650, uv: 2410 },
-    { d: '08-20', pv: 3980, uv: 2550 }, { d: '08-21', pv: 5210, uv: 3280 },
-    { d: '08-22', pv: 4820, uv: 3050 },
-  ],
-  post_trend: [
-    { m: '9月', n: 4 }, { m: '10月', n: 6 }, { m: '11月', n: 5 }, { m: '12月', n: 8 },
-    { m: '1月', n: 7 }, { m: '2月', n: 4 }, { m: '3月', n: 9 }, { m: '4月', n: 11 },
-    { m: '5月', n: 8 }, { m: '6月', n: 12 }, { m: '7月', n: 10 }, { m: '8月', n: 14 },
-  ],
-  cat_dist: MOCK_CATEGORIES.slice(0, 6).map((c) => ({ name: c.name, value: c.count, color: c.color })),
+export const DASHBOARD_STATS = {
+  articles:   { value: 128 },
+  categories: { value: 11 },
+  tags:       { value: 46 },
+  comments:   { value: 892 },
 }
 
 export const DASHBOARD_ARTICLES = {
   recent_posts: MOCK_ARTICLES.slice(0, 5).map((a) => ({ id: a.id, title: a.title, category: a.category, date: a.date, views: a.views })),
-  hot_posts: [...MOCK_ARTICLES]
-    .sort((a, b) => b.views - a.views)
-    .slice(0, 5)
-    .map((a) => ({ id: a.id, title: a.title, views: a.views })),
 }
 
 export const DASHBOARD_COMMENTS = MOCK_COMMENTS.slice(0, 5).map((c) => ({

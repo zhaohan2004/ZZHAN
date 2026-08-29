@@ -1,20 +1,16 @@
 /**
- * 仪表盘接口 — 5 个数据端点。
+ * 仪表盘接口 — 4 个数据端点。
  */
 import { request } from './http'
 import type {
   DashboardArticles,
-  DashboardCharts,
-  DashboardStat,
+  DashboardStatData,
   Operation,
   RecentComment,
 } from '@/types/models'
 
-export function getDashboardStats(): Promise<DashboardStat[]> {
-  return request<DashboardStat[]>({ method: 'GET', url: '/admin/dashboard/stats' })
-}
-export function getDashboardCharts(): Promise<DashboardCharts> {
-  return request<DashboardCharts>({ method: 'GET', url: '/admin/dashboard/charts' })
+export function getDashboardStats(): Promise<DashboardStatData> {
+  return request<DashboardStatData>({ method: 'GET', url: '/admin/dashboard/stats' })
 }
 export function getDashboardArticles(): Promise<DashboardArticles> {
   return request<DashboardArticles>({ method: 'GET', url: '/admin/dashboard/articles' })

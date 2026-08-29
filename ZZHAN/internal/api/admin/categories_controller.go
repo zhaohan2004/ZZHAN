@@ -9,17 +9,20 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type AdminCategoriesController struct {
 	categoriesAdminService service.CategoriesAdminService
 	redisRepo              repository.RedisRepository
+	db                     *gorm.DB
 }
 
-func NewAdminCategoriesController(categoriesAdminService service.CategoriesAdminService, redisRepo repository.RedisRepository) *AdminCategoriesController {
+func NewAdminCategoriesController(categoriesAdminService service.CategoriesAdminService, redisRepo repository.RedisRepository, db *gorm.DB) *AdminCategoriesController {
 	return &AdminCategoriesController{
 		categoriesAdminService: categoriesAdminService,
 		redisRepo:              redisRepo,
+		db:                     db,
 	}
 }
 

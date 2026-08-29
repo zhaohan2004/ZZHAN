@@ -6,10 +6,11 @@ import (
 )
 
 func (c *SiteAdminController) RegisterRoutes(r *gin.RouterGroup) {
-	admin := r.Group("/admin")
+	admin := r.Group("/admin/settings")
 	admin.Use(middleware.Auth(c.redisRepo))
+	admin.Use(middleware.OperationLog(c.db))
 	{
-		admin.GET("/settings", c.GetSettings)
-		admin.PUT("/settings", c.UpdateSettings)
+		admin.GET("", c.GetSettings)
+		admin.PUT("", c.UpdateSettings)
 	}
 }
