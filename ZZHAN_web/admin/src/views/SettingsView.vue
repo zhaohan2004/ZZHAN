@@ -30,7 +30,12 @@ async function load() {
 async function save() {
   saving.value = true
   try {
-    await saveSettings({ ...form })
+    // 将 socials 数组序列化为 JSON 字符串，后端以 string 存储
+    const data = { ...form }
+    if (Array.isArray(data.socials)) {
+      data.socials = JSON.stringify(data.socials)
+    }
+    await saveSettings(data)
     toast.success('设置已保存')
   } catch {
     toast.error('保存失败')
@@ -89,13 +94,6 @@ onMounted(load)
           <div class="form-group">
             <label class="form-label">博客简介</label>
             <input v-model="form.blog_desc" class="input" type="text" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Logo 文字</label>
-            <div style="display: flex; gap: 10px; align-items: center">
-              <input v-model="form.logo_text" class="input" type="text" maxlength="3" style="width: 110px" />
-              <span class="brand-logo" style="width: 38px; height: 38px; font-size: 15px">{{ form.logo_text }}</span>
-            </div>
           </div>
           <div class="form-group" style="grid-column: 1 / -1">
             <label class="form-label">作者头像</label>

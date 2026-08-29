@@ -62,7 +62,10 @@ function isActive(item: NavItem): boolean {
 <template>
   <aside class="admin-sidebar" :class="{ open }">
     <div class="side-brand">
-      <span class="brand-logo">{{ settings.settings?.logo_text || 'CT' }}</span>
+      <span class="brand-logo">
+        <img v-if="settings.settings?.avatar" :src="settings.settings.avatar" alt="头像" />
+        <span v-else>{{ (settings.settings?.blog_name || 'C').slice(0, 1) }}</span>
+      </span>
       <span class="brand-text">{{ settings.settings?.blog_name || 'Blog' }}<span class="brand-dot">.</span><span style="font-size:11px;color:var(--text-3);font-weight:400;margin-left:8px">管理后台</span></span>
     </div>
     <nav class="side-nav">

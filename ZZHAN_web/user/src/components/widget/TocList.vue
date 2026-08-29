@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /** 文章目录 TOC — 由 ArticleView 传入 buildTOC 结果与当前高亮 id。 */
 export interface TocEntry {
-  level: 2 | 3
+  level: 2 | 3 | 4
   id: string
   text: string
 }

@@ -3,7 +3,6 @@ package dto
 // SiteResponse 站点响应
 type SiteResponse struct {
 	Name         string        `json:"name"`
-	LogoText     string        `json:"logo_text"`
 	Tagline      string        `json:"tagline"`
 	Bio          string        `json:"bio"`
 	Github       string        `json:"github"`

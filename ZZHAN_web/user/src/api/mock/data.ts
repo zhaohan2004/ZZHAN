@@ -24,7 +24,6 @@ function md(...lines: string[]): string {
 const SITE = {
   name: '小猫的个人博客',
   short_name: '小猫',
-  logo_text: '猫',
   tagline: '记录代码，分享技术，持续成长',
   bio: '一名专注后端开发的全栈工程师，深耕 Go / MySQL / Redis / 云原生，喜欢把复杂的问题讲简单。',
   motto: '「写代码是跟计算机对话，写博客是跟自己对话。」',
@@ -44,7 +43,6 @@ const SITE = {
 
 export const siteData: SiteInfo = {
   name: SITE.name,
-  logo_text: SITE.logo_text,
   tagline: SITE.tagline,
   bio: SITE.bio,
   github: SITE.github,

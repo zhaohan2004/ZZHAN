@@ -26,8 +26,13 @@ async function submit(): Promise<void> {
     content.value = ''
     toast('评论已发布', 'success')
     emit('done')
-  } catch {
-    toast('评论提交失败，请重试', 'error')
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg.includes('登录')) {
+      toast('请先登录后再发表评论', 'error')
+    } else {
+      toast(msg || '评论提交失败，请重试', 'error')
+    }
   } finally {
     submitting.value = false
   }

@@ -183,7 +183,9 @@ html.dark{
   width:36px;height:36px;border-radius:8px;background:var(--grad);
   display:flex;align-items:center;justify-content:center;
   color:#fff;font-weight:800;font-size:15px;font-family:'JetBrains Mono',monospace;
+  overflow:hidden;
 }
+.brand-logo img{width:100%;height:100%;object-fit:cover;}
 .brand-text{font-size:17px;font-weight:800;letter-spacing:.3px}
 .brand-dot{color:var(--accent-3)}
 .nav-links{display:flex;align-items:center;gap:4px}
@@ -510,6 +512,7 @@ html.dark{
 .toc a:hover{color:var(--accent)}
 .toc a.lv2{padding-left:26px}
 .toc a.lv3{padding-left:40px}
+.toc a.lv4{padding-left:54px}
 .toc a.active{color:var(--accent);border-left-color:var(--accent);background:var(--grad-soft);border-radius:0 6px 6px 0}
 
 /* Markdown 正文 */

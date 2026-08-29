@@ -171,7 +171,6 @@ function siteHandler(): SiteInfo {
   return {
     ...siteData,
     name: String(s.blog_name || siteData.name),
-    logo_text: String(s.logo_text || siteData.logo_text),
     tagline: String(s.tagline || s.blog_desc || siteData.tagline),
     bio: String(s.author_intro || siteData.bio),
     github: String(s.github || siteData.github),

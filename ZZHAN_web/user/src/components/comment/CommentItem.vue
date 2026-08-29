@@ -19,11 +19,33 @@ const replyingTo = ref<number | null>(null)
 const busy = ref(false)
 
 // 子评论相关
-const replies = ref<CommentItem[]>(props.comment.replies || [])
+const replies = ref<CommentItem[]>([])
 const replyTotal = ref(props.comment.reply_total || 0)
-const hasMore = ref(props.comment.has_more_reply || false)
+const hasMore = ref(replyTotal.value > 0)
 const loadingMore = ref(false)
 const expanded = ref(false)
+const firstLoaded = ref(false)
+
+// 子评论点赞状态
+const replyLikes = ref<Record<number, { liked: boolean; count: number }>>({})
+
+function initReplyLikes(list: CommentItem[]): void {
+  for (const r of list) {
+    if (!replyLikes.value[r.id]) {
+      replyLikes.value[r.id] = { liked: r.liked || false, count: r.like_count || 0 }
+    }
+  }
+}
+
+async function onReplyLike(replyId: number): Promise<void> {
+  if (!(await auth.ensureAuth())) return
+  try {
+    const res = await toggleCommentLike(replyId)
+    replyLikes.value[replyId] = { liked: res.liked, count: res.like_count }
+  } catch {
+    /* 静默 */
+  }
+}
 
 function avatarOf(name: string, avatar?: string): string {
   if (avatar) return avatar
@@ -49,10 +71,17 @@ async function loadMore(): Promise<void> {
   if (loadingMore.value) return
   loadingMore.value = true
   try {
-    // 加载下一页（每页10条）
-    const nextPage = Math.floor(replies.value.length / 10) + 1
-    const res = await getReplies(props.comment.id, { page: nextPage, page_size: 10 })
-    replies.value = [...replies.value, ...res.list]
+    // 第一次加载2条，之后每次加载10条
+    const isFirst = !firstLoaded.value
+    const pageSize = isFirst ? 2 : 10
+    const page = isFirst ? 1 : Math.floor(replies.value.length / 10) + 1
+    const res = await getReplies(props.comment.id, { page, page_size: pageSize })
+    // 已有的回复 ID 集合，用于去重
+    const existingIds = new Set(replies.value.map((r) => r.id))
+    const newReplies = res.list.filter((r) => !existingIds.has(r.id))
+    replies.value = [...replies.value, ...newReplies]
+    initReplyLikes(newReplies)
+    firstLoaded.value = true
     hasMore.value = replies.value.length < (props.comment.reply_total || 0)
     expanded.value = !hasMore.value
   } catch {
@@ -63,10 +92,11 @@ async function loadMore(): Promise<void> {
 }
 
 function collapse(): void {
-  // 收起：只保留前2条
-  replies.value = (props.comment.replies || []).slice(0, 2)
-  hasMore.value = (props.comment.reply_total || 0) > 2
+  // 收起：清空回复列表
+  replies.value = []
+  hasMore.value = (props.comment.reply_total || 0) > 0
   expanded.value = false
+  firstLoaded.value = false
 }
 </script>
 
@@ -90,6 +120,7 @@ function collapse(): void {
 
       <CommentForm v-if="replying" :slug="slug" :parent-id="comment.id" :reply-to="null" class="mt-3" @done="replying = false; emit('done')" />
 
+      <!-- 子评论列表 -->
       <div v-if="replies.length" class="mt-3 space-y-3">
         <div v-for="r in replies" :key="r.id" class="comment-item reply" style="border-bottom:none;padding:10px 0">
           <img class="cm-avatar" :src="avatarOf(r.user_name, r.avatar)" :alt="r.user_name" style="width:34px;height:34px;border-radius:8px" />
@@ -100,36 +131,43 @@ function collapse(): void {
             </div>
             <div class="cm-text">{{ r.content }}</div>
             <div class="cm-actions">
+              <button
+                type="button"
+                :style="replyLikes[r.id]?.liked ? 'color:var(--accent)' : ''"
+                @click="onReplyLike(r.id)"
+              >
+                <ThumbsUp :size="13" /> {{ replyLikes[r.id]?.count || 0 }}
+              </button>
               <button type="button" @click="replyingTo = replyingTo === r.id ? null : r.id">
                 <MessageSquare :size="13" /> 回复
               </button>
             </div>
-            <CommentForm v-if="replyingTo === r.id" :slug="slug" :parent-id="comment.id" :reply-to="r.user_name" class="mt-3" @done="replyingTo = null; emit('done')" />
+            <CommentForm v-if="replyingTo === r.id" :slug="slug" :parent-id="r.id" :reply-to="r.user_name" class="mt-3" @done="replyingTo = null; emit('done')" />
           </div>
         </div>
+      </div>
 
-        <!-- 展开/收起按钮 -->
-        <div class="expand-actions">
-          <button
-            v-if="hasMore && !expanded"
-            type="button"
-            class="expand-btn"
-            :disabled="loadingMore"
-            @click="loadMore"
-          >
-            <ChevronDown :size="14" />
-            {{ loadingMore ? '加载中...' : `展开更多回复（共${replyTotal}条）` }}
-          </button>
-          <button
-            v-if="expanded"
-            type="button"
-            class="expand-btn"
-            @click="collapse"
-          >
-            <ChevronUp :size="14" />
-            收起回复
-          </button>
-        </div>
+      <!-- 展开/收起按钮 -->
+      <div v-if="replyTotal > 0" class="expand-actions" style="margin-top:12px">
+        <button
+          v-if="hasMore"
+          type="button"
+          class="expand-btn"
+          :disabled="loadingMore"
+          @click="loadMore"
+        >
+          <ChevronDown :size="14" />
+          {{ loadingMore ? '加载中...' : (firstLoaded ? '展开更多' : `展开回复（共${replyTotal}条）`) }}
+        </button>
+        <button
+          v-if="replies.length > 0"
+          type="button"
+          class="expand-btn"
+          @click="collapse"
+        >
+          <ChevronUp :size="14" />
+          收起回复
+        </button>
       </div>
     </div>
   </div>

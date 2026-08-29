@@ -18,7 +18,7 @@ const scrolled = ref(false)
 const menuOpen = ref(false)
 
 const siteName = computed(() => site.site?.name ?? '小猫的个人博客')
-const logoText = computed(() => site.site?.logo_text ?? 'CT')
+const authorAvatar = computed(() => site.site?.avatar ?? '')
 
 const navLinks = [
   { to: '/', label: '首页', exact: true },
@@ -78,7 +78,10 @@ onBeforeUnmount(() => {
   <header class="nav" :class="{ scrolled }">
     <div class="container nav-inner">
       <router-link to="/" class="brand">
-        <span class="brand-logo">{{ logoText }}</span>
+        <span class="brand-logo">
+          <img v-if="authorAvatar" :src="authorAvatar" alt="头像" />
+          <span v-else>{{ siteName?.slice(0, 1) || 'C' }}</span>
+        </span>
         <span class="brand-text">
           {{ siteName }}<span class="brand-dot">.</span>
         </span>

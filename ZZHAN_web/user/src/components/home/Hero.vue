@@ -18,7 +18,7 @@ const nameTail = computed(() => name.value.slice(-4))
 
 /** 头像 — 优先取后台设置的自定义头像，否则按站点短名生成 initials。 */
 const avatarSrc = computed(
-  () => props.site?.avatar || initialsAvatar(props.site?.logo_text || props.site?.short_name || props.site?.name || 'CT', '#6b7280', '#9ca3af', 224),
+  () => props.site?.avatar || initialsAvatar(props.site?.short_name || props.site?.name || 'CT', '#6b7280', '#9ca3af', 224),
 )
 
 /** 位置 — 来自 site.location。 */

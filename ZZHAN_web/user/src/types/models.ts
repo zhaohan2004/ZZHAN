@@ -52,7 +52,6 @@ export interface ArticleDetail extends ArticleSummary {
 /** 站点信息 */
 export interface SiteInfo {
   name: string
-  logo_text: string
   tagline: string
   bio: string
   github: string

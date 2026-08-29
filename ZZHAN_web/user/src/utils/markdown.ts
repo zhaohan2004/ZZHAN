@@ -64,11 +64,12 @@ export function renderMarkdown(src: string): string {
   return md.render(src)
 }
 
-export function buildTOC(container: HTMLElement): { level: 2 | 3; id: string; text: string }[] {
-  const out: { level: 2 | 3; id: string; text: string }[] = []
-  container.querySelectorAll('h2,h3').forEach((h) => {
+export function buildTOC(container: HTMLElement): { level: 2 | 3 | 4; id: string; text: string }[] {
+  const out: { level: 2 | 3 | 4; id: string; text: string }[] = []
+  container.querySelectorAll('h2,h3,h4').forEach((h) => {
     if (!h.id) h.id = 'sec-' + out.length + '-' + slugify(h.textContent!.trim())
-    out.push({ level: h.tagName === 'H2' ? 2 : 3, id: h.id, text: h.textContent!.trim() })
+    const level = h.tagName === 'H2' ? 2 : h.tagName === 'H3' ? 3 : 4
+    out.push({ level, id: h.id, text: h.textContent!.trim() })
   })
   return out
 }

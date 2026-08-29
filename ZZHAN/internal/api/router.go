@@ -24,6 +24,7 @@ type Router struct {
 	statsController           *web.StatsController
 	aboutController           *web.AboutController
 	commentsController        *web.CommentsController
+	adminCommentsController   *admin.AdminCommentsController
 	likeController            *web.LikeController
 	uploadController          *admin.UploadController
 }
@@ -44,6 +45,7 @@ func NewRouter(
 	statsController *web.StatsController,
 	aboutController *web.AboutController,
 	commentsController *web.CommentsController,
+	adminCommentsController *admin.AdminCommentsController,
 	likeController *web.LikeController,
 	uploadController *admin.UploadController,
 ) *Router {
@@ -62,6 +64,7 @@ func NewRouter(
 		statsController:           statsController,
 		aboutController:           aboutController,
 		commentsController:        commentsController,
+		adminCommentsController:   adminCommentsController,
 		likeController:            likeController,
 		uploadController:          uploadController,
 	}
@@ -128,6 +131,9 @@ func (r *Router) Setup(engine *gin.Engine) {
 
 		//前台评论路由
 		r.commentsController.RegisterRoutes(apiGroup)
+
+		//后台评论路由
+		r.adminCommentsController.RegisterRoutes(apiGroup)
 
 		//前台点赞路由
 		r.likeController.RegisterRoutes(apiGroup)
