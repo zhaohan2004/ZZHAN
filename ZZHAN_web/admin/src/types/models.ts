@@ -123,7 +123,6 @@ export interface AdminProfile {
 export interface SettingsKV {
   blog_name: string
   blog_desc: string
-  logo_text: string
   author_name: string
   author_role: string
   author_intro: string

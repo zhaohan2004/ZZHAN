@@ -76,7 +76,10 @@ async function onLogin(): Promise<void> {
 
     <div class="login-card anim-fade">
       <div class="login-logo">
-        <span class="brand-logo">{{ settings.settings?.logo_text || 'CT' }}</span>
+        <span class="brand-logo">
+          <img v-if="settings.settings?.avatar" :src="settings.settings.avatar" alt="头像" />
+          <span v-else>{{ (settings.settings?.blog_name || 'C').slice(0, 1) }}</span>
+        </span>
         <h1>{{ settings.settings?.blog_name || 'Blog' }} <span class="grad-text">管理后台</span></h1>
         <p>{{ settings.settings?.blog_desc || '后台管理系统' }}</p>
       </div>

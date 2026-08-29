@@ -11,7 +11,6 @@ export const ADMIN_PROFILE = {
 export const SETTINGS: Record<string, unknown> = {
   blog_name: '小猫的个人博客',
   blog_desc: '记录代码，分享技术，持续成长',
-  logo_text: '猫',
   author_name: '阿轩',
   author_role: 'Gopher · 后端工程师',
   author_intro: '一名专注后端开发的全栈工程师，深耕 Go / MySQL / Redis / 云原生，喜欢把复杂的问题讲简单。',

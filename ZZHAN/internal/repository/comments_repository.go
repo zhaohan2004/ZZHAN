@@ -71,16 +71,16 @@ func (r *commentsRepository) GetByArticleSlug(ctx context.Context, slug string, 
 }
 
 // getReplies 获取评论的回复列表（默认前2条）
-func (r *commentsRepository) getReplies(ctx context.Context, parentID int64) ([]dto.CommentItem, int64) {
+func (r *commentsRepository) getReplies(ctx context.Context, rootID int64) ([]dto.CommentItem, int64) {
 	var total int64
 	r.db.WithContext(ctx).
 		Model(&entity.Comment{}).
-		Where("parent_id = ? AND status = ?", parentID, "normal").
+		Where("root_id = ? AND status = ?", rootID, "normal").
 		Count(&total)
 
 	var replies []entity.Comment
 	r.db.WithContext(ctx).
-		Where("parent_id = ? AND status = ?", parentID, "normal").
+		Where("root_id = ? AND status = ?", rootID, "normal").
 		Order("created_at ASC").
 		Limit(2).
 		Find(&replies)
@@ -108,10 +108,22 @@ func (r *commentsRepository) getReplies(ctx context.Context, parentID int64) ([]
 
 // GetReplies 获取评论的回复列表（分页）
 func (r *commentsRepository) GetReplies(ctx context.Context, commentID int64, page, pageSize int) ([]dto.CommentItem, int64, error) {
+	// 先查询评论本身，确定 rootID
+	var comment entity.Comment
+	if err := r.db.WithContext(ctx).Select("id, root_id").First(&comment, commentID).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 确定查询的 rootID：如果 comment.RootID 为 nil，说明是一级评论，用其 id；否则用 root_id
+	rootID := commentID
+	if comment.RootID != nil {
+		rootID = *comment.RootID
+	}
+
 	var total int64
 	if err := r.db.WithContext(ctx).
 		Model(&entity.Comment{}).
-		Where("parent_id = ? AND status = ?", commentID, "normal").
+		Where("root_id = ? AND status = ?", rootID, "normal").
 		Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
@@ -119,7 +131,7 @@ func (r *commentsRepository) GetReplies(ctx context.Context, commentID int64, pa
 	var replies []entity.Comment
 	offset := (page - 1) * pageSize
 	if err := r.db.WithContext(ctx).
-		Where("parent_id = ? AND status = ?", commentID, "normal").
+		Where("root_id = ? AND status = ?", rootID, "normal").
 		Order("created_at ASC").
 		Offset(offset).
 		Limit(pageSize).
@@ -160,6 +172,21 @@ func (r *commentsRepository) Create(ctx context.Context, articleID, userID int64
 		IP:         ip,
 		Status:     "normal",
 		LikeCount:  0,
+	}
+
+	// 计算 root_id：如果是一级评论则为 nil，否则找到一级评论的 id
+	if parentID != nil {
+		// 查找 parent 的 root_id，如果 parent 是一级评论则用其 id
+		var parent entity.Comment
+		if err := r.db.WithContext(ctx).Select("id, root_id").First(&parent, *parentID).Error; err == nil {
+			if parent.RootID != nil {
+				// parent 是子评论，继承其 root_id
+				comment.RootID = parent.RootID
+			} else {
+				// parent 是一级评论，用其 id 作为 root_id
+				comment.RootID = &parent.ID
+			}
+		}
 	}
 
 	if err := r.db.WithContext(ctx).Create(&comment).Error; err != nil {

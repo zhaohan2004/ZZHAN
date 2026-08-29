@@ -17,6 +17,18 @@ const client = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || '/api/v1',
 })
 
+/** 响应错误拦截：统一处理 HTTP 401 */
+client.interceptors.response.use(
+  (resp) => resp,
+  (err) => {
+    if (axios.isAxiosError(err) && err.response?.status === 401) {
+      clearAuth()
+      throw new Error('登录已过期，请重新登录')
+    }
+    throw err
+  },
+)
+
 /** 注入 Authorization 头 */
 function authHeader(): Record<string, string> {
   const token = localStorage.getItem(ACCESS_TOKEN_KEY)

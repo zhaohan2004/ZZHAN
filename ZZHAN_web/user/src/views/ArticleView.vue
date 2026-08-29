@@ -1,23 +1,21 @@
 <script setup lang="ts">
 /**
- * 文章详情页 — 阅读进度条 / TOC scroll-spy / 点赞分享 / 评论 / 上一篇下一篇。
+ * 文章详情页 — 阅读进度条 / TOC scroll-spy / 点赞分享 / 评论。
  * 布局对齐静态原型：post-header-inner、无封面、无相关推荐、操作仅点赞+分享。
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import {
-  ArrowLeft,
-  ArrowRight,
   Calendar,
   ChevronRight,
   Clock,
   Eye,
   MessageCircle,
 } from 'lucide-vue-next'
-import { getArticle, getArticles } from '@/api/articles'
+import { getArticle } from '@/api/articles'
 import { getComments } from '@/api/comments'
 import { useSiteStore } from '@/stores/site'
-import type { ArticleDetail, ArticleSummary, CommentItem } from '@/types/models'
+import type { ArticleDetail, CommentItem } from '@/types/models'
 import { renderMarkdown, buildTOC, decorateCode } from '@/utils/markdown'
 import { fmtNum, readTime } from '@/utils/format'
 import { useAuthStore } from '@/stores/auth'
@@ -33,7 +31,6 @@ const route = useRoute()
 const auth = useAuthStore()
 
 const article = ref<ArticleDetail | null>(null)
-const list = ref<ArticleSummary[]>([])
 const comments = ref<CommentItem[]>([])
 const toc = ref<TocEntry[]>([])
 const activeId = ref('')
@@ -49,15 +46,6 @@ const onScroll = () => {
 }
 
 const catColor = computed(() => '#4a8eff') // 默认主题色
-
-const prev = computed(() => {
-  const i = list.value.findIndex((a) => a.slug === article.value?.slug)
-  return i > 0 ? list.value[i - 1] : null
-})
-const next = computed(() => {
-  const i = list.value.findIndex((a) => a.slug === article.value?.slug)
-  return i >= 0 && i < list.value.length - 1 ? list.value[i + 1] : null
-})
 
 async function loadComments(): Promise<void> {
   if (!article.value) return
@@ -90,10 +78,8 @@ onMounted(async () => {
         },
         { rootMargin: '-80px 0px -70% 0px' },
       )
-      postBody.value.querySelectorAll('h2,h3').forEach((h) => io.observe(h))
+      postBody.value.querySelectorAll('h2,h3,h4').forEach((h) => io.observe(h))
     }
-    const all = await getArticles({ size: 50 }).catch(() => ({ list: [] as ArticleSummary[] }))
-    list.value = [...all.list].sort((a, b) => b.published_at.localeCompare(a.published_at))
     await loadComments()
   } catch {
     /* 静默 */
@@ -151,20 +137,6 @@ function jumpTo(id: string): void {
             class="chip"
             :to="`/articles?tag_id=${t.id}`"
           >#{{ t.name }}</router-link>
-        </div>
-
-        <!-- 上一篇 / 下一篇 -->
-        <div class="pn-grid">
-          <router-link v-if="prev" class="pn-card" :to="`/article/${prev.slug}`">
-            <div class="pn-label"><ArrowLeft :size="13" />上一篇</div>
-            <div class="pn-title">{{ prev.title }}</div>
-          </router-link>
-          <div v-else class="pn-card" style="opacity:.4"><div class="pn-label">上一篇</div><div class="pn-title">已是第一篇</div></div>
-          <router-link v-if="next" class="pn-card next" :to="`/article/${next.slug}`">
-            <div class="pn-label">下一篇<ArrowRight :size="13" /></div>
-            <div class="pn-title">{{ next.title }}</div>
-          </router-link>
-          <div v-else class="pn-card next" style="opacity:.4"><div class="pn-label">下一篇</div><div class="pn-title">已是最后一篇</div></div>
         </div>
 
         <!-- 评论区 -->

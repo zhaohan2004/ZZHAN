@@ -4,7 +4,7 @@ import type { ArticleDetail } from '../types/models'
 beforeAll(() => { import.meta.env.VITE_API_MODE = 'mock' })
 describe('mock adapter', () => {
   it('returns site info', async () => {
-    const s = await getSite(); expect(s.name).toContain('博客'); expect(s.logo_text).toBeTruthy()
+    const s = await getSite(); expect(s.name).toContain('博客')
     const t = await getTags(); expect(t.length).toBeGreaterThan(0)
     const ab = await getAbout(); expect(ab.skills.length).toBeGreaterThan(0)
   })

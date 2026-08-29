@@ -5,6 +5,7 @@ type Comment struct {
 	CreatedOnlyEntity
 	ArticleID  int64  `gorm:"type:bigint unsigned;not null;index:idx_comments_article,priority:1;comment:所属文章ID" json:"article_id"`
 	ParentID   *int64 `gorm:"type:bigint unsigned;index;comment:父评论ID" json:"parent_id"`
+	RootID     *int64 `gorm:"type:bigint unsigned;index;comment:一级评论ID（用于查询某条评论下的所有回复）" json:"root_id"`
 	UserID     int64  `gorm:"type:bigint unsigned;not null;comment:登录用户ID" json:"user_id"`
 	UserName   string `gorm:"type:varchar(50);comment:用户昵称" json:"user_name"`
 	UserAvatar string `gorm:"type:varchar(255);comment:用户头像 URL" json:"user_avatar"`

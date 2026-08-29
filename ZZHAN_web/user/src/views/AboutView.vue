@@ -47,7 +47,7 @@ const authorMotto = computed(
   () => site.site?.motto || '「写代码是跟计算机对话，写博客是跟自己对话。」',
 )
 const avatarSrc = computed(() =>
-  site.site?.avatar || initialsAvatar(site.site?.logo_text || author_name.value, '#6b7280', '#9ca3af', 260),
+  site.site?.avatar || initialsAvatar(author_name.value, '#6b7280', '#9ca3af', 260),
 )
 </script>
 

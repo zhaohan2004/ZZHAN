@@ -30,7 +30,6 @@ func (r *siteRepository) GetSiteResponse(ctx context.Context) (*dto.SiteResponse
 
 	resp := &dto.SiteResponse{
 		Name:         settings["blog_name"],
-		LogoText:     settings["logo_text"],
 		Tagline:      pickFirst(settings["tagline"], settings["blog_desc"]),
 		Bio:          settings["author_intro"],
 		Github:       settings["github"],
