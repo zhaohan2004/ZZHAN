@@ -8,6 +8,7 @@ import (
 func (c *AdminCommentsController) RegisterRoutes(r *gin.RouterGroup) {
 	admin := r.Group("/admin/comments")
 	admin.Use(middleware.Auth(c.redisRepo))
+	admin.Use(middleware.OperationLog(c.db))
 	{
 		admin.GET("", c.List)                    // GET /api/v1/admin/comments
 		admin.GET("/:id", c.GetByID)             // GET /api/v1/admin/comments/:id

@@ -7,7 +7,6 @@ import { MockError, notFound } from './mock-util'
 import {
   ADMIN_PROFILE,
   DASHBOARD_ARTICLES,
-  DASHBOARD_CHARTS,
   DASHBOARD_COMMENTS,
   DASHBOARD_OPERATIONS,
   DASHBOARD_STATS,
@@ -113,7 +112,6 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
 
     /* ---------- 仪表盘 ---------- */
     if (key === 'GET /admin/dashboard/stats') return DASHBOARD_STATS
-    if (key === 'GET /admin/dashboard/charts') return DASHBOARD_CHARTS
     if (key === 'GET /admin/dashboard/articles') return DASHBOARD_ARTICLES
     if (key === 'GET /admin/dashboard/comments') return DASHBOARD_COMMENTS
     if (key === 'GET /admin/dashboard/operations') return DASHBOARD_OPERATIONS

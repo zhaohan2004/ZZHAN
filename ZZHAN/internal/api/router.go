@@ -10,23 +10,25 @@ import (
 
 // Router 路由
 type Router struct {
-	siteController            *web.SiteController
-	siteAdminController       *admin.SiteAdminController
-	adminAuthController       *admin.AdminAuthController
-	authController            *web.AuthController
-	articlesController        *web.ArticlesController
-	adminArticlesController   *admin.AdminArticlesController
-	categoriesController      *web.CategoriesController
-	adminCategoriesController *admin.AdminCategoriesController
-	tagsController            *web.TagsController
-	adminTagsController       *admin.AdminTagsController
-	archivesController        *web.ArchivesController
-	statsController           *web.StatsController
-	aboutController           *web.AboutController
-	commentsController        *web.CommentsController
-	adminCommentsController   *admin.AdminCommentsController
-	likeController            *web.LikeController
-	uploadController          *admin.UploadController
+	siteController               *web.SiteController
+	siteAdminController          *admin.SiteAdminController
+	adminAuthController          *admin.AdminAuthController
+	authController               *web.AuthController
+	articlesController           *web.ArticlesController
+	adminArticlesController      *admin.AdminArticlesController
+	categoriesController         *web.CategoriesController
+	adminCategoriesController    *admin.AdminCategoriesController
+	tagsController               *web.TagsController
+	adminTagsController          *admin.AdminTagsController
+	archivesController           *web.ArchivesController
+	statsController              *web.StatsController
+	aboutController              *web.AboutController
+	commentsController           *web.CommentsController
+	adminCommentsController      *admin.AdminCommentsController
+	likeController               *web.LikeController
+	uploadController             *admin.UploadController
+	adminDashboardController     *admin.AdminDashboardController
+	adminOperationLogsController *admin.AdminOperationLogsController
 }
 
 // NewRouter 创建路由
@@ -48,25 +50,29 @@ func NewRouter(
 	adminCommentsController *admin.AdminCommentsController,
 	likeController *web.LikeController,
 	uploadController *admin.UploadController,
+	adminDashboardController *admin.AdminDashboardController,
+	adminOperationLogsController *admin.AdminOperationLogsController,
 ) *Router {
 	return &Router{
-		siteController:            siteController,
-		siteAdminController:       siteAdminController,
-		adminAuthController:       adminAuthController,
-		authController:            authController,
-		articlesController:        articlesController,
-		adminArticlesController:   adminArticlesController,
-		categoriesController:      categoriesController,
-		adminCategoriesController: adminCategoriesController,
-		tagsController:            tagsController,
-		adminTagsController:       adminTagsController,
-		archivesController:        archivesController,
-		statsController:           statsController,
-		aboutController:           aboutController,
-		commentsController:        commentsController,
-		adminCommentsController:   adminCommentsController,
-		likeController:            likeController,
-		uploadController:          uploadController,
+		siteController:               siteController,
+		siteAdminController:          siteAdminController,
+		adminAuthController:          adminAuthController,
+		authController:               authController,
+		articlesController:           articlesController,
+		adminArticlesController:      adminArticlesController,
+		categoriesController:         categoriesController,
+		adminCategoriesController:    adminCategoriesController,
+		tagsController:               tagsController,
+		adminTagsController:          adminTagsController,
+		archivesController:           archivesController,
+		statsController:              statsController,
+		aboutController:              aboutController,
+		commentsController:           commentsController,
+		adminCommentsController:      adminCommentsController,
+		likeController:               likeController,
+		uploadController:             uploadController,
+		adminDashboardController:     adminDashboardController,
+		adminOperationLogsController: adminOperationLogsController,
 	}
 }
 
@@ -140,6 +146,12 @@ func (r *Router) Setup(engine *gin.Engine) {
 
 		//后台上传路由
 		r.uploadController.RegisterRoutes(apiGroup)
+
+		//后台仪表盘路由
+		r.adminDashboardController.RegisterRoutes(apiGroup)
+
+		//后台操作日志路由
+		r.adminOperationLogsController.RegisterRoutes(apiGroup)
 	}
 }
 

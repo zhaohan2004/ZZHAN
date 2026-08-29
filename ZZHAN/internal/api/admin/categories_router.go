@@ -8,6 +8,7 @@ import (
 func (c *AdminCategoriesController) RegisterRoutes(r *gin.RouterGroup) {
 	admin := r.Group("/admin/categories")
 	admin.Use(middleware.Auth(c.redisRepo))
+	admin.Use(middleware.OperationLog(c.db))
 	{
 		admin.GET("", c.List)                    // GET /api/v1/admin/categories
 		admin.GET("/:id", c.GetByID)             // GET /api/v1/admin/categories/:id

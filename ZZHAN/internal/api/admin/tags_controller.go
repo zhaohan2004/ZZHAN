@@ -8,17 +8,20 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type AdminTagsController struct {
 	tagsAdminService service.TagsAdminService
 	redisRepo        repository.RedisRepository
+	db               *gorm.DB
 }
 
-func NewAdminTagsController(tagsAdminService service.TagsAdminService, redisRepo repository.RedisRepository) *AdminTagsController {
+func NewAdminTagsController(tagsAdminService service.TagsAdminService, redisRepo repository.RedisRepository, db *gorm.DB) *AdminTagsController {
 	return &AdminTagsController{
 		tagsAdminService: tagsAdminService,
 		redisRepo:        redisRepo,
+		db:               db,
 	}
 }
 

@@ -5,7 +5,7 @@
  */
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { FileText, Folder, Home, MessageCircle, Settings, Tag } from 'lucide-vue-next'
+import { FileText, Folder, Home, MessageCircle, ScrollText, Settings, Tag } from 'lucide-vue-next'
 import { listComments } from '@/api/admin'
 import { useSettingsStore } from '@/stores/settings'
 
@@ -48,7 +48,10 @@ const groups: { label: string; items: NavItem[] }[] = [
   },
   {
     label: '系统',
-    items: [{ to: '/settings', label: '系统设置', icon: Settings }],
+    items: [
+      { to: '/operation-logs', label: '操作日志', icon: ScrollText },
+      { to: '/settings', label: '系统设置', icon: Settings },
+    ],
   },
 ]
 

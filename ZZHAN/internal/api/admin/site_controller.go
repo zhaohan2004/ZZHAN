@@ -3,17 +3,20 @@ package admin
 import (
 	"ZZHAN/internal/repository"
 	"ZZHAN/internal/service"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type SiteAdminController struct {
 	siteService service.SiteService
 	redisRepo   repository.RedisRepository
+	db          *gorm.DB
 }
 
-func NewSiteAdminController(siteService service.SiteService, redisRepo repository.RedisRepository) *SiteAdminController {
-	return &SiteAdminController{siteService: siteService, redisRepo: redisRepo}
+func NewSiteAdminController(siteService service.SiteService, redisRepo repository.RedisRepository, db *gorm.DB) *SiteAdminController {
+	return &SiteAdminController{siteService: siteService, redisRepo: redisRepo, db: db}
 }
 
 // GetSettings 获取所有设置
