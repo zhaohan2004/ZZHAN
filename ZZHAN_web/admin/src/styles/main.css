@@ -706,8 +706,8 @@ html.dark{
 .admin-layout{display:flex;min-height:100vh}
 .admin-sidebar{
   width:248px;flex:none;position:fixed;top:0;bottom:0;left:0;z-index:70;
-  background:var(--glass-strong);border-right:1px solid var(--border);
-  backdrop-filter:blur(18px);display:flex;flex-direction:column;
+  background:var(--card);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
 }
 .side-brand{display:flex;align-items:center;gap:10px;padding:18px 20px;border-bottom:1px solid var(--border)}
 .side-brand .brand-text{font-size:16px}
@@ -717,20 +717,17 @@ html.dark{
   padding:16px 10px 6px;text-transform:uppercase;
 }
 .side-link{
-  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;
+  display:flex;align-items:center;gap:11px;padding:10px 12px;
   font-size:14px;font-weight:500;color:var(--text-2);margin-bottom:2px;
-  transition:background .2s ease,color .2s ease;
 }
-.side-link:hover{color:var(--text);background:var(--glass)}
-.side-link.active,
-.side-link.active:hover{
-  background:var(--grad-soft);color:var(--accent);font-weight:600;
-  border:1px solid var(--border);box-shadow:inset 3px 0 0 var(--accent);
+.side-link:hover{color:var(--accent)}
+.side-link.active{
+  background:var(--accent);color:#fff;font-weight:600;
 }
 .side-link .badge{margin-left:auto;font-size:11px}
 .side-foot{padding:14px 12px;border-top:1px solid var(--border)}
-.side-foot a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13.5px;color:var(--text-2);transition:background .2s ease,color .2s ease}
-.side-foot a:hover{color:var(--accent);background:var(--glass)}
+.side-foot a{display:flex;align-items:center;gap:10px;padding:10px 12px;font-size:13.5px;color:var(--text-2)}
+.side-foot a:hover{color:var(--accent)}
 
 .admin-main{flex:1;margin-left:248px;min-width:0;display:flex;flex-direction:column}
 .admin-header{
@@ -1124,10 +1121,10 @@ html.dark{
   .footer-grid{grid-template-columns:1fr 1fr}
   .stat-grid{grid-template-columns:repeat(2,1fr)}
   .admin-sidebar{display:none}
-  .admin-sidebar.open{display:flex;box-shadow:var(--shadow-lg)}
+  .admin-sidebar.open{display:flex}
   .admin-main{margin-left:0}
-  .side-backdrop{position:fixed;inset:0;background:rgba(5,8,15,.55);z-index:65;opacity:0;pointer-events:none}
-  .side-backdrop.open{opacity:1;pointer-events:auto}
+  .side-backdrop{position:fixed;inset:0;background:rgba(5,8,15,.55);z-index:65;display:none}
+  .side-backdrop.open{display:block;pointer-events:auto}
 }
 @media (max-width:1100px){
   .editor-main{grid-template-columns:1fr}

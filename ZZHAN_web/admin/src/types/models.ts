@@ -59,6 +59,20 @@ export interface AdminArticlePayload {
   published_at: string
 }
 
+/** 后台用户 */
+export type UserStatus = 0 | 1 // 0 禁用 / 1 正常
+
+export interface UserAdmin {
+  id: number
+  provider: string
+  openid: string
+  nickname: string
+  avatar: string
+  status: UserStatus
+  last_login_at: string
+  created_at: string
+}
+
 /** 后台评论（两态：正常 / 封禁） */
 export type CommentStatus = 'normal' | 'banned'
 
