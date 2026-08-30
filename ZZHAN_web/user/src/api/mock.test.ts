@@ -1,12 +1,11 @@
 import { describe, it, expect, beforeAll } from 'vitest'
-import { getSite, getArticles, getArticle, getCategories, getTags, getAbout } from './articles'
+import { getSite, getArticles, getArticle, getCategories, getTags } from './articles'
 import type { ArticleDetail } from '../types/models'
 beforeAll(() => { import.meta.env.VITE_API_MODE = 'mock' })
 describe('mock adapter', () => {
   it('returns site info', async () => {
     const s = await getSite(); expect(s.name).toContain('博客')
     const t = await getTags(); expect(t.length).toBeGreaterThan(0)
-    const ab = await getAbout(); expect(ab.skills.length).toBeGreaterThan(0)
   })
   it('returns paged articles with category/tags', async () => {
     const { list, total } = await getArticles({ page: 1, size: 6 })

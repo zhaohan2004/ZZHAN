@@ -119,9 +119,8 @@ func (a *App) initDatabase() error {
 		&entity.Comment{},
 		&entity.Like{},
 		&entity.CommentLike{},
-		// 关于与站点模块（2张）
+		// 站点模块
 		&entity.SiteSetting{},
-		&entity.AboutItem{},
 		// 审计模块
 		&entity.OperationLog{},
 	); err != nil {
@@ -164,7 +163,6 @@ func (a *App) initDependencies() {
 	tagsAdminRepo := repository.NewTagsAdminRepository(a.mysqlDB)
 	archivesRepo := repository.NewArchivesRepository(a.mysqlDB)
 	statsRepo := repository.NewStatsRepository(a.mysqlDB)
-	aboutRepo := repository.NewAboutRepository(a.mysqlDB)
 	commentsRepo := repository.NewCommentsRepository(a.mysqlDB)
 	commentsAdminRepo := repository.NewCommentsAdminRepository(a.mysqlDB)
 	usersAdminRepo := repository.NewUsersAdminRepository(a.mysqlDB)
@@ -185,7 +183,6 @@ func (a *App) initDependencies() {
 	tagsAdminService := service.NewTagsAdminService(tagsAdminRepo)
 	archivesService := service.NewArchivesService(archivesRepo)
 	statsService := service.NewStatsService(statsRepo)
-	aboutService := service.NewAboutService(aboutRepo)
 	commentsService := service.NewCommentsService(commentsRepo)
 	commentsAdminService := service.NewCommentsAdminService(commentsAdminRepo)
 	usersAdminService := service.NewUsersAdminService(usersAdminRepo)
@@ -207,7 +204,6 @@ func (a *App) initDependencies() {
 	adminTagsController := admin.NewAdminTagsController(tagsAdminService, redisRepo, a.mysqlDB)
 	archivesController := web.NewArchivesController(archivesService)
 	statsController := web.NewStatsController(statsService)
-	aboutController := web.NewAboutController(aboutService)
 	commentsController := web.NewCommentsController(commentsService, redisRepo, commentsRepo)
 	adminCommentsController := admin.NewAdminCommentsController(commentsAdminService, redisRepo, a.mysqlDB)
 	adminUsersController := admin.NewAdminUsersController(usersAdminService, redisRepo, a.mysqlDB)
@@ -222,7 +218,7 @@ func (a *App) initDependencies() {
 		adminArticlesController, categoriesController,
 		adminCategoriesController, tagsController,
 		adminTagsController, archivesController, statsController,
-		aboutController, commentsController, adminCommentsController,
+		commentsController, adminCommentsController,
 		adminUsersController, likeController, uploadController,
 		adminDashboardController, adminOperationLogsController)
 }

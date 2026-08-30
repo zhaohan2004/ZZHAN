@@ -1,10 +1,8 @@
 <script setup lang="ts">
-/** 关于我 — 头像/简介/座右铭/统计卡片/技术栈/学习方向。所有可编辑项从 site 数据读取（来源：后台系统设置）。 */
+/** 关于我 — 头像/简介/座右铭/统计卡片。所有可编辑项从 site 数据读取（来源：后台系统设置）。 */
 import { computed, onMounted, ref } from 'vue'
-import { BookOpen, Calendar, CheckCircle2, Code2, Eye, Github, Mail, MapPin, MessageCircle, Quote } from 'lucide-vue-next'
+import { BookOpen, Calendar, Code2, Eye, Github, Mail, MapPin, MessageCircle, Quote } from 'lucide-vue-next'
 import { useSiteStore } from '@/stores/site'
-import { getAbout } from '@/api/site'
-import type { AboutData } from '@/types/models'
 import { initialsAvatar } from '@/utils/avatar'
 import { useReveal } from '@/composables/useReveal'
 
@@ -12,19 +10,10 @@ const root = ref<HTMLElement | null>(null)
 useReveal(root)
 
 const site = useSiteStore()
-const about = ref<AboutData | null>(null)
 
-const DIRECTIONS = ['Go 并发与调度', '分布式系统', '数据库内核', '云原生', '可观测性', 'AI 应用工程']
-
-onMounted(async () => {
+onMounted(() => {
   site.fetchSite()
   site.fetchStats()
-  site.fetchAbout()
-  try {
-    about.value = await getAbout()
-  } catch {
-    /* 静默 */
-  }
 })
 
 /** 统计卡片 */
@@ -97,26 +86,6 @@ const avatarSrc = computed(() =>
           </div>
         </div>
 
-        <div class="grid gap-8 lg:grid-cols-2" style="align-items:start;margin-top:10px">
-          <!-- 技术栈 -->
-          <div class="widget reveal">
-            <h3 class="widget-title">技术栈</h3>
-            <div v-for="s in about?.skills ?? []" :key="s.name" class="skill-row">
-              <span class="sk-name"><CheckCircle2 :size="15" style="color:var(--success)" />{{ s.name }}</span>
-              <div class="skill-bar" style="flex:1"><i :style="{ width: s.level + '%' }" /></div>
-              <span class="sk-val">{{ s.level }}%</span>
-            </div>
-          </div>
-
-          <!-- 学习方向 -->
-          <div class="widget reveal">
-            <h3 class="widget-title">学习方向</h3>
-            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px">
-              <span v-for="d in DIRECTIONS" :key="d" class="chip" style="cursor:default">{{ d }}</span>
-            </div>
-            <p class="muted" style="font-size:13.5px;line-height:1.9">当前在深入分布式缓存与消息队列，同时保持每周 3 道算法题的节奏。近期目标：啃完《Designing Data-Intensive Applications》。</p>
-          </div>
-        </div>
       </div>
     </section>
   </div>

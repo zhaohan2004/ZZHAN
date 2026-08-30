@@ -6,7 +6,6 @@ import type { RequestConfig } from '../http'
 import type { CommentDraft, LoginResult, SiteInfo } from '@/types/models'
 import { initialsAvatar } from '@/utils/avatar'
 import {
-  aboutData,
   archives,
   articleSummaries,
   categories,
@@ -196,7 +195,6 @@ const routes: MockRoute[] = [
   { pattern: buildPattern('GET /categories'), handler: () => categories },
   { pattern: buildPattern('GET /tags'), handler: () => tags },
   { pattern: buildPattern('GET /archives'), handler: () => archives() },
-  { pattern: buildPattern('GET /about'), handler: () => aboutData },
   { pattern: buildPattern('GET /stats'), handler: () => statsData() },
   { pattern: buildPattern('POST /comments/*'), handler: postComment },
   { pattern: buildPattern('POST /like/article/*'), handler: toggleArticleLikeHandler },

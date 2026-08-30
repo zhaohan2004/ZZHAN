@@ -309,6 +309,12 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
       return null
     }
 
+    /* ---------- 上传 ---------- */
+    if (key === 'POST /upload/image') {
+      // mock 模式下返回一个占位 URL
+      return { url: 'https://picsum.photos/200' }
+    }
+
     /* ---------- 设置 ---------- */
     if (key === 'GET /admin/settings') return settings
     if (key === 'PUT /admin/settings') {

@@ -30,5 +30,5 @@ export function toggleLike(slug: string): Promise<LikeResult> {
   return request<LikeResult>({ method: 'POST', url: `/like/article/${slug}` })
 }
 
-// 站点/分类/标签/关于我 — 供统一入口与 mock 测试从 './articles' 导入
-export { getSite, getCategories, getTags, getAbout } from './site'
+// 站点/分类/标签 — 供统一入口与 mock 测试从 './articles' 导入
+export { getSite, getCategories, getTags } from './site'
