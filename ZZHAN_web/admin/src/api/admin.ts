@@ -17,6 +17,8 @@ import type {
   SettingsKV,
   TagAdmin,
   TagStatus,
+  UserAdmin,
+  UserStatus,
 } from '@/types/models'
 
 export interface LoginResult {
@@ -156,6 +158,31 @@ export function updateCommentStatus(id: number, status: CommentStatus): Promise<
 }
 export function deleteComment(id: number): Promise<null> {
   return request<null>({ method: 'DELETE', url: `/admin/comments/${id}` })
+}
+
+/* ---------- 用户 ---------- */
+export interface UserQuery {
+  page?: number
+  pageSize?: number
+  keyword?: string
+  status?: UserStatus | 'all'
+  startDate?: string
+  endDate?: string
+}
+export function listUsers(params: UserQuery = {}): Promise<Paged<UserAdmin>> {
+  const { pageSize, ...rest } = params
+  const query: Record<string, string | number | undefined> = { ...rest }
+  if (pageSize !== undefined) query.page_size = pageSize
+  return request<Paged<UserAdmin>>({ method: 'GET', url: '/admin/users', params: query })
+}
+export function getUser(id: number): Promise<UserAdmin> {
+  return request<UserAdmin>({ method: 'GET', url: `/admin/users/${id}` })
+}
+export function setUserStatus(id: number, status: UserStatus): Promise<UserAdmin> {
+  return request<UserAdmin>({ method: 'PUT', url: `/admin/users/${id}/status`, data: { status } })
+}
+export function deleteUser(id: number): Promise<null> {
+  return request<null>({ method: 'DELETE', url: `/admin/users/${id}` })
 }
 
 /* ---------- 操作日志 ---------- */

@@ -167,6 +167,7 @@ func (a *App) initDependencies() {
 	aboutRepo := repository.NewAboutRepository(a.mysqlDB)
 	commentsRepo := repository.NewCommentsRepository(a.mysqlDB)
 	commentsAdminRepo := repository.NewCommentsAdminRepository(a.mysqlDB)
+	usersAdminRepo := repository.NewUsersAdminRepository(a.mysqlDB)
 	likeRepo := repository.NewLikeRepository(a.mysqlDB)
 	dashboardAdminRepo := repository.NewDashboardAdminRepository(a.mysqlDB)
 	operationLogsAdminRepo := repository.NewOperationLogsAdminRepository(a.mysqlDB)
@@ -187,6 +188,7 @@ func (a *App) initDependencies() {
 	aboutService := service.NewAboutService(aboutRepo)
 	commentsService := service.NewCommentsService(commentsRepo)
 	commentsAdminService := service.NewCommentsAdminService(commentsAdminRepo)
+	usersAdminService := service.NewUsersAdminService(usersAdminRepo)
 	likeService := service.NewLikeService(likeRepo)
 	uploadService := service.NewUploadService(store)
 	dashboardAdminService := service.NewDashboardAdminService(dashboardAdminRepo)
@@ -208,6 +210,7 @@ func (a *App) initDependencies() {
 	aboutController := web.NewAboutController(aboutService)
 	commentsController := web.NewCommentsController(commentsService, redisRepo, commentsRepo)
 	adminCommentsController := admin.NewAdminCommentsController(commentsAdminService, redisRepo, a.mysqlDB)
+	adminUsersController := admin.NewAdminUsersController(usersAdminService, redisRepo, a.mysqlDB)
 	likeController := web.NewLikeController(likeService, redisRepo)
 	uploadController := admin.NewUploadController(uploadService, redisRepo)
 	adminDashboardController := admin.NewAdminDashboardController(dashboardAdminService, redisRepo)
@@ -220,8 +223,8 @@ func (a *App) initDependencies() {
 		adminCategoriesController, tagsController,
 		adminTagsController, archivesController, statsController,
 		aboutController, commentsController, adminCommentsController,
-		likeController, uploadController, adminDashboardController,
-		adminOperationLogsController)
+		adminUsersController, likeController, uploadController,
+		adminDashboardController, adminOperationLogsController)
 }
 
 // initRouter 初始化路由
