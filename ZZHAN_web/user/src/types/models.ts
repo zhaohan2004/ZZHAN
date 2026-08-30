@@ -117,17 +117,6 @@ export interface CommentLikeResult {
   like_count: number
 }
 
-/** 关于我：技能 */
-export interface Skill {
-  name: string
-  level: number
-}
-
-/** 关于我聚合数据（当前仅技能区） */
-export interface AboutData {
-  skills: Skill[]
-}
-
 /** 动态时间线条目 */
 export interface Dynamic {
   type: string

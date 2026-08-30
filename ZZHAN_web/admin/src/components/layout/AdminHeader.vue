@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
 import { confirm, toast } from '@/composables/useToast'
 import { initialsAvatar } from '@/utils/cover'
+import { uploadImage } from '@/api/admin'
 import type { AdminProfile } from '@/types/models'
 
 const emit = defineEmits<{ toggle: [] }>()
@@ -35,15 +36,17 @@ const editUsername = ref('')
 const editPassword = ref('')
 const editPassword2 = ref('')
 const avatarUrl = ref('')
+const avatarFile = ref<File | null>(null)
 function openProfile(): void {
   menuOpen.value = false
   editUsername.value = auth.profile?.username || ''
   editPassword.value = ''
   editPassword2.value = ''
   avatarUrl.value = auth.profile?.avatar || ''
+  avatarFile.value = null
   profileOpen.value = true
 }
-/** 头像上传 — 读为 data URL 写入 avatarUrl，保存时随资料一起提交 */
+/** 头像上传 — 记录文件对象，预览用临时 URL */
 function onAvatarFile(e: Event): void {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
@@ -53,14 +56,12 @@ function onAvatarFile(e: Event): void {
     input.value = ''
     return
   }
-  const reader = new FileReader()
-  reader.onload = () => {
-    avatarUrl.value = String(reader.result || '')
-  }
-  reader.readAsDataURL(file)
+  avatarFile.value = file
+  avatarUrl.value = URL.createObjectURL(file)
 }
 function clearAvatar(): void {
   avatarUrl.value = ''
+  avatarFile.value = null
 }
 async function saveProfile(): Promise<void> {
   if (!auth.profile) return
@@ -74,16 +75,23 @@ async function saveProfile(): Promise<void> {
     return
   }
   try {
+    let finalAvatar = avatarUrl.value
+    // 如果选择了新头像文件，先上传获取 URL
+    if (avatarFile.value) {
+      const res = await uploadImage(avatarFile.value)
+      finalAvatar = res.url
+    }
     const payload: AdminProfile & { password?: string } = {
       ...auth.profile,
       username: editUsername.value,
-      avatar: avatarUrl.value,
+      avatar: finalAvatar,
     }
     if (pwd) payload.password = pwd
     await auth.updateProfile(payload)
     profileOpen.value = false
     editPassword.value = ''
     editPassword2.value = ''
+    avatarFile.value = null
     toast.success('资料已保存')
   } catch {
     toast.error('保存失败')

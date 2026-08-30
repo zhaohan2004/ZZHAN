@@ -202,6 +202,13 @@ export function listOperationLogs(
   return request<Paged<OperationLogAdmin>>({ method: 'GET', url: '/admin/operation-logs', params: query })
 }
 
+/* ---------- 上传 ---------- */
+export function uploadImage(file: File): Promise<{ url: string }> {
+  const form = new FormData()
+  form.append('file', file)
+  return request<{ url: string }>({ method: 'POST', url: '/upload/image', data: form })
+}
+
 /* ---------- 设置 ---------- */
 export function getSettings(): Promise<SettingsKV> {
   return request<SettingsKV>({ method: 'GET', url: '/admin/settings' })

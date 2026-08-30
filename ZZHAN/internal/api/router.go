@@ -22,7 +22,6 @@ type Router struct {
 	adminTagsController          *admin.AdminTagsController
 	archivesController           *web.ArchivesController
 	statsController              *web.StatsController
-	aboutController              *web.AboutController
 	commentsController           *web.CommentsController
 	adminCommentsController      *admin.AdminCommentsController
 	adminUsersController         *admin.AdminUsersController
@@ -46,7 +45,6 @@ func NewRouter(
 	adminTagsController *admin.AdminTagsController,
 	archivesController *web.ArchivesController,
 	statsController *web.StatsController,
-	aboutController *web.AboutController,
 	commentsController *web.CommentsController,
 	adminCommentsController *admin.AdminCommentsController,
 	adminUsersController *admin.AdminUsersController,
@@ -68,7 +66,6 @@ func NewRouter(
 		adminTagsController:          adminTagsController,
 		archivesController:           archivesController,
 		statsController:              statsController,
-		aboutController:              aboutController,
 		commentsController:           commentsController,
 		adminCommentsController:      adminCommentsController,
 		adminUsersController:         adminUsersController,
@@ -134,9 +131,6 @@ func (r *Router) Setup(engine *gin.Engine) {
 
 		//前台统计路由
 		r.statsController.RegisterRoutes(apiGroup)
-
-		//前台关于我路由
-		r.aboutController.RegisterRoutes(apiGroup)
 
 		//前台评论路由
 		r.commentsController.RegisterRoutes(apiGroup)

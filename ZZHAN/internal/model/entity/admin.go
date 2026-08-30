@@ -6,7 +6,7 @@ type Admin struct {
 	Username     string `gorm:"type:varchar(50);not null;uniqueIndex;comment:后台登录名（可修改）" json:"username"`
 	PasswordHash string `gorm:"type:varchar(255);not null;comment:密码哈希(bcrypt，可修改)" json:"-"`
 	Nickname     string `gorm:"type:varchar(50);comment:显示昵称" json:"nickname"`
-	Avatar       string `gorm:"type:varchar(255);comment:头像 URL / base64" json:"avatar"`
+	Avatar       string `gorm:"type:text;comment:头像 URL / base64" json:"avatar"`
 }
 
 // TableName 指定表名

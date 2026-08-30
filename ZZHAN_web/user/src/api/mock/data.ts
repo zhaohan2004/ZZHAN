@@ -3,7 +3,6 @@
  * cover_image 留空，前端走 cover.ts 回退。
  */
 import type {
-  AboutData,
   ArchiveItem,
   ArticleDetail,
   ArticleSummary,
@@ -1003,17 +1002,6 @@ export function archives(): ArchiveItem[] {
     item.articles.push({ id: a.id, slug: a.slug, title: a.title, date: a.published_at, category: a.category_name, views: a.views })
   }
   return [...map.values()].sort((x, y) => (x.year + x.month < y.year + y.month ? 1 : -1))
-}
-
-/* ============ 关于我 ============ */
-const SKILLS = [
-  { name: 'Go', level: 92 }, { name: 'MySQL', level: 86 }, { name: 'Redis', level: 84 },
-  { name: 'Docker / K8s', level: 78 }, { name: 'Linux', level: 80 }, { name: 'Gin / GORM', level: 88 },
-  { name: 'WebSocket / SSE', level: 75 }, { name: 'Git / CI/CD', level: 82 },
-]
-
-export const aboutData: AboutData = {
-  skills: SKILLS,
 }
 
 /* ============ 动态 ============ */
