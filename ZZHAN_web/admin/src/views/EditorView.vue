@@ -6,13 +6,26 @@ import { useRoute, useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import {
   ArrowLeft,
+  Bold,
   Calendar,
+  CheckSquare,
+  Code,
   Code2,
+  Heading,
   Image as ImageIcon,
   Info,
+  Italic,
+  Link,
+  List,
+  ListOrdered,
+  Minus,
   Monitor,
+  Quote,
   Save,
   Send,
+  Strikethrough,
+  Table,
+  Terminal,
   Upload,
   X,
 } from 'lucide-vue-next'
@@ -28,6 +41,7 @@ const router = useRouter()
 const title = ref('')
 const content = ref('')
 const viewMode = ref<'split' | 'preview' | 'edit'>('split')
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
 
 const categories = ref<CategoryAdmin[]>([])
 const tags = ref<TagAdmin[]>([])
@@ -154,6 +168,187 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
+// Markdown 格式工具栏功能
+function insertText(before: string, after: string, defaultText: string = '') {
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const selected = content.value.substring(start, end)
+  const text = selected || defaultText
+  const replacement = before + text + (after || '')
+  content.value = content.value.substring(0, start) + replacement + content.value.substring(end)
+  const newPos = start + before.length + text.length
+  setTimeout(() => {
+    textarea.focus()
+    textarea.setSelectionRange(newPos, newPos)
+  }, 0)
+}
+
+function insertLine(text: string) {
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const start = textarea.selectionStart
+  const before = content.value.substring(0, start)
+  const after = content.value.substring(start)
+  const prefix = before.length > 0 && !before.endsWith('\n') ? '\n' : ''
+  content.value = before + prefix + text + '\n' + after
+  const newPos = start + prefix.length + text.length + 1
+  setTimeout(() => {
+    textarea.focus()
+    textarea.setSelectionRange(newPos, newPos)
+  }, 0)
+}
+
+function wrapSelection(wrapper: string, defaultText: string = '') {
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const selected = content.value.substring(start, end)
+  const text = selected || defaultText
+  const beforeWrapper = content.value.substring(Math.max(0, start - wrapper.length), start)
+  const afterWrapper = content.value.substring(end, end + wrapper.length)
+  if (beforeWrapper === wrapper && afterWrapper === wrapper) {
+    content.value = content.value.substring(0, start - wrapper.length) + text + content.value.substring(end + wrapper.length)
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start - wrapper.length, end - wrapper.length)
+    }, 0)
+  } else {
+    const replacement = wrapper + text + wrapper
+    content.value = content.value.substring(0, start) + replacement + content.value.substring(end)
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + wrapper.length, end + wrapper.length)
+    }, 0)
+  }
+}
+
+function formatHeading() {
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const start = textarea.selectionStart
+  const lineStart = content.value.lastIndexOf('\n', start - 1) + 1
+  const lineEnd = content.value.indexOf('\n', start)
+  const line = content.value.substring(lineStart, lineEnd === -1 ? content.value.length : lineEnd)
+  const match = line.match(/^(#{1,6})\s/)
+  if (match) {
+    const level = Math.min(match[1].length + 1, 6)
+    const newLine = '#'.repeat(level) + ' ' + line.replace(/^#{1,6}\s/, '')
+    content.value = content.value.substring(0, lineStart) + newLine + content.value.substring(lineEnd === -1 ? content.value.length : lineEnd)
+  } else {
+    const newLine = '## ' + line
+    content.value = content.value.substring(0, lineStart) + newLine + content.value.substring(lineEnd === -1 ? content.value.length : lineEnd)
+  }
+  setTimeout(() => textarea.focus(), 0)
+}
+
+function formatLink() {
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const selected = content.value.substring(start, end)
+  if (selected) {
+    const replacement = '[' + selected + '](url)'
+    content.value = content.value.substring(0, start) + replacement + content.value.substring(end)
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + selected.length + 3, start + selected.length + 6)
+    }, 0)
+  } else {
+    insertText('[', '](url)', '链接文本')
+  }
+}
+
+function formatImage() {
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const selected = content.value.substring(start, end)
+  if (selected) {
+    const replacement = '![' + selected + '](image-url)'
+    content.value = content.value.substring(0, start) + replacement + content.value.substring(end)
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + selected.length + 4, start + selected.length + 13)
+    }, 0)
+  } else {
+    insertText('![', '](image-url)', '图片描述')
+  }
+}
+
+function formatCodeblock() {
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const selected = content.value.substring(start, end)
+  if (selected) {
+    const replacement = '```\n' + selected + '\n```'
+    content.value = content.value.substring(0, start) + replacement + content.value.substring(end)
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + 4, start + 4 + selected.length)
+    }, 0)
+  } else {
+    insertLine('```\n代码\n```')
+  }
+}
+
+function formatTable() {
+  const table = '| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |'
+  insertLine(table)
+}
+
+function insertHeading(level: number) {
+  const textarea = textareaRef.value
+  if (!textarea) return
+  const start = textarea.selectionStart
+  const lineStart = content.value.lastIndexOf('\n', start - 1) + 1
+  const lineEnd = content.value.indexOf('\n', start)
+  const line = content.value.substring(lineStart, lineEnd === -1 ? content.value.length : lineEnd)
+  const cleanLine = line.replace(/^#{1,6}\s/, '')
+  const newLine = '#'.repeat(level) + ' ' + cleanLine
+  content.value = content.value.substring(0, lineStart) + newLine + content.value.substring(lineEnd === -1 ? content.value.length : lineEnd)
+  setTimeout(() => textarea.focus(), 0)
+}
+
+function handleToolbarAction(action: string) {
+  const headingActions: Record<string, () => void> = {
+    h1: () => insertHeading(1),
+    h2: () => insertHeading(2),
+    h3: () => insertHeading(3),
+    h4: () => insertHeading(4),
+    h5: () => insertHeading(5),
+    h6: () => insertHeading(6),
+  }
+  if (headingActions[action]) {
+    headingActions[action]()
+    return
+  }
+  const actions: Record<string, () => void> = {
+    bold: () => wrapSelection('**', '粗体文本'),
+    italic: () => wrapSelection('*', '斜体文本'),
+    strikethrough: () => wrapSelection('~~', '删除线文本'),
+    link: formatLink,
+    image: formatImage,
+    code: () => wrapSelection('`', 'code'),
+    codeblock: formatCodeblock,
+    ul: () => insertLine('- 列表项'),
+    ol: () => insertLine('1. 列表项'),
+    quote: () => insertLine('> 引用文本'),
+    hr: () => insertLine('---'),
+    table: formatTable,
+    tasklist: () => insertLine('- [ ] 任务项'),
+  }
+  if (actions[action]) {
+    actions[action]()
+  }
+}
+
 onMounted(async () => {
   window.addEventListener('keydown', onKeydown)
   try {
@@ -193,7 +388,86 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             <span class="eph-title"><Code2 :size="14" style="color: var(--accent)" /> Markdown 编辑</span>
             <span class="ep-hint">{{ charCount }} 字符</span>
           </div>
-          <textarea id="mdInput" v-model="content" spellcheck="false" placeholder="在这里输入 Markdown 内容…"></textarea>
+          <div class="md-toolbar">
+            <div class="md-toolbar-group">
+              <div class="md-toolbar-dropdown">
+                <button class="md-toolbar-btn">
+                  <Heading :size="16" />
+                  <span class="md-toolbar-label">标题</span>
+                </button>
+                <div class="md-toolbar-dropdown-menu">
+                  <button class="md-dropdown-item" @click="handleToolbarAction('h1')"><strong>H1</strong> 一级标题</button>
+                  <button class="md-dropdown-item" @click="handleToolbarAction('h2')"><strong>H2</strong> 二级标题</button>
+                  <button class="md-dropdown-item" @click="handleToolbarAction('h3')"><strong>H3</strong> 三级标题</button>
+                  <button class="md-dropdown-item" @click="handleToolbarAction('h4')"><strong>H4</strong> 四级标题</button>
+                  <button class="md-dropdown-item" @click="handleToolbarAction('h5')"><strong>H5</strong> 五级标题</button>
+                  <button class="md-dropdown-item" @click="handleToolbarAction('h6')"><strong>H6</strong> 六级标题</button>
+                </div>
+              </div>
+              <button class="md-toolbar-btn" @click="handleToolbarAction('bold')">
+                <Bold :size="16" />
+                <span class="md-toolbar-label">粗体</span>
+              </button>
+              <button class="md-toolbar-btn" @click="handleToolbarAction('italic')">
+                <Italic :size="16" />
+                <span class="md-toolbar-label">斜体</span>
+              </button>
+              <button class="md-toolbar-btn" @click="handleToolbarAction('strikethrough')">
+                <Strikethrough :size="16" />
+                <span class="md-toolbar-label">删除线</span>
+              </button>
+            </div>
+            <div class="md-toolbar-divider"></div>
+            <div class="md-toolbar-group">
+              <button class="md-toolbar-btn" @click="handleToolbarAction('link')">
+                <Link :size="16" />
+                <span class="md-toolbar-label">链接</span>
+              </button>
+              <button class="md-toolbar-btn" @click="handleToolbarAction('image')">
+                <ImageIcon :size="16" />
+                <span class="md-toolbar-label">图片</span>
+              </button>
+              <button class="md-toolbar-btn" @click="handleToolbarAction('code')">
+                <Code :size="16" />
+                <span class="md-toolbar-label">代码</span>
+              </button>
+              <button class="md-toolbar-btn" @click="handleToolbarAction('codeblock')">
+                <Terminal :size="16" />
+                <span class="md-toolbar-label">代码块</span>
+              </button>
+            </div>
+            <div class="md-toolbar-divider"></div>
+            <div class="md-toolbar-group">
+              <button class="md-toolbar-btn" @click="handleToolbarAction('ul')">
+                <List :size="16" />
+                <span class="md-toolbar-label">无序列表</span>
+              </button>
+              <button class="md-toolbar-btn" @click="handleToolbarAction('ol')">
+                <ListOrdered :size="16" />
+                <span class="md-toolbar-label">有序列表</span>
+              </button>
+              <button class="md-toolbar-btn" @click="handleToolbarAction('quote')">
+                <Quote :size="16" />
+                <span class="md-toolbar-label">引用</span>
+              </button>
+              <button class="md-toolbar-btn" @click="handleToolbarAction('hr')">
+                <Minus :size="16" />
+                <span class="md-toolbar-label">分割线</span>
+              </button>
+            </div>
+            <div class="md-toolbar-divider"></div>
+            <div class="md-toolbar-group">
+              <button class="md-toolbar-btn" @click="handleToolbarAction('table')">
+                <Table :size="16" />
+                <span class="md-toolbar-label">表格</span>
+              </button>
+              <button class="md-toolbar-btn" @click="handleToolbarAction('tasklist')">
+                <CheckSquare :size="16" />
+                <span class="md-toolbar-label">任务列表</span>
+              </button>
+            </div>
+          </div>
+          <textarea id="mdInput" ref="textareaRef" v-model="content" spellcheck="false" placeholder="在这里输入 Markdown 内容…"></textarea>
         </div>
         <div class="editor-pane">
           <div class="editor-pane-head">
@@ -313,5 +587,121 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   border-radius: 6px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.88em;
+}
+
+/* Markdown 格式工具栏 */
+.md-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--card-2);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.md-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.md-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-strong);
+  margin: 0 4px;
+}
+.md-toolbar-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 42px;
+  height: 48px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-2);
+  transition: all 0.2s ease;
+  position: relative;
+}
+.md-toolbar-label {
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.md-toolbar-btn:hover {
+  background: var(--grad-soft);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.md-toolbar-btn:active {
+  transform: translateY(0);
+  background: rgba(59, 130, 246, 0.2);
+}
+
+/* 标题下拉菜单 */
+.md-toolbar-dropdown {
+  position: relative;
+}
+.md-toolbar-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--card);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  min-width: 160px;
+}
+.md-toolbar-dropdown:hover .md-toolbar-dropdown-menu {
+  display: block;
+}
+.md-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+.md-dropdown-item:hover {
+  background: var(--grad-soft);
+  color: var(--accent);
+}
+.md-dropdown-item strong {
+  color: var(--accent);
+  font-weight: 700;
+  min-width: 24px;
+}
+
+@media (max-width: 768px) {
+  .md-toolbar {
+    padding: 6px 8px;
+    gap: 2px;
+  }
+  .md-toolbar-btn {
+    min-width: 36px;
+    height: 42px;
+    padding: 4px 6px;
+  }
+  .md-toolbar-label {
+    font-size: 9px;
+  }
+  .md-toolbar-divider {
+    height: 16px;
+    margin: 0 2px;
+  }
 }
 </style>

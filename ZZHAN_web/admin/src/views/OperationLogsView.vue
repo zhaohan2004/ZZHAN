@@ -41,6 +41,23 @@ const ACTION_OPTIONS = [
   { value: '封禁', label: '封禁' },
 ]
 
+/** 获取操作类型对应的样式类 */
+function getActionClass(action: string): string {
+  const classMap: Record<string, string> = {
+    '新建': 'st-create',
+    '更新': 'st-update',
+    '删除': 'st-delete',
+    '发布': 'st-publish',
+    '存为草稿': 'st-draft',
+    '下架': 'st-offline',
+    '启用': 'st-enable',
+    '禁用': 'st-disable',
+    '解封': 'st-unblock',
+    '封禁': 'st-block',
+  }
+  return classMap[action] || 'st-ok'
+}
+
 /** 操作对象选项（对应中间件 resourceNames） */
 const TARGET_OPTIONS = [
   { value: '', label: '全部对象' },
@@ -129,7 +146,7 @@ onMounted(() => {
         <tbody>
           <tr v-for="log in logs" :key="log.id">
             <td style="font-weight: 600; color: var(--text-2)">{{ log.admin_name || '-' }}</td>
-            <td><span class="st st-ok">{{ log.action }}</span></td>
+            <td><span class="st" :class="getActionClass(log.action)">{{ log.action }}</span></td>
             <td style="color: var(--text-2)">{{ log.target }}</td>
             <td style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px">{{ log.created_at }}</td>
           </tr>
