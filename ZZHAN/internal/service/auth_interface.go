@@ -9,7 +9,7 @@ import (
 // AuthService 认证业务接口
 type AuthService interface {
 	// GitHubLogin GitHub OAuth 登录
-	GitHubLogin(ctx context.Context, code string) (*dto.LoginResponse, error)
+	GitHubLogin(ctx context.Context, code, redirectURI string) (*dto.LoginResponse, error)
 
 	// RefreshToken 刷新 access_token
 	RefreshToken(ctx context.Context, refreshToken string) (*dto.RefreshResponse, error)

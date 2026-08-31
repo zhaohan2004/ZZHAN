@@ -13,7 +13,7 @@ const REFRESH_TOKEN_KEY = 'ct-refresh-token'
 
 /** GitHub OAuth 配置 */
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID || ''
-const GITHUB_REDIRECT_URI = import.meta.env.VITE_GITHUB_REDIRECT_URI || ''
+const GITHUB_REDIRECT_URI_PATH = import.meta.env.VITE_GITHUB_REDIRECT_URI || '/auth/github/callback'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem(ACCESS_TOKEN_KEY))
@@ -51,13 +51,15 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (!code) {
         // 没有 code，重定向到 GitHub 授权页面
-        window.location.href = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(GITHUB_REDIRECT_URI)}`
+        const redirectUri = `${window.location.origin}${GITHUB_REDIRECT_URI_PATH}`
+        window.location.href = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}`
         return false
       }
 
       // 有 code，调用后端接口
       try {
-        const res = await githubLogin(code)
+        const redirectUri = `${window.location.origin}${GITHUB_REDIRECT_URI_PATH}`
+        const res = await githubLogin(code, redirectUri)
         setTokens(res.access_token, res.refresh_token)
         user.value = res.user
         loginModalOpen.value = false
