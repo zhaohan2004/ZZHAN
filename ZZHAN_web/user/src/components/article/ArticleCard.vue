@@ -7,7 +7,7 @@ import { computed } from 'vue'
 import { ArrowRight, Calendar, Eye, MessageCircle, ThumbsUp } from 'lucide-vue-next'
 import type { ArticleSummary } from '@/types/models'
 import { coverArt } from '@/utils/cover'
-import { fmtNum } from '@/utils/format'
+import { fmtDate, fmtNum } from '@/utils/format'
 import TagMini from './TagMini.vue'
 
 const props = withDefaults(
@@ -44,7 +44,7 @@ const catColor = computed(() => '#4a8eff') // 默认主题色
         <TagMini v-for="t in article.tags.slice(0, tagLimit)" :key="t.id" :tag-id="t.id" :tag-name="t.name" />
       </div>
       <div class="ac-meta">
-        <span><Calendar :size="13" /> {{ article.published_at }}</span>
+        <span><Calendar :size="13" /> {{ fmtDate(article.published_at) }}</span>
         <span><Eye :size="13" /> {{ fmtNum(article.views) }}</span>
         <span><ThumbsUp :size="13" /> {{ fmtNum(article.likes) }}</span>
         <span><MessageCircle :size="13" /> {{ fmtNum(article.comment_count) }}</span>

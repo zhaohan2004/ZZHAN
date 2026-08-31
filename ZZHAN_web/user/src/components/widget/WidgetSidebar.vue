@@ -9,6 +9,7 @@ import { getArticles } from '@/api/articles'
 import { getCategories, getTags } from '@/api/site'
 import type { ArticleSummary, Category, Tag } from '@/types/models'
 import { coverArt } from '@/utils/cover'
+import { fmtDate } from '@/utils/format'
 
 const props = withDefaults(defineProps<{ withCatTag?: boolean }>(), { withCatTag: true })
 
@@ -41,7 +42,7 @@ function thumbOf(a: ArticleSummary): string {
           <router-link :to="`/article/${a.slug}`" style="width:100%">
             <span class="thumb-mini" :style="{ backgroundImage: 'url(' + thumbOf(a) + ')' }" />
             <span class="t">{{ a.title }}</span>
-            <span class="d">{{ a.published_at.slice(5) }}</span>
+            <span class="d">{{ fmtDate(a.published_at) }}</span>
           </router-link>
         </li>
       </ul>

@@ -39,11 +39,11 @@ type GitHubToken struct {
 }
 
 // GitHubLogin GitHub OAuth 登录
-func (s *authService) GitHubLogin(ctx context.Context, code string) (*dto.LoginResponse, error) {
+func (s *authService) GitHubLogin(ctx context.Context, code, redirectURI string) (*dto.LoginResponse, error) {
 	cfg := config.Get().GitHub
 
 	//1.先用 code 换取 GitHub 的 access_token
-	ghToken, err := s.exchangeGitHubToken(cfg.ClientID, cfg.ClientSecret, code)
+	ghToken, err := s.exchangeGitHubToken(cfg.ClientID, cfg.ClientSecret, code, redirectURI)
 	if err != nil {
 		return nil, fmt.Errorf("获取 GitHub access_token 失败：%w", err)
 	}
@@ -85,8 +85,11 @@ func (s *authService) GitHubLogin(ctx context.Context, code string) (*dto.LoginR
 }
 
 // exchangeGitHubToken 用 code 换取 GitHub access_token
-func (s *authService) exchangeGitHubToken(clientID, clientSecret, code string) (*GitHubToken, error) {
+func (s *authService) exchangeGitHubToken(clientID, clientSecret, code, redirectURI string) (*GitHubToken, error) {
 	url := fmt.Sprintf("https://github.com/login/oauth/access_token?client_id=%s&client_secret=%s&code=%s", clientID, clientSecret, code)
+	if redirectURI != "" {
+		url += "&redirect_uri=" + redirectURI
+	}
 	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return nil, err

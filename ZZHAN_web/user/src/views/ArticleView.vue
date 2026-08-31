@@ -17,7 +17,7 @@ import { getComments } from '@/api/comments'
 import { useSiteStore } from '@/stores/site'
 import type { ArticleDetail, CommentItem } from '@/types/models'
 import { renderMarkdown, buildTOC, decorateCode } from '@/utils/markdown'
-import { fmtNum, readTime } from '@/utils/format'
+import { fmtDate, fmtNum, readTime } from '@/utils/format'
 import { useAuthStore } from '@/stores/auth'
 import { useReveal } from '@/composables/useReveal'
 import TocList, { type TocEntry } from '@/components/widget/TocList.vue'
@@ -115,7 +115,7 @@ function jumpTo(id: string): void {
         <h1 class="post-title">{{ article?.title }}</h1>
         <div class="post-summary">{{ article?.summary }}</div>
         <div v-if="article" class="post-meta">
-          <span><Calendar :size="14" />发布于 {{ article.published_at }}</span>
+          <span><Calendar :size="14" />发布于 {{ fmtDate(article.published_at) }}</span>
           <span><Eye :size="14" />{{ fmtNum(article.views) }} 阅读</span>
           <span><Clock :size="14" />{{ readTime(article.content) }} 分钟</span>
           <span><MessageCircle :size="14" />{{ article.comment_count }} 评论</span>

@@ -29,7 +29,7 @@ func (c *AuthController) GitHubLogin(ctx *gin.Context) {
 		return
 	}
 
-	resp, err := c.authService.GitHubLogin(ctx.Request.Context(), req.Code)
+	resp, err := c.authService.GitHubLogin(ctx.Request.Context(), req.Code, req.RedirectURI)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code":    50000,
