@@ -113,7 +113,7 @@ function goPage(p: number): void {
 onMounted(async () => {
   try {
     const [c, t] = await Promise.all([getCategories(), getTags()])
-    cats.value = c
+    cats.value = [...c].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
     tags.value = [...t].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
   } catch {
     /* 静默 */

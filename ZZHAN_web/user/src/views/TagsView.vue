@@ -1,17 +1,11 @@
 <script setup lang="ts">
-/** 标签页 — 标签列表（名称 + 文章数）。默认展示 12 个，点击展开全部。 */
-import { computed, onMounted, ref } from 'vue'
-import { ChevronDown, ChevronRight, Hash } from 'lucide-vue-next'
+/** 标签页 — 标签列表（名称 + 文章数），按文章数降序排列。 */
+import { onMounted, ref } from 'vue'
+import { ChevronRight, Hash } from 'lucide-vue-next'
 import { getTags } from '@/api/site'
 import type { Tag } from '@/types/models'
 
-const DEFAULT_SHOW = 12
 const tags = ref<Tag[]>([])
-const expanded = ref(false)
-
-const visibleTags = computed(() =>
-  expanded.value ? tags.value : tags.value.slice(0, DEFAULT_SHOW),
-)
 
 onMounted(async () => {
   try {
@@ -38,7 +32,7 @@ onMounted(async () => {
 
         <div class="tag-grid">
           <router-link
-            v-for="t in visibleTags"
+            v-for="t in tags"
             :key="t.id"
             :to="`/articles?tag_id=${t.id}`"
             class="tag-row"
@@ -47,15 +41,6 @@ onMounted(async () => {
             <span class="tag-count">{{ t.count ?? 0 }} 篇</span>
           </router-link>
         </div>
-
-        <button
-          v-if="tags.length > DEFAULT_SHOW"
-          class="expand-btn"
-          @click="expanded = !expanded"
-        >
-          {{ expanded ? '收起标签' : `查看全部 ${tags.length} 个标签` }}
-          <ChevronDown :size="14" :class="{ 'rotate-up': expanded }" />
-        </button>
       </div>
     </section>
   </div>
@@ -64,8 +49,8 @@ onMounted(async () => {
 <style scoped>
 .tag-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 24px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0 40px;
 }
 .tag-row {
   display: flex;
@@ -101,29 +86,5 @@ onMounted(async () => {
 }
 .tag-row:hover .tag-count {
   color: var(--accent);
-}
-
-.expand-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  margin-top: 20px;
-  padding: 10px;
-  border: 1px dashed var(--border);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-2);
-  font-size: 13px;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-}
-.expand-btn:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-.rotate-up {
-  transform: rotate(180deg);
 }
 </style>

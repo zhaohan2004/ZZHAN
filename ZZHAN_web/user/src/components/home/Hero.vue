@@ -5,7 +5,7 @@
  * 所有可编辑项均从 site 数据读取（来源：后台系统设置）。
  */
 import { computed } from 'vue'
-import { BookOpen, Calendar, Github, MapPin, User } from 'lucide-vue-next'
+import { BookOpen, Calendar, Github, Link, MapPin, Twitter, User } from 'lucide-vue-next'
 import type { SiteInfo } from '@/types/models'
 import { initialsAvatar } from '@/utils/avatar'
 import HeroTerminal from './HeroTerminal.vue'
@@ -30,6 +30,17 @@ const yearCount = computed(() => {
   const n = Math.max(1, new Date().getFullYear() - base)
   return n
 })
+
+/** 社交图标映射 */
+const SOCIAL_ICON_MAP: Record<string, typeof Github> = {
+  github: Github,
+  twitter: Twitter,
+  x: Twitter,
+}
+
+function getSocialIcon(icon: string) {
+  return SOCIAL_ICON_MAP[icon?.toLowerCase()] || Link
+}
 </script>
 
 <template>
@@ -51,11 +62,21 @@ const yearCount = computed(() => {
         </div>
         <div class="hero-meta">
           <span class="hm"><MapPin :size="14" /> {{ locationText }}</span>
-          <span class="hm">
-            <Github :size="14" />
-            {{ (site?.github || 'github.com/yourname').replace('https://github.com/', '') }}
-          </span>
           <span class="hm"><Calendar :size="14" /> 写博客第 {{ yearCount }} 年</span>
+          <template v-if="site?.socials?.length">
+            <a
+              v-for="s in site.socials"
+              :key="s.name"
+              class="hm social-link"
+              :href="s.url"
+              target="_blank"
+              rel="noopener"
+              :title="s.name"
+            >
+              <component :is="getSocialIcon(s.icon)" :size="14" />
+              {{ s.name }}
+            </a>
+          </template>
         </div>
       </div>
       <div>
@@ -64,3 +85,13 @@ const yearCount = computed(() => {
     </div>
   </section>
 </template>
+
+<style scoped>
+.social-link {
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.social-link:hover {
+  color: var(--accent);
+}
+</style>
