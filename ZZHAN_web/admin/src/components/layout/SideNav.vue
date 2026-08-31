@@ -93,9 +93,6 @@ function isActive(item: NavItem): boolean {
         </router-link>
       </template>
     </nav>
-    <div class="side-foot">
-      <a href="/" target="_blank" rel="noopener"><Home :size="16" /> 返回前台</a>
-    </div>
   </aside>
   <div class="side-backdrop" :class="{ open }" @click="emit('close')" />
 </template>

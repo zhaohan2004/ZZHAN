@@ -25,11 +25,16 @@ const menuOpen = ref(false)
 
 const title = computed(() => String(route.meta.title || '管理后台'))
 
+const fallbackAvatar = computed(() => initialsAvatar(auth.profile?.nickname || '轩', '#3b82f6', '#38bdf8', 64))
 const avatar = computed(() => {
   const p = auth.profile
   if (p?.avatar) return p.avatar
-  return initialsAvatar(p?.nickname || '轩', '#3b82f6', '#38bdf8', 64)
+  return fallbackAvatar.value
 })
+function onAvatarError(e: Event) {
+  const img = e.target as HTMLImageElement
+  if (img.src !== fallbackAvatar.value) img.src = fallbackAvatar.value
+}
 
 const profileOpen = ref(false)
 const editUsername = ref('')
@@ -128,12 +133,12 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
       <template v-if="auth.loggedIn">
         <div class="admin-user" :class="{ open: menuOpen }">
           <button class="icon-btn" type="button" title="账号" @click.stop="menuOpen = !menuOpen">
-            <img :src="avatar" alt="头像" style="width: 32px; height: 32px; border-radius: 9px">
+            <img :src="avatar" alt="头像" style="width: 32px; height: 32px; border-radius: 9px" @error="onAvatarError">
             <ChevronDown class="au-caret" :size="12" />
           </button>
           <div class="nav-dd" v-show="menuOpen" @click.stop>
             <div class="au-head">
-              <img :src="avatar" alt="">
+              <img :src="avatar" alt="" @error="onAvatarError">
               <div><b>{{ auth.profile?.nickname || '管理员' }}</b><span>超级管理员</span></div>
             </div>
             <div class="dd-sep"></div>

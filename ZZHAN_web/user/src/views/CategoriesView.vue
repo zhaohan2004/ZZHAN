@@ -41,7 +41,7 @@ const total = ref(0)
 
 onMounted(async () => {
   try {
-    cats.value = await getCategories()
+    cats.value = (await getCategories()).sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
     total.value = cats.value.reduce((n, c) => n + (c.count ?? 0), 0)
   } catch {
     /* 静默 */

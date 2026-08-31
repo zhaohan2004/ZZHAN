@@ -20,7 +20,7 @@ onMounted(async () => {
   try {
     const [r, c, t] = await Promise.all([getArticles({ page: 1, size: 5 }), getCategories(), getTags()])
     recent.value = r.list
-    cats.value = c
+    cats.value = [...c].sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).slice(0, 14)
     tags.value = [...t].sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).slice(0, 14)
   } catch {
     /* 静默 */
