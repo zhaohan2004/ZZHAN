@@ -1,6 +1,7 @@
 package web
 
 import (
+	"ZZHAN/internal/middleware"
 	"ZZHAN/internal/model/dto"
 	"ZZHAN/internal/service"
 	"ZZHAN/pkg/response"
@@ -51,8 +52,14 @@ func (c *ArticlesController) GetArticleDetail(ctx *gin.Context) {
 	// 获取客户端 IP（用于浏览量去重）
 	clientIP := ctx.ClientIP()
 
+	// 获取当前用户 ID（未登录为 0）
+	var userID int64
+	if uid := middleware.GetUserID(ctx); uid > 0 {
+		userID = int64(uid)
+	}
+
 	// 调用 service
-	article, err := c.articlesService.GetBySlug(ctx.Request.Context(), req.Slug, clientIP)
+	article, err := c.articlesService.GetBySlug(ctx.Request.Context(), req.Slug, clientIP, userID)
 	if err != nil {
 		// 判断是否是记录不存在
 		if err.Error() == "record not found" {

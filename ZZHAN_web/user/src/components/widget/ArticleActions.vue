@@ -8,12 +8,12 @@ import { toggleLike } from '@/api/articles'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 
-const props = defineProps<{ slug: string; likes: number }>()
+const props = defineProps<{ slug: string; likes: number; liked?: boolean }>()
 const emit = defineEmits<{ (e: 'liked', likes: number): void }>()
 
 const auth = useAuthStore()
 const { toast } = useToast()
-const liked = ref(false)
+const liked = ref(props.liked ?? false)
 const like_count = ref(props.likes)
 const loading = ref(false)
 

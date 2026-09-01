@@ -128,7 +128,7 @@ function jumpTo(id: string): void {
       <div class="post-body">
         <article ref="postBody" class="prose" />
 
-        <ArticleActions :slug="article.slug" :likes="article.likes" />
+        <ArticleActions :slug="article.slug" :likes="article.likes" :liked="article.liked" />
 
         <div class="flex flex-wrap gap-2" style="margin-bottom:26px">
           <router-link

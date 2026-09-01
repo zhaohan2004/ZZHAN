@@ -33,6 +33,7 @@ type ArticleDetail struct {
 	Content      string    `json:"content"`       // Markdown 正文
 	Views        int32     `json:"views"`         // 浏览量
 	Likes        int32     `json:"likes"`         // 点赞数
+	Liked        bool      `json:"liked"`         // 当前用户是否已点赞
 	CommentCount int32     `json:"comment_count"` // 评论数
 	PublishedAt  time.Time `json:"published_at"`  // 发布时间
 }
