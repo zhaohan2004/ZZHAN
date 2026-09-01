@@ -81,10 +81,11 @@ export interface CommentAdmin {
   article_id: number
   article_title: string
   user_name: string
-  avatar: string
+  user_avatar: string
   content: string
   ip: string
-  time: string
+  like_count: number
+  created_at: string
   status: CommentStatus
 }
 
@@ -135,10 +136,8 @@ export interface OperationLogAdmin {
 
 /** 管理员资料（password 不回传，仅前端本地输入） */
 export interface AdminProfile {
-  nickname: string
+  username: string
   avatar: string
-  /** 登录账号（GET /admin/profile 返回，用于展示/修改） */
-  username?: string
 }
 
 /** 系统设置 KV */

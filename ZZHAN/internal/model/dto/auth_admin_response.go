@@ -9,6 +9,5 @@ type CaptchaResponse struct {
 // AdminProfileResponse 管理员资料响应
 type AdminProfileResponse struct {
 	Username string `json:"username"`
-	Nickname string `json:"nickname"`
 	Avatar   string `json:"avatar"`
 }

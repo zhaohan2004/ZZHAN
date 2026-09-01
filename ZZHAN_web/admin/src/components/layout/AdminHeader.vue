@@ -25,7 +25,7 @@ const menuOpen = ref(false)
 
 const title = computed(() => String(route.meta.title || '管理后台'))
 
-const fallbackAvatar = computed(() => initialsAvatar(auth.profile?.nickname || '轩', '#3b82f6', '#38bdf8', 64))
+const fallbackAvatar = computed(() => initialsAvatar(auth.profile?.username || '轩', '#3b82f6', '#38bdf8', 64))
 const avatar = computed(() => {
   const p = auth.profile
   if (p?.avatar) return p.avatar
@@ -139,7 +139,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
           <div class="nav-dd" v-show="menuOpen" @click.stop>
             <div class="au-head">
               <img :src="avatar" alt="" @error="onAvatarError">
-              <div><b>{{ auth.profile?.nickname || '管理员' }}</b><span>超级管理员</span></div>
+              <div><b>{{ auth.profile?.username || '管理员' }}</b><span>超级管理员</span></div>
             </div>
             <div class="dd-sep"></div>
             <button class="nav-dd-item" type="button" @click="openProfile"><UserCog :size="15" /> 个人信息</button>
@@ -166,7 +166,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
           <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
             <span class="brand-logo" style="width:52px;height:52px;font-size:20px;flex:none;overflow:hidden;padding:0;border-radius:12px">
               <img v-if="avatarUrl" :src="avatarUrl" alt="头像预览" style="width:100%;height:100%;object-fit:cover" />
-              <span v-else>{{ (auth.profile?.nickname || 'U').slice(0, 1) }}</span>
+              <span v-else>{{ (auth.profile?.username || 'U').slice(0, 1) }}</span>
             </span>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">

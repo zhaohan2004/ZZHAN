@@ -67,7 +67,7 @@ onMounted(async () => {
             v-for="c in cats"
             :key="c.slug"
             :id="'cat-' + c.slug"
-            :to="`/articles?category=${c.slug}`"
+            :to="`/articles?category_id=${c.id}`"
             class="cat-card reveal"
             :style="{ '--cat-c': c.color }"
           >

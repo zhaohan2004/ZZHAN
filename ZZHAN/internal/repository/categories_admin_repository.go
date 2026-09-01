@@ -39,96 +39,14 @@ func (r *categoriesAdminRepository) AdminList(ctx context.Context, req *dto.Admi
 		base = base.Where("categories.status = ?", req.Status)
 	}
 
-	// 需要按文章数过滤时，用 JOIN 子查询
+	// 需要按文章数过滤时，用 WHERE 子查询
 	if req.MinCount != nil || req.MaxCount != nil {
-		// 构建分类+文章数的派生表
-		derived := r.db.Table("categories").
-			Select("categories.id AS cid, COALESCE(ac.cnt, 0) AS article_count").
-			Joins("LEFT JOIN (?) ac ON ac.category_id = categories.id",
-				r.db.Model(&entity.Article{}).
-					Select("category_id, COUNT(*) AS cnt").
-					Where("status = ? AND deleted_at IS NULL", "published").
-					Group("category_id"),
-			)
-
-		if req.Keyword != "" {
-			derived = derived.Where("categories.name LIKE ?", "%"+req.Keyword+"%")
-		}
-		if req.Status != "" && req.Status != "all" {
-			derived = derived.Where("categories.status = ?", req.Status)
-		}
 		if req.MinCount != nil {
-			derived = derived.Having("article_count >= ?", *req.MinCount)
+			base = base.Where("(?) >= ?", countSub, *req.MinCount)
 		}
 		if req.MaxCount != nil {
-			derived = derived.Having("article_count <= ?", *req.MaxCount)
+			base = base.Where("(?) <= ?", countSub, *req.MaxCount)
 		}
-
-		// 统计总数
-		if err := r.db.WithContext(ctx).Table("(?) AS sub", derived).Count(&total).Error; err != nil {
-			return nil, 0, err
-		}
-
-		// 分页参数
-		page := req.Page
-		if page <= 0 {
-			page = 1
-		}
-		pageSize := req.PageSize
-		if pageSize <= 0 {
-			pageSize = 10
-		}
-		offset := (page - 1) * pageSize
-
-		// 查询 ID 列表
-		var ids []int64
-		if err := derived.Select("cid").Order("cid ASC").Offset(offset).Limit(pageSize).Scan(&ids).Error; err != nil {
-			return nil, 0, err
-		}
-
-		if len(ids) == 0 {
-			return []dto.AdminCategoryItem{}, 0, nil
-		}
-
-		// 查询分类详情
-		var categories []entity.Category
-		if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&categories).Error; err != nil {
-			return nil, 0, err
-		}
-
-		// 按 ID 顺序排列
-		idOrder := make(map[int64]int, len(ids))
-		for i, id := range ids {
-			idOrder[id] = i
-		}
-		ordered := make([]entity.Category, len(categories))
-		for _, c := range categories {
-			ordered[idOrder[c.ID]] = c
-		}
-
-		// 转换为 DTO
-		result := make([]dto.AdminCategoryItem, 0, len(ordered))
-		for _, c := range ordered {
-			var articleCount int64
-			r.db.WithContext(ctx).Model(&entity.Article{}).
-				Where("category_id = ? AND status = ? AND deleted_at IS NULL", c.ID, "published").
-				Count(&articleCount)
-
-			result = append(result, dto.AdminCategoryItem{
-				ID:           c.ID,
-				Name:         c.Name,
-				Slug:         c.Slug,
-				Icon:         c.Icon,
-				Description:  c.Description,
-				Color:        c.Color,
-				Status:       c.Status,
-				ArticleCount: articleCount,
-				CreatedAt:    c.CreatedAt.Format("2006-01-02 15:04"),
-				UpdatedAt:    c.UpdatedAt.Format("2006-01-02 15:04"),
-			})
-		}
-
-		return result, total, nil
 	}
 
 	// 无文章数过滤时的简单查询
@@ -147,7 +65,7 @@ func (r *categoriesAdminRepository) AdminList(ctx context.Context, req *dto.Admi
 	offset := (page - 1) * pageSize
 
 	var categories []entity.Category
-	if err := r.db.WithContext(ctx).
+	if err := base.
 		Select("categories.*, (?) AS article_count", countSub).
 		Order("id ASC").
 		Offset(offset).

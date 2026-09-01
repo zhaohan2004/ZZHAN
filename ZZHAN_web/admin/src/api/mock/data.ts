@@ -3,7 +3,7 @@
  */
 
 export const ADMIN_PROFILE = {
-  nickname: '阿轩',
+  username: '阿轩',
   avatar: '',
   email: 'admin@codethink.dev',
 }

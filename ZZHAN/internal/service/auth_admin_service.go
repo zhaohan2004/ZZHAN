@@ -110,7 +110,6 @@ func (s *adminAuthService) GetProfile(ctx context.Context, adminID int) (*dto.Ad
 
 	return &dto.AdminProfileResponse{
 		Username: admin.Username,
-		Nickname: admin.Nickname,
 		Avatar:   admin.Avatar,
 	}, nil
 }
@@ -123,9 +122,10 @@ func (s *adminAuthService) UpdateProfile(ctx context.Context, adminID int, req *
 	}
 
 	// 更新资料字段
-	if req.Nickname != "" {
-		admin.Nickname = req.Nickname
+	if req.Username != "" {
+		admin.Username = req.Username
 	}
+
 	if req.Avatar != "" {
 		admin.Avatar = req.Avatar
 	}
@@ -145,7 +145,6 @@ func (s *adminAuthService) UpdateProfile(ctx context.Context, adminID int, req *
 
 	return &dto.AdminProfileResponse{
 		Username: admin.Username,
-		Nickname: admin.Nickname,
 		Avatar:   admin.Avatar,
 	}, nil
 }
