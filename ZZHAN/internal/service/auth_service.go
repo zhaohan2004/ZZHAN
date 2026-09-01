@@ -11,8 +11,27 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
+
+// githubHTTPClient 根据配置创建用于请求 GitHub API 的 HTTP 客户端
+func githubHTTPClient() *http.Client {
+	proxy := config.Get().GitHub.Proxy
+	if proxy == "" {
+		return &http.Client{Timeout: 15 * time.Second}
+	}
+	proxyURL, err := url.Parse(proxy)
+	if err != nil {
+		return &http.Client{Timeout: 15 * time.Second}
+	}
+	return &http.Client{
+		Timeout: 15 * time.Second,
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		},
+	}
+}
 
 type authService struct {
 	authRepo  repository.AuthRepository
@@ -95,7 +114,7 @@ func (s *authService) exchangeGitHubToken(clientID, clientSecret, code, redirect
 		return nil, err
 	}
 	req.Header.Set("Accept", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := githubHTTPClient().Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +143,7 @@ func (s *authService) getGitHubUser(accessToken string) (*GitHubUser, error) {
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := githubHTTPClient().Do(req)
 	if err != nil {
 		return nil, err
 	}
