@@ -108,7 +108,7 @@ func (r *articlesRepository) GetPublishedList(ctx context.Context, req *dto.Arti
 }
 
 // GetBySlug 通过 slug 获取文章详情
-func (r *articlesRepository) GetBySlug(ctx context.Context, slug string, clientIP string) (*dto.ArticleDetail, error) {
+func (r *articlesRepository) GetBySlug(ctx context.Context, slug string, clientIP string, userID int64) (*dto.ArticleDetail, error) {
 	var article entity.Article
 
 	// 查询文章
@@ -143,6 +143,16 @@ func (r *articlesRepository) GetBySlug(ctx context.Context, slug string, clientI
 
 	// 查询文章标签
 	detail.Tags = r.getArticleTags(ctx, article.ID)
+
+	// 查询当前用户是否已点赞
+	if userID > 0 {
+		var count int64
+		r.db.WithContext(ctx).
+			Model(&entity.Like{}).
+			Where("article_id = ? AND user_id = ?", article.ID, userID).
+			Count(&count)
+		detail.Liked = count > 0
+	}
 
 	// 查询作者名称
 	var admin entity.Admin

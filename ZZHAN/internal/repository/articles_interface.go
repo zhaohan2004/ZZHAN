@@ -14,5 +14,6 @@ type ArticlesRepository interface {
 	// GetBySlug 通过 slug 获取文章详情
 	// 只返回 status=published 的文章
 	// clientIP 用于浏览量去重
-	GetBySlug(ctx context.Context, slug string, clientIP string) (*dto.ArticleDetail, error)
+	// userID 用于查询当前用户是否已点赞（未登录传 0）
+	GetBySlug(ctx context.Context, slug string, clientIP string, userID int64) (*dto.ArticleDetail, error)
 }
