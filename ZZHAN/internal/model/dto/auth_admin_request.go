@@ -10,7 +10,7 @@ type LoginAdminRequest struct {
 
 // UpdateAdminProfileRequest 更新管理员资料请求
 type UpdateAdminProfileRequest struct {
-	Nickname string `json:"nickname"`
+	Username string `json:"username"`
 	Avatar   string `json:"avatar"`
 	Password string `json:"password"` // 可选，为空则不修改密码
 }

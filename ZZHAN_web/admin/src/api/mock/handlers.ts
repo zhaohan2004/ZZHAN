@@ -88,7 +88,7 @@ export function mockRequest<T>(cfg: RequestConfig): Promise<T> {
         access_token: 'mock-admin-token',
         refresh_token: 'mock-refresh-token',
         expires_in: 7200,
-        user: { id: 1, provider: 'admin', nickname: profile.nickname || credentials.username, avatar: profile.avatar || '' },
+        user: { id: 1, provider: 'admin', username: profile.username || credentials.username, avatar: profile.avatar || '' },
       }
     }
     if (key === 'POST /admin/auth/refresh') {

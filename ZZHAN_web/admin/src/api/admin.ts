@@ -24,7 +24,7 @@ import type {
 export interface LoginResult {
   access_token: string
   refresh_token: string
-  user: { id: number; provider: string; nickname: string; avatar: string }
+  user: { id: number; provider: string; avatar: string }
 }
 
 export interface CaptchaResult {
@@ -91,9 +91,11 @@ export interface CategoryQuery {
   maxCount?: number
 }
 export function listCategories(params: CategoryQuery = {}): Promise<Paged<CategoryAdmin>> {
-  const { pageSize, ...rest } = params
+  const { pageSize, minCount, maxCount, ...rest } = params
   const query: Record<string, string | number | undefined> = { ...rest }
   if (pageSize !== undefined) query.page_size = pageSize
+  if (minCount !== undefined) query.min_count = minCount
+  if (maxCount !== undefined) query.max_count = maxCount
   return request<Paged<CategoryAdmin>>({ method: 'GET', url: '/admin/categories', params: query })
 }
 export function createCategory(p: { name: string; slug: string; desc: string; color: string }): Promise<CategoryAdmin> {
@@ -119,9 +121,11 @@ export interface TagQuery {
   maxCount?: number
 }
 export function listTags(params: TagQuery = {}): Promise<Paged<TagAdmin>> {
-  const { pageSize, ...rest } = params
+  const { pageSize, minCount, maxCount, ...rest } = params
   const query: Record<string, string | number | undefined> = { ...rest }
   if (pageSize !== undefined) query.page_size = pageSize
+  if (minCount !== undefined) query.min_count = minCount
+  if (maxCount !== undefined) query.max_count = maxCount
   return request<Paged<TagAdmin>>({ method: 'GET', url: '/admin/tags', params: query })
 }
 export function createTag(name: string): Promise<TagAdmin> {
@@ -148,9 +152,11 @@ export function listComments(
     endDate?: string
   } = {},
 ): Promise<Paged<CommentAdmin>> {
-  const { pageSize, ...rest } = params
+  const { pageSize, startDate, endDate, ...rest } = params
   const query: Record<string, string | number | undefined> = { ...rest }
   if (pageSize !== undefined) query.page_size = pageSize
+  if (startDate !== undefined) query.start_date = startDate
+  if (endDate !== undefined) query.end_date = endDate
   return request<Paged<CommentAdmin>>({ method: 'GET', url: '/admin/comments', params: query })
 }
 export function updateCommentStatus(id: number, status: CommentStatus): Promise<CommentAdmin> {
@@ -170,9 +176,11 @@ export interface UserQuery {
   endDate?: string
 }
 export function listUsers(params: UserQuery = {}): Promise<Paged<UserAdmin>> {
-  const { pageSize, ...rest } = params
+  const { pageSize, startDate, endDate, ...rest } = params
   const query: Record<string, string | number | undefined> = { ...rest }
   if (pageSize !== undefined) query.page_size = pageSize
+  if (startDate !== undefined) query.start_date = startDate
+  if (endDate !== undefined) query.end_date = endDate
   return request<Paged<UserAdmin>>({ method: 'GET', url: '/admin/users', params: query })
 }
 export function getUser(id: number): Promise<UserAdmin> {
@@ -196,9 +204,11 @@ export function listOperationLogs(
     endDate?: string
   } = {},
 ): Promise<Paged<OperationLogAdmin>> {
-  const { pageSize, ...rest } = params
+  const { pageSize, startDate, endDate, ...rest } = params
   const query: Record<string, string | number | undefined> = { ...rest }
   if (pageSize !== undefined) query.page_size = pageSize
+  if (startDate !== undefined) query.start_date = startDate
+  if (endDate !== undefined) query.end_date = endDate
   return request<Paged<OperationLogAdmin>>({ method: 'GET', url: '/admin/operation-logs', params: query })
 }
 

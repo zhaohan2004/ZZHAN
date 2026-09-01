@@ -87,8 +87,8 @@ function editArticle(a: AdminArticle) {
 }
 async function toggleStatus(a: AdminArticle) {
   const map = STATUS_MAP[a.status]
-  // 草稿发布时校验必填信息
-  if (a.status === 'draft' && map.next === 'published') {
+  // 发布前校验必填信息（草稿/下架 → 发布）
+  if (map.next === 'published') {
     const missing: string[] = []
     if (!a.category) missing.push('分类')
     if (!a.tags?.length) missing.push('标签')
@@ -173,6 +173,7 @@ onMounted(async () => {
           <tr>
             <th>ID</th>
             <th>文章标题</th>
+            <th>封面</th>
             <th>分类</th>
             <th>标签</th>
             <th>状态</th>
@@ -186,6 +187,15 @@ onMounted(async () => {
           <tr v-for="a in articles" :key="a.id">
             <td>{{ a.id }}</td>
             <td style="font-weight: 500; color: var(--text-2)">{{ a.title }}</td>
+            <td>
+              <img
+                v-if="a.cover_image"
+                :src="a.cover_image"
+                :alt="a.title"
+                style="width: 64px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border)"
+              />
+              <span v-else style="color: var(--text-3); font-size: 12px">无封面</span>
+            </td>
             <td>{{ a.category }}</td>
             <td>
               <span

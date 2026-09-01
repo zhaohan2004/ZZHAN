@@ -30,95 +30,23 @@ func (r *tagsAdminRepository) AdminList(ctx context.Context, req *dto.AdminTagLi
 		Joins("JOIN articles ON articles.id = article_tags.article_id AND articles.status = ? AND articles.deleted_at IS NULL", "published").
 		Where("article_tags.tag_id = tags.id")
 
-	// 需要按文章数过滤时
-	if req.MinCount != nil || req.MaxCount != nil {
-		derived := r.db.Table("tags").
-			Select("tags.id AS tid, COALESCE(ac.cnt, 0) AS article_count").
-			Joins("LEFT JOIN (?) ac ON ac.tag_id = tags.id",
-				r.db.Table("article_tags").
-					Select("tag_id, COUNT(*) AS cnt").
-					Joins("JOIN articles ON articles.id = article_tags.article_id AND articles.status = ? AND articles.deleted_at IS NULL", "published").
-					Group("tag_id"),
-			)
-
-		if req.Keyword != "" {
-			derived = derived.Where("tags.name LIKE ?", "%"+req.Keyword+"%")
-		}
-		if req.Status != "" && req.Status != "all" {
-			derived = derived.Where("tags.status = ?", req.Status)
-		}
-		if req.MinCount != nil {
-			derived = derived.Having("article_count >= ?", *req.MinCount)
-		}
-		if req.MaxCount != nil {
-			derived = derived.Having("article_count <= ?", *req.MaxCount)
-		}
-
-		if err := r.db.WithContext(ctx).Table("(?) AS sub", derived).Count(&total).Error; err != nil {
-			return nil, 0, err
-		}
-
-		page := req.Page
-		if page <= 0 {
-			page = 1
-		}
-		pageSize := req.PageSize
-		if pageSize <= 0 {
-			pageSize = 10
-		}
-		offset := (page - 1) * pageSize
-
-		var ids []int64
-		if err := derived.Select("tid").Order("tid ASC").Offset(offset).Limit(pageSize).Scan(&ids).Error; err != nil {
-			return nil, 0, err
-		}
-
-		if len(ids) == 0 {
-			return []dto.AdminTagItem{}, 0, nil
-		}
-
-		var tags []entity.Tag
-		if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&tags).Error; err != nil {
-			return nil, 0, err
-		}
-
-		idOrder := make(map[int64]int, len(ids))
-		for i, id := range ids {
-			idOrder[id] = i
-		}
-		ordered := make([]entity.Tag, len(tags))
-		for _, t := range tags {
-			ordered[idOrder[t.ID]] = t
-		}
-
-		result := make([]dto.AdminTagItem, 0, len(ordered))
-		for _, t := range ordered {
-			var articleCount int64
-			r.db.WithContext(ctx).Table("article_tags").
-				Joins("JOIN articles ON articles.id = article_tags.article_id AND articles.status = ? AND articles.deleted_at IS NULL", "published").
-				Where("article_tags.tag_id = ?", t.ID).
-				Count(&articleCount)
-
-			result = append(result, dto.AdminTagItem{
-				ID:           t.ID,
-				Name:         t.Name,
-				Status:       t.Status,
-				ArticleCount: articleCount,
-				CreatedAt:    t.CreatedAt.Format("2006-01-02 15:04"),
-				UpdatedAt:    t.UpdatedAt.Format("2006-01-02 15:04"),
-			})
-		}
-
-		return result, total, nil
-	}
-
-	// 无文章数过滤时
+	// 基础查询
 	query := r.db.WithContext(ctx).Model(&entity.Tag{})
 	if req.Keyword != "" {
 		query = query.Where("name LIKE ?", "%"+req.Keyword+"%")
 	}
 	if req.Status != "" && req.Status != "all" {
 		query = query.Where("status = ?", req.Status)
+	}
+
+	// 需要按文章数过滤时，用 WHERE 子查询
+	if req.MinCount != nil || req.MaxCount != nil {
+		if req.MinCount != nil {
+			query = query.Where("(?) >= ?", countSub, *req.MinCount)
+		}
+		if req.MaxCount != nil {
+			query = query.Where("(?) <= ?", countSub, *req.MaxCount)
+		}
 	}
 
 	if err := query.Count(&total).Error; err != nil {

@@ -135,8 +135,10 @@ onMounted(async () => {
         <thead>
           <tr>
             <th>评论用户</th>
+            <th>头像</th>
             <th>评论内容</th>
             <th>所属文章</th>
+            <th>点赞</th>
             <th>发布时间</th>
             <th>状态</th>
             <th style="text-align: right">操作</th>
@@ -144,15 +146,23 @@ onMounted(async () => {
         </thead>
         <tbody>
           <tr v-for="c in comments" :key="c.id">
+            <td style="font-weight: 600; color: var(--text-2)">{{ c.user_name }}</td>
             <td>
-              <div style="display: flex; align-items: center; gap: 10px">
-                <span style="width: 32px; height: 32px; border-radius: 10px; flex: none" :style="{ background: c.avatar }"></span>
-                <b style="font-weight: 600; color: var(--text-2)">{{ c.user_name }}</b>
-              </div>
+              <img
+                v-if="c.user_avatar"
+                :src="c.user_avatar"
+                :alt="c.user_name"
+                style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border)"
+              />
+              <span
+                v-else
+                style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; font-size: 12px; font-weight: 600; color: #fff; background: var(--accent)"
+              >{{ c.user_name?.[0] }}</span>
             </td>
             <td style="max-width: 320px; color: var(--text-2)">{{ c.content }}</td>
             <td style="color: var(--text-2)">{{ c.article_title }}</td>
-            <td style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px">{{ c.time }}</td>
+            <td style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px">{{ c.like_count }}</td>
+            <td style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px">{{ c.created_at }}</td>
             <td><span class="st" :class="STATUS_MAP[c.status].cls">{{ STATUS_MAP[c.status].label }}</span></td>
             <td style="text-align: right; white-space: nowrap">
               <button
@@ -175,7 +185,7 @@ onMounted(async () => {
             </td>
           </tr>
           <tr v-if="!comments.length">
-            <td colspan="6" style="text-align: center; color: var(--text-3); padding: 40px">暂无评论</td>
+            <td colspan="8" style="text-align: center; color: var(--text-3); padding: 40px">暂无评论</td>
           </tr>
         </tbody>
       </table>

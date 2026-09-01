@@ -113,6 +113,7 @@ onMounted(() => {
       <div style="flex: 1"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input v-model="query.keyword" class="input" placeholder="搜索昵称" style="width:160px" @keyup.enter="search" />
+        <span class="muted" style="font-size:13px">注册时间</span>
         <input v-model="query.startDate" class="input" type="date" style="width:150px" />
         <span class="muted" style="font-size:13px">至</span>
         <input v-model="query.endDate" class="input" type="date" style="width:150px" />

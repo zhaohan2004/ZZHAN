@@ -15,8 +15,10 @@ export interface OperationLogQuery {
 }
 
 export function listOperationLogs(params: OperationLogQuery = {}): Promise<Paged<OperationLogAdmin>> {
-  const { pageSize, ...rest } = params
+  const { pageSize, startDate, endDate, ...rest } = params
   const query: Record<string, string | number | undefined> = { ...rest }
   if (pageSize !== undefined) query.page_size = pageSize
+  if (startDate !== undefined) query.start_date = startDate
+  if (endDate !== undefined) query.end_date = endDate
   return request<Paged<OperationLogAdmin>>({ method: 'GET', url: '/admin/operation-logs', params: query })
 }
