@@ -59,6 +59,7 @@ type GitHubConfig struct {
 	ClientID     string `mapstructure:"client_id"`
 	ClientSecret string `mapstructure:"client_secret"`
 	RedirectURL  string `mapstructure:"redirect_url"`
+	Proxy        string `mapstructure:"proxy"` // HTTP 代理地址，如 http://127.0.0.1:65532，留空则不使用代理
 }
 
 // LogConfig 日志配置
