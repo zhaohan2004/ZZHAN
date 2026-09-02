@@ -29,6 +29,11 @@ func (s *adminAuthService) accessTTL() time.Duration {
 	return config.Get().JWT.AccessExpireHours * time.Hour
 }
 
+// refreshTTL 获取 refresh_token 的过期时长
+func (s *adminAuthService) refreshTTL() time.Duration {
+	return config.Get().JWT.RefreshExpireHours * time.Hour
+}
+
 // Login 后台管理员登录
 func (s *adminAuthService) Login(ctx context.Context, req *dto.LoginAdminRequest) (*dto.LoginResponse, error) {
 	// 查找管理员
@@ -51,12 +56,17 @@ func (s *adminAuthService) Login(ctx context.Context, req *dto.LoginAdminRequest
 	// 单设备登录：踢掉旧 token，记录新 token
 	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
 		adminID := int(admin.ID)
-		// 获取旧的活跃 token 并加入黑名单
+		// 获取旧的活跃 access_token 并加入黑名单
 		if oldToken, err := s.redisRepo.GetActiveToken(ctx, "admin", adminID); err == nil && oldToken != "" {
 			_ = s.redisRepo.AddToBlacklist(ctx, oldToken, s.accessTTL())
 		}
+		// 获取旧的活跃 refresh_token 并加入黑名单（防止旧设备用 refresh 续期）
+		if oldRefresh, err := s.redisRepo.GetActiveRefreshToken(ctx, "admin", adminID); err == nil && oldRefresh != "" {
+			_ = s.redisRepo.AddToBlacklist(ctx, oldRefresh, s.refreshTTL())
+		}
 		// 存储新的活跃 token
 		_ = s.redisRepo.SetActiveToken(ctx, "admin", adminID, accessToken, s.accessTTL())
+		_ = s.redisRepo.SetActiveRefreshToken(ctx, "admin", adminID, refreshToken, s.refreshTTL())
 	}
 
 	return &dto.LoginResponse{
@@ -98,6 +108,8 @@ func (s *adminAuthService) RefreshToken(ctx context.Context, refreshToken string
 	// 更新活跃 token（旧的 access_token 已失效，用新的替换）
 	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
 		_ = s.redisRepo.SetActiveToken(ctx, "admin", claims.UserID, newAccessToken, s.accessTTL())
+		// 确保 refresh_token 也记录在活跃列表中（兼容旧 token 迁移）
+		_ = s.redisRepo.SetActiveRefreshToken(ctx, "admin", claims.UserID, refreshToken, s.refreshTTL())
 	}
 
 	return &dto.RefreshResponse{
@@ -125,8 +137,11 @@ func (s *adminAuthService) Logout(ctx context.Context, accessToken string) error
 		return err
 	}
 
-	// 清除活跃 token
+	// 将活跃的 refresh_token 也加入黑名单并清除所有活跃 token
 	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
+		if oldRefresh, err := s.redisRepo.GetActiveRefreshToken(ctx, "admin", claims.UserID); err == nil && oldRefresh != "" {
+			_ = s.redisRepo.AddToBlacklist(ctx, oldRefresh, s.refreshTTL())
+		}
 		_ = s.redisRepo.ClearActiveToken(ctx, "admin", claims.UserID)
 	}
 

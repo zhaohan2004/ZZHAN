@@ -115,13 +115,37 @@ func (r *redisRepository) GetActiveToken(ctx context.Context, userType string, u
 	return r.redis.Get(ctx, key).Result()
 }
 
-// ClearActiveToken 清除用户的活跃 token
+// ClearActiveToken 清除用户的活跃 token（access + refresh）
 func (r *redisRepository) ClearActiveToken(ctx context.Context, userType string, userID int) error {
 	if r.redis == nil {
 		return nil
 	}
 	key := activeTokenKey(userType, userID)
-	return r.redis.Del(ctx, key).Err()
+	refreshKey := activeRefreshTokenKey(userType, userID)
+	return r.redis.Del(ctx, key, refreshKey).Err()
+}
+
+// activeRefreshTokenKey 生成活跃 refresh_token 的 Redis key
+func activeRefreshTokenKey(userType string, userID int) string {
+	return fmt.Sprintf("%s%s:%d:refresh", activeTokenKeyPrefix, userType, userID)
+}
+
+// SetActiveRefreshToken 设置用户当前活跃的 refresh_token
+func (r *redisRepository) SetActiveRefreshToken(ctx context.Context, userType string, userID int, token string, expiration time.Duration) error {
+	if r.redis == nil {
+		return nil
+	}
+	key := activeRefreshTokenKey(userType, userID)
+	return r.redis.Set(ctx, key, token, expiration).Err()
+}
+
+// GetActiveRefreshToken 获取用户当前活跃的 refresh_token
+func (r *redisRepository) GetActiveRefreshToken(ctx context.Context, userType string, userID int) (string, error) {
+	if r.redis == nil {
+		return "", redis.Nil
+	}
+	key := activeRefreshTokenKey(userType, userID)
+	return r.redis.Get(ctx, key).Result()
 }
 
 // ========== 浏览量去重方法 ==========
