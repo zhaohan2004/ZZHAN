@@ -20,6 +20,11 @@ func userAccessTTL() time.Duration {
 	return config.Get().JWT.AccessExpireHours * time.Hour
 }
 
+// userRefreshTTL 获取前台用户 refresh_token 的过期时长
+func userRefreshTTL() time.Duration {
+	return config.Get().JWT.RefreshExpireHours * time.Hour
+}
+
 // githubHTTPClient 根据配置创建用于请求 GitHub API 的 HTTP 客户端
 func githubHTTPClient() *http.Client {
 	proxy := config.Get().GitHub.Proxy
@@ -99,12 +104,17 @@ func (s *authService) GitHubLogin(ctx context.Context, code, redirectURI string)
 	//6.单设备登录：踢掉旧 token，记录新 token
 	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
 		uid := int(user.ID)
-		// 获取旧的活跃 token 并加入黑名单
+		// 获取旧的活跃 access_token 并加入黑名单
 		if oldToken, err := s.redisRepo.GetActiveToken(ctx, "user", uid); err == nil && oldToken != "" {
 			_ = s.redisRepo.AddToBlacklist(ctx, oldToken, userAccessTTL())
 		}
+		// 获取旧的活跃 refresh_token 并加入黑名单（防止旧设备用 refresh 续期）
+		if oldRefresh, err := s.redisRepo.GetActiveRefreshToken(ctx, "user", uid); err == nil && oldRefresh != "" {
+			_ = s.redisRepo.AddToBlacklist(ctx, oldRefresh, userRefreshTTL())
+		}
 		// 存储新的活跃 token
 		_ = s.redisRepo.SetActiveToken(ctx, "user", uid, accessToken, userAccessTTL())
+		_ = s.redisRepo.SetActiveRefreshToken(ctx, "user", uid, refreshToken, userRefreshTTL())
 	}
 
 	return &dto.LoginResponse{
@@ -233,6 +243,8 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (*d
 	// 更新活跃 token
 	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
 		_ = s.redisRepo.SetActiveToken(ctx, "user", claims.UserID, newAccessToken, userAccessTTL())
+		// 确保 refresh_token 也记录在活跃列表中（兼容旧 token 迁移）
+		_ = s.redisRepo.SetActiveRefreshToken(ctx, "user", claims.UserID, refreshToken, userRefreshTTL())
 	}
 
 	return &dto.RefreshResponse{
@@ -261,8 +273,11 @@ func (s *authService) Logout(ctx context.Context, accessToken string) error {
 		return err
 	}
 
-	// 清除活跃 token
+	// 将活跃的 refresh_token 也加入黑名单并清除所有活跃 token
 	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
+		if oldRefresh, err := s.redisRepo.GetActiveRefreshToken(ctx, "user", claims.UserID); err == nil && oldRefresh != "" {
+			_ = s.redisRepo.AddToBlacklist(ctx, oldRefresh, userRefreshTTL())
+		}
 		_ = s.redisRepo.ClearActiveToken(ctx, "user", claims.UserID)
 	}
 

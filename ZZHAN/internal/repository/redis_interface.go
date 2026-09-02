@@ -33,7 +33,13 @@ type RedisRepository interface {
 	// GetActiveToken 获取用户当前活跃的 access_token
 	GetActiveToken(ctx context.Context, userType string, userID int) (string, error)
 
-	// ClearActiveToken 清除用户的活跃 token（退出时调用）
+	// SetActiveRefreshToken 设置用户当前活跃的 refresh_token
+	SetActiveRefreshToken(ctx context.Context, userType string, userID int, token string, expiration time.Duration) error
+
+	// GetActiveRefreshToken 获取用户当前活跃的 refresh_token
+	GetActiveRefreshToken(ctx context.Context, userType string, userID int) (string, error)
+
+	// ClearActiveToken 清除用户的活跃 token（退出时调用，同时清除 access 和 refresh）
 	ClearActiveToken(ctx context.Context, userType string, userID int) error
 
 	// ========== 浏览量去重方法 ==========
