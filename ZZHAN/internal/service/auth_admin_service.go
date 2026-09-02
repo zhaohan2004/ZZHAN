@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"ZZHAN/internal/model/dto"
+	"ZZHAN/pkg/config"
 	appErrors "ZZHAN/pkg/errors"
 	"ZZHAN/pkg/jwt"
 
@@ -21,6 +22,11 @@ type adminAuthService struct {
 // NewAdminAuthService 创建后台认证业务
 func NewAdminAuthService(adminRepo repository.AdminAuthRepository, redisRepo repository.RedisRepository) AdminAuthService {
 	return &adminAuthService{adminRepo: adminRepo, redisRepo: redisRepo}
+}
+
+// accessTTL 获取 access_token 的过期时长
+func (s *adminAuthService) accessTTL() time.Duration {
+	return config.Get().JWT.AccessExpireHours * time.Hour
 }
 
 // Login 后台管理员登录
@@ -40,6 +46,17 @@ func (s *adminAuthService) Login(ctx context.Context, req *dto.LoginAdminRequest
 	accessToken, refreshToken, err := jwt.GenerateTokenPair(int(admin.ID), admin.Username)
 	if err != nil {
 		return nil, appErrors.NewWithErr(appErrors.CodeInternalError, "生成令牌失败", err)
+	}
+
+	// 单设备登录：踢掉旧 token，记录新 token
+	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
+		adminID := int(admin.ID)
+		// 获取旧的活跃 token 并加入黑名单
+		if oldToken, err := s.redisRepo.GetActiveToken(ctx, "admin", adminID); err == nil && oldToken != "" {
+			_ = s.redisRepo.AddToBlacklist(ctx, oldToken, s.accessTTL())
+		}
+		// 存储新的活跃 token
+		_ = s.redisRepo.SetActiveToken(ctx, "admin", adminID, accessToken, s.accessTTL())
 	}
 
 	return &dto.LoginResponse{
@@ -77,6 +94,12 @@ func (s *adminAuthService) RefreshToken(ctx context.Context, refreshToken string
 	if err != nil {
 		return nil, fmt.Errorf("生成新的 access_token 失败：%w", err)
 	}
+
+	// 更新活跃 token（旧的 access_token 已失效，用新的替换）
+	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
+		_ = s.redisRepo.SetActiveToken(ctx, "admin", claims.UserID, newAccessToken, s.accessTTL())
+	}
+
 	return &dto.RefreshResponse{
 		AccessToken: newAccessToken,
 	}, nil
@@ -98,7 +121,16 @@ func (s *adminAuthService) Logout(ctx context.Context, accessToken string) error
 	}
 
 	// 加入黑名单
-	return s.redisRepo.AddToBlacklist(ctx, accessToken, remaining)
+	if err := s.redisRepo.AddToBlacklist(ctx, accessToken, remaining); err != nil {
+		return err
+	}
+
+	// 清除活跃 token
+	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
+		_ = s.redisRepo.ClearActiveToken(ctx, "admin", claims.UserID)
+	}
+
+	return nil
 }
 
 // GetProfile 获取管理员资料

@@ -4,7 +4,7 @@
  */
 import { onBeforeUnmount, onMounted, type Ref } from 'vue'
 
-export function useReveal(el: Ref<HTMLElement | null>): void {
+export function useReveal(el: Ref<HTMLElement | null>): { observe: () => void } {
   let io: IntersectionObserver | null = null
 
   function observe(): void {
@@ -33,4 +33,6 @@ export function useReveal(el: Ref<HTMLElement | null>): void {
       io?.disconnect()
     })
   })
+
+  return { observe }
 }

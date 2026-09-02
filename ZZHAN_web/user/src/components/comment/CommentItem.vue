@@ -1,9 +1,10 @@
 <script setup lang="ts">
 /** 单条评论 — 头像 / 名字 / 时间 / 正文 / 点赞 / 回复（楼中楼）。 */
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { ChevronDown, ChevronUp, MessageSquare, ThumbsUp } from 'lucide-vue-next'
 import type { CommentItem } from '@/types/models'
 import { initialsAvatar } from '@/utils/avatar'
+import { fmtDateTime } from '@/utils/format'
 import { toggleCommentLike, getReplies } from '@/api/comments'
 import { useAuthStore } from '@/stores/auth'
 import CommentForm from './CommentForm.vue'
@@ -28,6 +29,20 @@ const firstLoaded = ref(false)
 
 // 子评论点赞状态
 const replyLikes = ref<Record<number, { liked: boolean; count: number }>>({})
+
+// 当 props.comment 变化时（如父级 loadComments 刷新），同步内部状态
+watch(() => props.comment, (c) => {
+  liked.value = c.liked
+  like_count.value = c.like_count
+  replyTotal.value = c.reply_total || 0
+  hasMore.value = replyTotal.value > 0
+  // 如果已加载过子评论，用最新数据刷新
+  if (firstLoaded.value && c.replies?.length) {
+    replies.value = c.replies
+    initReplyLikes(c.replies)
+    expanded.value = true
+  }
+})
 
 function initReplyLikes(list: CommentItem[]): void {
   for (const r of list) {
@@ -106,7 +121,7 @@ function collapse(): void {
     <div style="flex:1;min-width:0">
       <div class="cm-head">
         <span class="cm-name">{{ comment.user_name }}</span>
-        <span class="cm-time">{{ comment.time }}</span>
+        <span class="cm-time">{{ fmtDateTime(comment.time) }}</span>
       </div>
       <div class="cm-text">{{ comment.content }}</div>
       <div class="cm-actions">
@@ -127,7 +142,7 @@ function collapse(): void {
           <div style="flex:1;min-width:0">
             <div class="cm-head">
               <span class="cm-name">{{ r.user_name }}</span>
-              <span class="cm-time">{{ r.time }}</span>
+              <span class="cm-time">{{ fmtDateTime(r.time) }}</span>
             </div>
             <div class="cm-text">{{ r.content }}</div>
             <div class="cm-actions">

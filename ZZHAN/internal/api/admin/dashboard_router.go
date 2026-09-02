@@ -8,7 +8,7 @@ import (
 
 func (c *AdminDashboardController) RegisterRoutes(r *gin.RouterGroup) {
 	admin := r.Group("/admin/dashboard")
-	admin.Use(middleware.Auth(c.redisRepo))
+	admin.Use(middleware.Auth(c.redisRepo, "admin"))
 	{
 		admin.GET("/stats", c.GetStats)
 		admin.GET("/articles", c.GetArticles)

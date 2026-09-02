@@ -7,7 +7,7 @@ import (
 
 func (c *AdminTagsController) RegisterRoutes(r *gin.RouterGroup) {
 	admin := r.Group("/admin/tags")
-	admin.Use(middleware.Auth(c.redisRepo))
+	admin.Use(middleware.Auth(c.redisRepo, "admin"))
 	admin.Use(middleware.OperationLog(c.db))
 	{
 		admin.GET("", c.List)                    // GET /api/v1/admin/tags

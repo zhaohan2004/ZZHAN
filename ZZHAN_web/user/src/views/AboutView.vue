@@ -64,7 +64,7 @@ const avatarSrc = computed(() =>
               <a class="btn btn-primary btn-sm" :href="site.site?.github" target="_blank" rel="noopener">
                 <Github :size="15" />{{ (site.site?.github || 'github.com').replace('https://github.com/', '@') }}
               </a>
-              <a class="btn btn-ghost btn-sm" :href="'mailto:' + (site.site?.email || '')">
+              <a class="btn btn-ghost btn-sm" :href="'https://mail.qq.com/cgi-bin/frame_html?t=compose&to=' + (site.site?.email || '')" target="_blank">
                 <Mail :size="15" />邮箱联系
               </a>
             </div>

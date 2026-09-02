@@ -15,7 +15,6 @@ export default defineConfig(({ command }) => ({
       },
     },
   },
-  // dev 用根路径（http://localhost:8080/）；build 产物挂 /admin/ 子路径（配合 serve-same-origin.js 同源部署）
-  base: command === 'build' ? '/admin/' : '/',
+  base: '/',
   build: { chunkSizeWarningLimit: 1200, emptyOutDir: false },
 }))

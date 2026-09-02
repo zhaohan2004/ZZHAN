@@ -18,7 +18,13 @@ const (
 )
 
 // Auth JWT 认证中间件
-func Auth(redisRepo repository.RedisRepository) gin.HandlerFunc {
+// userType: "admin" 或 "user"，用于单设备登录校验；为空则跳过活跃 token 检查
+func Auth(redisRepo repository.RedisRepository, userType ...string) gin.HandlerFunc {
+	ut := ""
+	if len(userType) > 0 {
+		ut = userType[0]
+	}
+
 	return func(c *gin.Context) {
 		// 从 Header 获取 Authorization
 		authHeader := c.GetHeader("Authorization")
@@ -36,17 +42,19 @@ func Auth(redisRepo repository.RedisRepository) gin.HandlerFunc {
 			return
 		}
 
+		tokenString := parts[1]
+
 		// 解析 Token
-		claims, err := jwt.ParseToken(parts[1], "access_token")
+		claims, err := jwt.ParseToken(tokenString, "access_token")
 		if err != nil {
 			response.Unauthorized(c, err.Error())
 			c.Abort()
 			return
 		}
 
-		//检查token是否存在于黑名单中
+		// 检查 token 是否存在于黑名单中
 		if redisRepo != nil && redisRepo.Available(c) {
-			blacklisted, err := redisRepo.IsBlacklisted(c, parts[1])
+			blacklisted, err := redisRepo.IsBlacklisted(c, tokenString)
 			if err != nil {
 				response.Unauthorized(c, "搜索黑名单失败")
 				c.Abort()
@@ -56,6 +64,16 @@ func Auth(redisRepo repository.RedisRepository) gin.HandlerFunc {
 				response.Unauthorized(c, "token 已失效")
 				c.Abort()
 				return
+			}
+
+			// 单设备登录校验：检查 token 是否为当前用户的活跃 token
+			if ut != "" {
+				activeToken, err := redisRepo.GetActiveToken(c, ut, claims.GetUserID())
+				if err == nil && activeToken != "" && activeToken != tokenString {
+					response.Unauthorized(c, "账号已在其他设备登录")
+					c.Abort()
+					return
+				}
 			}
 		}
 

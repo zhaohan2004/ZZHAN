@@ -15,7 +15,7 @@ func (c *CommentsController) RegisterRoutes(r *gin.RouterGroup) {
 
 		// 发表评论需要登录
 		auth := comments.Group("")
-		auth.Use(middleware.Auth(c.redisRepo))
+		auth.Use(middleware.Auth(c.redisRepo, "user"))
 		{
 			auth.POST("/:slug", c.PostComment) // 发表评论（需登录）
 		}
