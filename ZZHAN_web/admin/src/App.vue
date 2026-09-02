@@ -13,8 +13,9 @@ const settingsStore = useSettingsStore()
 const authStore = useAuthStore()
 
 onMounted(() => {
+  // 加载设置（未登录时用公开接口获取基本信息）
   settingsStore.load()
-  // 登录状态下自动加载管理员资料（解决页面刷新后 profile 为 null 的问题）
+  // 登录状态下自动加载管理员资料
   if (authStore.loggedIn) {
     authStore.loadProfile()
   }

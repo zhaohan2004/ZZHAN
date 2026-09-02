@@ -16,7 +16,7 @@ export const useThemeStore = defineStore('theme', () => {
     } catch {
       /* ignore */
     }
-    dark.value = saved ? saved === 'dark' : true
+    dark.value = saved ? saved === 'dark' : false
     document.documentElement.classList.toggle('dark', dark.value)
   }
 

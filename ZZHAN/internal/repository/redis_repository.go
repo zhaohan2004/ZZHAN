@@ -89,6 +89,41 @@ func (r *redisRepository) IsBlacklisted(ctx context.Context, token string) (bool
 	return n > 0, err
 }
 
+// ========== 活跃 Token 管理（单设备登录） ==========
+
+const activeTokenKeyPrefix = "auth:active_token:"
+
+func activeTokenKey(userType string, userID int) string {
+	return fmt.Sprintf("%s%s:%d", activeTokenKeyPrefix, userType, userID)
+}
+
+// SetActiveToken 设置用户当前活跃的 access_token
+func (r *redisRepository) SetActiveToken(ctx context.Context, userType string, userID int, token string, expiration time.Duration) error {
+	if r.redis == nil {
+		return nil
+	}
+	key := activeTokenKey(userType, userID)
+	return r.redis.Set(ctx, key, token, expiration).Err()
+}
+
+// GetActiveToken 获取用户当前活跃的 access_token
+func (r *redisRepository) GetActiveToken(ctx context.Context, userType string, userID int) (string, error) {
+	if r.redis == nil {
+		return "", redis.Nil
+	}
+	key := activeTokenKey(userType, userID)
+	return r.redis.Get(ctx, key).Result()
+}
+
+// ClearActiveToken 清除用户的活跃 token
+func (r *redisRepository) ClearActiveToken(ctx context.Context, userType string, userID int) error {
+	if r.redis == nil {
+		return nil
+	}
+	key := activeTokenKey(userType, userID)
+	return r.redis.Del(ctx, key).Err()
+}
+
 // ========== 浏览量去重方法 ==========
 
 // viewAccessKeyPrefix 浏览量去重 key 前缀

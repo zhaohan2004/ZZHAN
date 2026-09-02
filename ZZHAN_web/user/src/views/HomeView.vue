@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** 首页 — Hero + 最新文章（横向全宽卡片） */
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import { ArrowRight, Sparkles } from 'lucide-vue-next'
 import Hero from '@/components/home/Hero.vue'
 import ArticleCard from '@/components/article/ArticleCard.vue'
@@ -10,7 +10,7 @@ import type { ArticleSummary } from '@/types/models'
 import { useReveal } from '@/composables/useReveal'
 
 const root = ref<HTMLElement | null>(null)
-useReveal(root)
+const { observe } = useReveal(root)
 
 const site = useSiteStore()
 
@@ -20,6 +20,8 @@ onMounted(async () => {
   try {
     const l = await getArticles({ page: 1, size: 4, sort: 'latest' })
     latest.value = l.list
+    await nextTick()
+    observe()
   } catch {
     /* 静默 */
   }

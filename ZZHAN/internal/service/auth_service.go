@@ -15,6 +15,11 @@ import (
 	"time"
 )
 
+// userAccessTTL 获取前台用户 access_token 的过期时长
+func userAccessTTL() time.Duration {
+	return config.Get().JWT.AccessExpireHours * time.Hour
+}
+
 // githubHTTPClient 根据配置创建用于请求 GitHub API 的 HTTP 客户端
 func githubHTTPClient() *http.Client {
 	proxy := config.Get().GitHub.Proxy
@@ -89,6 +94,17 @@ func (s *authService) GitHubLogin(ctx context.Context, code, redirectURI string)
 	accessToken, refreshToken, err := jwt.GenerateTokenPair(int(user.ID), user.Nickname)
 	if err != nil {
 		return nil, fmt.Errorf("生成 token 失败：%w", err)
+	}
+
+	//6.单设备登录：踢掉旧 token，记录新 token
+	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
+		uid := int(user.ID)
+		// 获取旧的活跃 token 并加入黑名单
+		if oldToken, err := s.redisRepo.GetActiveToken(ctx, "user", uid); err == nil && oldToken != "" {
+			_ = s.redisRepo.AddToBlacklist(ctx, oldToken, userAccessTTL())
+		}
+		// 存储新的活跃 token
+		_ = s.redisRepo.SetActiveToken(ctx, "user", uid, accessToken, userAccessTTL())
 	}
 
 	return &dto.LoginResponse{
@@ -213,6 +229,12 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (*d
 	if err != nil {
 		return nil, fmt.Errorf("生成新的 access_token 失败：%w", err)
 	}
+
+	// 更新活跃 token
+	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
+		_ = s.redisRepo.SetActiveToken(ctx, "user", claims.UserID, newAccessToken, userAccessTTL())
+	}
+
 	return &dto.RefreshResponse{
 		AccessToken: newAccessToken,
 	}, nil
@@ -235,7 +257,16 @@ func (s *authService) Logout(ctx context.Context, accessToken string) error {
 	}
 
 	// 加入黑名单
-	return s.redisRepo.AddToBlacklist(ctx, accessToken, remaining)
+	if err := s.redisRepo.AddToBlacklist(ctx, accessToken, remaining); err != nil {
+		return err
+	}
+
+	// 清除活跃 token
+	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
+		_ = s.redisRepo.ClearActiveToken(ctx, "user", claims.UserID)
+	}
+
+	return nil
 }
 
 // GetCurrentUser 获取当前登录用户信息

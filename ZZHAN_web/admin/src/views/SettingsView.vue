@@ -31,11 +31,11 @@ async function save() {
   saving.value = true
   try {
     // 将 socials 数组序列化为 JSON 字符串，后端以 string 存储
-    const data = { ...form }
+    const data: Record<string, unknown> = { ...form }
     if (Array.isArray(data.socials)) {
       data.socials = JSON.stringify(data.socials)
     }
-    await saveSettings(data)
+    await saveSettings(data as SettingsKV)
     toast.success('设置已保存')
   } catch {
     toast.error('保存失败')

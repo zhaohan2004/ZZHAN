@@ -33,6 +33,7 @@ export interface ArticleSummary {
   tags: TagItem[]
   views: number
   likes: number
+  liked: boolean
   comment_count: number
   published_at: string
 }

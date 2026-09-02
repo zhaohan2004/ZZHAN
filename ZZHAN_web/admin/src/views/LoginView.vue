@@ -15,8 +15,8 @@ const auth = useAuthStore()
 const theme = useThemeStore()
 const settings = useSettingsStore()
 
-const username = ref('admin')
-const password = ref('123456')
+const username = ref('')
+const password = ref('')
 const captchaCode = ref('')
 const remember = ref(true)
 const loading = ref(false)
@@ -107,7 +107,7 @@ async function onLogin(): Promise<void> {
               :src="captchaB64"
               alt="验证码"
               title="点击刷新验证码"
-              style="cursor: pointer; height: 42px; border-radius: 12px; border: 1px solid var(--border-strong)"
+              style="cursor: pointer; height: 42px; border-radius: 12px; border: 1px solid var(--border-strong); background: #fff"
               @click="loadCaptcha"
             >
             <div
@@ -131,9 +131,6 @@ async function onLogin(): Promise<void> {
           {{ loading ? '登录中...' : '登 录' }}
         </button>
       </form>
-      <div class="form-hint" style="text-align: center; margin-top: 16px; line-height: 1.9">
-        推荐账号：admin / 123456
-      </div>
     </div>
   </div>
 </template>

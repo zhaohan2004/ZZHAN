@@ -226,3 +226,8 @@ export function getSettings(): Promise<SettingsKV> {
 export function saveSettings(s: SettingsKV): Promise<SettingsKV> {
   return request<SettingsKV>({ method: 'PUT', url: '/admin/settings', data: s })
 }
+
+/** 公开站点信息（无需登录，用于登录页显示博客名称等） */
+export function getPublicSite(): Promise<Partial<SettingsKV>> {
+  return request<Partial<SettingsKV>>({ method: 'GET', url: '/site' })
+}

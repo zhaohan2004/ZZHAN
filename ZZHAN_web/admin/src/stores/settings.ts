@@ -3,15 +3,23 @@
  */
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getSettings, saveSettings } from '@/api/admin'
+import { getSettings, saveSettings, getPublicSite } from '@/api/admin'
 import type { SettingsKV } from '@/types/models'
+import { useAuthStore } from './auth'
 
 export const useSettingsStore = defineStore('settings', () => {
   const settings = ref<SettingsKV | null>(null)
 
   async function load(): Promise<void> {
     try {
-      settings.value = await getSettings()
+      const auth = useAuthStore()
+      if (auth.loggedIn) {
+        settings.value = await getSettings()
+      } else {
+        // 未登录时用公开接口获取基本信息
+        const site = await getPublicSite()
+        settings.value = site as SettingsKV
+      }
     } catch {
       /* 静默 */
     }

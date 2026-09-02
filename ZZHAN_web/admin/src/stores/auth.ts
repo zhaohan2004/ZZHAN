@@ -5,6 +5,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { adminLogin, adminLogout, getProfile, saveProfile } from '@/api/admin'
 import type { AdminProfile } from '@/types/models'
+import { useSettingsStore } from './settings'
 
 const TOKEN_KEY = 'ct-admin-token'
 const REFRESH_KEY = 'ct-admin-refresh-token'
@@ -33,8 +34,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (res.refresh_token) {
       localStorage.setItem(REFRESH_KEY, res.refresh_token)
     }
-    // 登录后立即加载管理员资料
-    await loadProfile()
+    // 登录后立即加载管理员资料和设置
+    await Promise.all([loadProfile(), useSettingsStore().load()])
     return true
   }
 

@@ -12,7 +12,7 @@ func (c *LikeController) RegisterRoutes(r *gin.RouterGroup) {
 	{
 		// 点赞需要登录
 		auth := like.Group("")
-		auth.Use(middleware.Auth(c.redisRepo))
+		auth.Use(middleware.Auth(c.redisRepo, "user"))
 		{
 			auth.POST("/article/:slug", c.ArticleLike) // POST /api/v1/like/article/:slug - 文章点赞
 			auth.POST("/comment/:id", c.CommentLike)   // POST /api/v1/like/comment/:id - 评论点赞

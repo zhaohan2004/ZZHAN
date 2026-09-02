@@ -911,6 +911,7 @@ export const articleSummaries: ArticleSummary[] = RAW_ARTICLES
     tags: a.tags.map(t => ({ id: 0, name: t, slug: t.toLowerCase().replace(/\s+/g, '-') })),
     views: a.views,
     likes: a.likes,
+    liked: false,
     comment_count: a.comment_count,
     published_at: a.date,
   }))
@@ -931,6 +932,7 @@ export function getArticleDetail(slugOrId: string | number): ArticleDetail | und
     tags: raw.tags.map(t => ({ id: 0, name: t, slug: t.toLowerCase().replace(/\s+/g, '-') })),
     views: raw.views,
     likes: raw.likes,
+    liked: false,
     comment_count: raw.comment_count,
     published_at: raw.date,
     content: raw.content,

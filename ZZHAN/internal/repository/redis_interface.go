@@ -25,6 +25,17 @@ type RedisRepository interface {
 	// IsBlacklisted 检查 token 是否在黑名单中
 	IsBlacklisted(ctx context.Context, token string) (bool, error)
 
+	// ========== 活跃 Token 管理（单设备登录） ==========
+
+	// SetActiveToken 设置用户当前活跃的 access_token（登录/刷新时调用）
+	SetActiveToken(ctx context.Context, userType string, userID int, token string, expiration time.Duration) error
+
+	// GetActiveToken 获取用户当前活跃的 access_token
+	GetActiveToken(ctx context.Context, userType string, userID int) (string, error)
+
+	// ClearActiveToken 清除用户的活跃 token（退出时调用）
+	ClearActiveToken(ctx context.Context, userType string, userID int) error
+
 	// ========== 浏览量去重方法 ==========
 
 	// CheckViewAccess 检查是否已访问过文章（用于浏览量去重）

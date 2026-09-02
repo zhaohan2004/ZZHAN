@@ -10,4 +10,13 @@ export function fmtDate(s: string): string {
   // 否则取前10位（处理 ISO8601 格式）
   return s.slice(0, 10)
 }
+
+/** 格式化为 YYYY-MM-DD HH:mm */
+export function fmtDateTime(s: string): string {
+  if (!s) return ''
+  const d = new Date(s)
+  if (isNaN(d.getTime())) return s.slice(0, 16).replace('T', ' ')
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 export function readTime(content: string): number { return Math.max(2, Math.round(content.length / 380)) }
