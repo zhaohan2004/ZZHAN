@@ -29,7 +29,7 @@ import {
   Upload,
   X,
 } from 'lucide-vue-next'
-import { createAdminArticle, getAdminArticle, listCategories, listTags, updateAdminArticle } from '@/api/admin'
+import { createAdminArticle, getAdminArticle, listCategories, listTags, updateAdminArticle, uploadImage } from '@/api/admin'
 import type { AdminArticlePayload, ArticleStatus, CategoryAdmin, TagAdmin } from '@/types/models'
 import { confirm, toast } from '@/composables/useToast'
 
@@ -58,6 +58,18 @@ const selectedTags = ref<string[]>([])
 const summary = ref('')
 const pubDate = ref('')
 const coverUrl = ref('')
+
+/* 链接弹窗 */
+const showLinkDialog = ref(false)
+const linkText = ref('')
+const linkUrl = ref('')
+
+/* 图片弹窗 */
+const showImageDialog = ref(false)
+const imageFile = ref<File | null>(null)
+const imagePreviewUrl = ref('')
+const imageAlt = ref('')
+const imageUploading = ref(false)
 
 function back() {
   router.push('/articles')
@@ -250,33 +262,73 @@ function formatLink() {
   const start = textarea.selectionStart
   const end = textarea.selectionEnd
   const selected = content.value.substring(start, end)
-  if (selected) {
-    const replacement = '[' + selected + '](url)'
-    content.value = content.value.substring(0, start) + replacement + content.value.substring(end)
-    setTimeout(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start + selected.length + 3, start + selected.length + 6)
-    }, 0)
-  } else {
-    insertText('[', '](url)', '链接文本')
-  }
+  linkText.value = selected || ''
+  linkUrl.value = ''
+  showLinkDialog.value = true
 }
 
-function formatImage() {
+function confirmLink() {
+  if (!linkUrl.value.trim()) {
+    toast.warning('请输入链接地址')
+    return
+  }
   const textarea = textareaRef.value
   if (!textarea) return
   const start = textarea.selectionStart
   const end = textarea.selectionEnd
-  const selected = content.value.substring(start, end)
-  if (selected) {
-    const replacement = '![' + selected + '](image-url)'
+  const text = linkText.value.trim() || '链接文本'
+  const url = linkUrl.value.trim()
+  const replacement = '[' + text + '](' + url + ')'
+  content.value = content.value.substring(0, start) + replacement + content.value.substring(end)
+  showLinkDialog.value = false
+  setTimeout(() => {
+    textarea.focus()
+    const newPos = start + replacement.length
+    textarea.setSelectionRange(newPos, newPos)
+  }, 0)
+}
+
+function formatImage() {
+  imageFile.value = null
+  imagePreviewUrl.value = ''
+  imageAlt.value = ''
+  imageUploading.value = false
+  showImageDialog.value = true
+}
+
+function onImagePick(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files && input.files[0]
+  if (!file) return
+  imageFile.value = file
+  imagePreviewUrl.value = URL.createObjectURL(file)
+}
+
+async function confirmImage() {
+  if (!imageFile.value) {
+    toast.warning('请选择图片文件')
+    return
+  }
+  imageUploading.value = true
+  try {
+    const { url } = await uploadImage(imageFile.value)
+    const textarea = textareaRef.value
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const alt = imageAlt.value.trim() || '图片'
+    const replacement = '![' + alt + '](' + url + ')'
     content.value = content.value.substring(0, start) + replacement + content.value.substring(end)
+    showImageDialog.value = false
     setTimeout(() => {
       textarea.focus()
-      textarea.setSelectionRange(start + selected.length + 4, start + selected.length + 13)
+      const newPos = start + replacement.length
+      textarea.setSelectionRange(newPos, newPos)
     }, 0)
-  } else {
-    insertText('![', '](image-url)', '图片描述')
+  } catch (e: any) {
+    toast.error(e?.message || '图片上传失败')
+  } finally {
+    imageUploading.value = false
   }
 }
 
@@ -558,6 +610,63 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
           <button class="btn btn-primary" style="width: 100%; padding: 12px" @click="confirmPublish">
             <Send :size="16" /> 确认发布
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 链接弹窗 -->
+    <div class="modal-overlay" :class="{ open: showLinkDialog }" @click.self="showLinkDialog = false">
+      <div class="modal" style="max-width: 440px">
+        <div class="modal-head">
+          <h3><Link :size="16" style="vertical-align: -2px; margin-right: 6px" />插入链接</h3>
+          <button class="modal-close" @click="showLinkDialog = false"><X :size="18" /></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group" style="text-align: left">
+            <label class="form-label" for="linkText">链接文本</label>
+            <input id="linkText" v-model="linkText" class="input" type="text" placeholder="显示的文字…" autocomplete="off" />
+          </div>
+          <div class="form-group" style="text-align: left">
+            <label class="form-label" for="linkUrl">链接地址 <span class="req">*</span></label>
+            <input id="linkUrl" v-model="linkUrl" class="input" type="url" placeholder="https://…" autocomplete="off" @keydown.enter="confirmLink" />
+          </div>
+          <button class="btn btn-primary" style="width: 100%; padding: 10px" @click="confirmLink">确认插入</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 图片弹窗 -->
+    <div class="modal-overlay" :class="{ open: showImageDialog }" @click.self="showImageDialog = false">
+      <div class="modal" style="max-width: 480px">
+        <div class="modal-head">
+          <h3><ImageIcon :size="16" style="vertical-align: -2px; margin-right: 6px" />插入图片</h3>
+          <button class="modal-close" @click="showImageDialog = false"><X :size="18" /></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group" style="text-align: left">
+            <label class="form-label">选择图片</label>
+            <div class="cover-upload">
+              <div v-if="imagePreviewUrl" class="cu-preview">
+                <img :src="imagePreviewUrl" alt="图片预览" />
+                <button class="cu-remove" type="button" title="移除" @click="imageFile = null; imagePreviewUrl = ''"><X :size="14" /></button>
+              </div>
+              <div v-else class="cu-placeholder">
+                <ImageIcon :size="22" />
+                <span>请选择要上传的图片</span>
+              </div>
+              <label class="btn btn-ghost" style="width: 100%; margin-top: 10px; justify-content: center">
+                <Upload :size="15" /> 选择图片
+                <input type="file" accept="image/*" hidden @change="onImagePick" />
+              </label>
+            </div>
+          </div>
+          <div class="form-group" style="text-align: left">
+            <label class="form-label" for="imgAlt">图片描述（可选）</label>
+            <input id="imgAlt" v-model="imageAlt" class="input" type="text" placeholder="图片的替代文字…" autocomplete="off" />
+          </div>
+          <button class="btn btn-primary" style="width: 100%; padding: 10px" :disabled="imageUploading" @click="confirmImage">
+            {{ imageUploading ? '上传中…' : '确认插入' }}
           </button>
         </div>
       </div>
