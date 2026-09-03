@@ -8,6 +8,7 @@ import (
 	"ZZHAN/pkg/response"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
 const (
@@ -69,7 +70,15 @@ func Auth(redisRepo repository.RedisRepository, userType ...string) gin.HandlerF
 			// 单设备登录校验：检查 token 是否为当前用户的活跃 token
 			if ut != "" {
 				activeToken, err := redisRepo.GetActiveToken(c, ut, claims.GetUserID())
-				if err == nil && activeToken != "" && activeToken != tokenString {
+				if err != nil {
+					if err == redis.Nil {
+						// 无活跃 token 记录，说明该 token 不是通过新登录流程签发的
+						response.Unauthorized(c, "登录已失效，请重新登录")
+						c.Abort()
+						return
+					}
+					// 其他 Redis 错误 = 服务故障，放行（降级）
+				} else if activeToken != tokenString {
 					response.Unauthorized(c, "账号已在其他设备登录")
 					c.Abort()
 					return
