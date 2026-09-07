@@ -145,7 +145,42 @@ func (r *commentsAdminRepository) AdminUpdateStatus(ctx context.Context, id int6
 		Update("status", status).Error
 }
 
-// AdminDelete 删除评论（软删除）
+// AdminDelete 删除评论并同步更新文章评论数
 func (r *commentsAdminRepository) AdminDelete(ctx context.Context, id int64) error {
-	return r.db.WithContext(ctx).Delete(&entity.Comment{}, id).Error
+	// 先查询评论获取文章ID
+	var comment entity.Comment
+	if err := r.db.WithContext(ctx).Select("id, article_id, root_id").First(&comment, id).Error; err != nil {
+		return err
+	}
+
+	// 统计需要删除的评论数量（包括子评论）
+	deleteCount := int64(1) // 至少删除自身
+	if comment.RootID == nil {
+		// 这是一级评论，需要统计并删除所有子评论
+		var replyCount int64
+		r.db.WithContext(ctx).Model(&entity.Comment{}).
+			Where("root_id = ?", comment.ID).
+			Count(&replyCount)
+		deleteCount += replyCount
+
+		// 删除所有子评论
+		if err := r.db.WithContext(ctx).
+			Where("root_id = ?", comment.ID).
+			Delete(&entity.Comment{}).Error; err != nil {
+			return err
+		}
+	}
+
+	// 删除评论本身
+	if err := r.db.WithContext(ctx).Delete(&entity.Comment{}, id).Error; err != nil {
+		return err
+	}
+
+	// 更新文章评论数
+	r.db.WithContext(ctx).
+		Model(&entity.Article{}).
+		Where("id = ?", comment.ArticleID).
+		UpdateColumn("comment_count", gorm.Expr("comment_count - ?", deleteCount))
+
+	return nil
 }

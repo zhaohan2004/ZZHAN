@@ -1,9 +1,9 @@
 <script setup lang="ts">
 /**
- * 文章底部操作 — 点赞（未登录弹登录门槛）+ 分享（复制链接）。对齐静态版（无收藏）。
+ * 文章底部操作 — 点赞（未登录弹登录门槛）+ 复制链接。对齐静态版（无收藏）。
  */
 import { ref } from 'vue'
-import { Share2, ThumbsUp } from 'lucide-vue-next'
+import { Link, ThumbsUp } from 'lucide-vue-next'
 import { toggleLike } from '@/api/articles'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
@@ -51,7 +51,7 @@ async function onShare(): Promise<void> {
       <ThumbsUp :size="17" /> 点赞 <span>{{ like_count }}</span>
     </button>
     <button class="post-action-btn" type="button" @click="onShare">
-      <Share2 :size="17" /> 分享
+      <Link :size="17" /> 复制链接
     </button>
   </div>
 </template>
