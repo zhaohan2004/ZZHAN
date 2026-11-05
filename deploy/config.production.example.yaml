@@ -1,0 +1,60 @@
+# Upload as config.yaml to ~/zzhan-blog; edit secrets on the server only.
+app:
+  name: ZZHAN-api
+  version: 1.0.0
+  mode: release
+  port: 9900
+
+database:
+  mysql:
+    host: mysql
+    port: 3306
+    username: zzhan
+    password: "" # Supplied by MYSQL_PASSWORD from Compose.
+    database: zzhan
+    max_idle_conns: 5
+    max_open_conns: 20
+  redis:
+    host: redis
+    port: 6379
+    password: ""
+    db: 6
+    pool_size: 10
+
+jwt:
+  secret: "" # Supplied by JWT_SECRET from Compose.
+  access_expire_hours: 2
+  refresh_expire_hours: 168
+
+github:
+  client_id: ""
+  client_secret: ""
+  redirect_url: "http://49.232.71.34:3000/auth/github/callback"
+  proxy: ""
+
+log:
+  level: info
+  filename: logs/app.log
+  max_size: 20
+  max_backups: 3
+  max_age: 14
+  compress: true
+
+cors:
+  enabled: true
+  allow_origins:
+    - "http://49.232.71.34:3000"
+    - "http://49.232.71.34:4000"
+  allow_methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+  allow_headers: [Origin, Content-Type, Accept, Authorization]
+  expose_headers: [Content-Length, Content-Disposition]
+  allow_credentials: true
+  max_age: 86400
+
+storage:
+  driver: oss
+  oss:
+    access_key_id: ""
+    access_key_secret: ""
+    endpoint: "cn-beijing" # Region identifier, not an https URL.
+    bucket: "" # Your actual OSS bucket name.
