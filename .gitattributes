@@ -1,0 +1,5 @@
+# Keep Linux deployment scripts and configuration in LF format.
+*.sh text eol=lf
+*.Dockerfile text eol=lf
+.github/workflows/*.yml text eol=lf
+deploy/*.yaml text eol=lf

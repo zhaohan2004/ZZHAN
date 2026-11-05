@@ -6,3 +6,6 @@ docs/
 .workbuddy/
 
 config.yaml
+.env
+.env.*
+!.env.example

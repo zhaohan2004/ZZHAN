@@ -48,6 +48,50 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.component }}
           cache-to: type=gha,mode=max,scope=${{ matrix.component }}
 
+  deploy:
+    name: Deploy blog to server
+    needs: [build, mirror]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      SERVER_PORT: ${{ secrets.SERVER_PORT }}
+      SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+      SERVER_KNOWN_HOSTS: ${{ secrets.SERVER_KNOWN_HOSTS }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload deployment files and update blog
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${SERVER_HOST:?Missing SERVER_HOST}"
+          : "${SERVER_USER:?Missing SERVER_USER}"
+          : "${SERVER_PORT:?Missing SERVER_PORT}"
+          : "${SERVER_SSH_KEY:?Missing SERVER_SSH_KEY}"
+          : "${SERVER_KNOWN_HOSTS:?Missing SERVER_KNOWN_HOSTS}"
+          [[ "$SERVER_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          [[ "$SERVER_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$SERVER_PORT" =~ ^[0-9]+$ ]]
+          ssh_dir=$(mktemp -d)
+          trap 'rm -rf "$ssh_dir"' EXIT
+          printf '%s\n' "$SERVER_SSH_KEY" > "$ssh_dir/key"
+          printf '%s\n' "$SERVER_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
+          chmod 600 "$ssh_dir/key" "$ssh_dir/known_hosts"
+          options=(-i "$ssh_dir/key" -o BatchMode=yes -o IdentitiesOnly=yes
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$ssh_dir/known_hosts"
+            -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=6)
+          remote="$SERVER_USER@$SERVER_HOST"
+          tag="sha-$GITHUB_SHA"
+          ssh "${options[@]}" -p "$SERVER_PORT" "$remote" \
+            "test -d ~/zzhan-blog && mkdir -p ~/zzhan-blog/releases/$tag"
+          scp "${options[@]}" -P "$SERVER_PORT" \
+            deploy/compose.yaml deploy/deploy.sh "$remote:zzhan-blog/releases/$tag/"
+          ssh "${options[@]}" -p "$SERVER_PORT" "$remote" \
+            "bash ~/zzhan-blog/releases/$tag/deploy.sh '$tag'"
   mirror:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04

@@ -1,0 +1,76 @@
+name: zzhan-blog
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  mysql:
+    image: ghcr.io/zhaohan2004/zzhan-mysql:${DEPENDENCY_TAG:?Set DEPENDENCY_TAG}
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: zzhan
+      MYSQL_USER: zzhan
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_PASSWORD\" mysql -h 127.0.0.1 -u zzhan -D zzhan -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
+    logging: *logging
+
+  redis:
+    image: ghcr.io/zhaohan2004/zzhan-redis:${DEPENDENCY_TAG:?Set DEPENDENCY_TAG}
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    logging: *logging
+
+  backend:
+    image: ghcr.io/zhaohan2004/zzhan-backend:${APP_TAG:?Set APP_TAG}
+    restart: unless-stopped
+    environment:
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+    volumes:
+      - type: bind
+        source: ./config.yaml
+        target: /app/config.yaml
+        read_only: true
+        bind:
+          create_host_path: false
+      - backend-logs:/app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging: *logging
+
+  frontend:
+    image: ghcr.io/zhaohan2004/zzhan-frontend:${APP_TAG:?Set APP_TAG}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "4000:4000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    logging: *logging
+
+volumes:
+  mysql-data:
+  redis-data:
+  backend-logs:
