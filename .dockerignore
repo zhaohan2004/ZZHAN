@@ -1,0 +1,14 @@
+.git
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+**/logs
+**/uploads
+ZZHAN/config.yaml
+ZZHAN/app
+*.sql
+.idea
+.claude
+.superpowers
+.workbuddy
