@@ -23,27 +23,30 @@ func NewArticlesAdminRepository(db *gorm.DB) ArticlesAdminRepository {
 
 // AdminList 获取文章列表
 func (r *articlesAdminRepository) AdminList(ctx context.Context, req *dto.AdminArticleListRequest) ([]dto.AdminArticleItem, int64, error) {
-	var articles []entity.Article
+	var articles []struct {
+		entity.Article
+		CategoryName string
+	}
 	var total int64
 
 	query := r.db.WithContext(ctx).Model(&entity.Article{})
 
 	// 关键词搜索（标题）
 	if req.Keyword != "" {
-		query = query.Where("title LIKE ?", "%"+req.Keyword+"%")
+		query = query.Where("articles.title LIKE ?", "%"+req.Keyword+"%")
 	}
 
 	// 按分类名称筛选
 	if req.Category != "" && req.Category != "all" {
 		var category entity.Category
 		if err := r.db.WithContext(ctx).Where("name = ?", req.Category).First(&category).Error; err == nil {
-			query = query.Where("category_id = ?", category.ID)
+			query = query.Where("articles.category_id = ?", category.ID)
 		}
 	}
 
 	// 按标签名称筛选
 	if req.Tag != "" && req.Tag != "all" {
-		query = query.Where("id IN (?)",
+		query = query.Where("articles.id IN (?)",
 			r.db.Model(&entity.ArticleTag{}).
 				Select("article_id").
 				Where("tag_id = (?)",
@@ -54,7 +57,7 @@ func (r *articlesAdminRepository) AdminList(ctx context.Context, req *dto.AdminA
 
 	// 按状态筛选
 	if req.Status != "" {
-		query = query.Where("status = ?", req.Status)
+		query = query.Where("articles.status = ?", req.Status)
 	}
 
 	// 统计总数
@@ -75,22 +78,42 @@ func (r *articlesAdminRepository) AdminList(ctx context.Context, req *dto.AdminA
 	// 分页查询
 	offset := (page - 1) * pageSize
 	if err := query.
-		Order("updated_at DESC").
+		Select(`articles.id, articles.slug, articles.title, articles.summary, articles.cover_image,
+			articles.status, articles.views, articles.published_at, articles.updated_at,
+			COALESCE(categories.name, '') AS category_name`).
+		Joins("LEFT JOIN categories ON categories.id = articles.category_id").
+		Order("articles.updated_at DESC").
 		Offset(offset).
 		Limit(pageSize).
 		Find(&articles).Error; err != nil {
 		return nil, 0, err
 	}
 
+	articleIDs := make([]int64, len(articles))
+	for i, article := range articles {
+		articleIDs[i] = article.ID
+	}
+	tagsByArticle, err := loadArticleListTags(ctx, r.db, articleIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	// 转换为 DTO
 	result := make([]dto.AdminArticleItem, 0, len(articles))
 	for _, article := range articles {
+		tags := tagsByArticle[article.ID]
+		tagNames := make([]string, len(tags))
+		for i, tag := range tags {
+			tagNames[i] = tag.Name
+		}
 		item := dto.AdminArticleItem{
 			ID:         article.ID,
 			Slug:       article.Slug,
 			Title:      article.Title,
 			Summary:    article.Summary,
 			CoverImage: article.CoverImage,
+			Category:   article.CategoryName,
+			Tags:       tagNames,
 			Status:     article.Status,
 			Views:      article.Views,
 		}
@@ -100,15 +123,6 @@ func (r *articlesAdminRepository) AdminList(ctx context.Context, req *dto.AdminA
 			item.Date = article.PublishedAt.Format("2006-01-02")
 		}
 		item.Updated = article.UpdatedAt.Format("2006-01-02")
-
-		// 查询分类名称
-		var category entity.Category
-		if err := r.db.WithContext(ctx).Select("name").First(&category, article.CategoryID).Error; err == nil {
-			item.Category = category.Name
-		}
-
-		// 查询文章标签
-		item.Tags = r.getArticleTagNames(ctx, article.ID)
 
 		result = append(result, item)
 	}

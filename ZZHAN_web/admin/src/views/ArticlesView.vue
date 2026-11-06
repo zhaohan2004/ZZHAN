@@ -20,7 +20,9 @@ const articles = ref<AdminArticle[]>([])
 const categories = ref<CategoryAdmin[]>([])
 const tags = ref<TagAdmin[]>([])
 const total = ref(0)
-const loading = ref(false)
+const loading = ref(true)
+const loadFailed = ref(false)
+let loadVersion = 0
 
 interface ArticleQueryState {
   page: number
@@ -39,7 +41,9 @@ const STATUS_MAP: Record<ArticleStatus, { cls: string; label: string; next: Arti
 }
 
 async function load() {
+  const version = ++loadVersion
   loading.value = true
+  loadFailed.value = false
   try {
     const res = await listAdminArticles({
       page: query.page,
@@ -49,12 +53,13 @@ async function load() {
       tag: query.tag !== 'all' ? query.tag : undefined,
       status: query.status !== 'all' ? query.status : undefined,
     })
+    if (version !== loadVersion) return
     articles.value = res.list
     total.value = res.total
   } catch {
-    toast.error('加载文章失败')
+    if (version === loadVersion) loadFailed.value = true
   } finally {
-    loading.value = false
+    if (version === loadVersion) loading.value = false
   }
 }
 
@@ -121,18 +126,10 @@ async function removeArticle(a: AdminArticle) {
     toast.error('删除失败')
   }
 }
-onMounted(async () => {
-  try {
-    const [catRes, tagRes] = await Promise.all([
-      listCategories({ page: 1, pageSize: 100 }),
-      listTags({ page: 1, pageSize: 100 }),
-    ])
-    categories.value = catRes.list
-    tags.value = tagRes.list
-  } catch {
-    /* 静默 */
-  }
-  load()
+onMounted(() => {
+  void load()
+  void listCategories({ page: 1, pageSize: 100 }).then((res) => { categories.value = res.list }).catch(() => {})
+  void listTags({ page: 1, pageSize: 100 }).then((res) => { tags.value = res.list }).catch(() => {})
 })
 </script>
 
@@ -167,7 +164,7 @@ onMounted(async () => {
       <button class="btn btn-ghost btn-sm" @click="reset"><RotateCcw :size="14" /> 重置</button>
     </div>
 
-    <div class="data-table-wrap reveal in" v-if="!loading">
+    <div class="data-table-wrap">
       <table class="data-table">
         <thead>
           <tr>
@@ -183,7 +180,18 @@ onMounted(async () => {
             <th style="text-align: right">操作</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody v-if="loading">
+          <tr><td colspan="10" style="text-align: center; color: var(--text-3); padding: 40px"><span role="status">正在加载文章…</span></td></tr>
+        </tbody>
+        <tbody v-else-if="loadFailed">
+          <tr>
+            <td colspan="10" style="text-align: center; color: var(--text-3); padding: 40px">
+              <p>文章加载失败</p>
+              <button class="btn btn-ghost btn-sm" type="button" style="margin-top: 8px" @click="load">重试</button>
+            </td>
+          </tr>
+        </tbody>
+        <tbody v-else>
           <tr v-for="a in articles" :key="a.id">
             <td>{{ a.id }}</td>
             <td style="font-weight: 500; color: var(--text-2)">{{ a.title }}</td>
@@ -238,7 +246,7 @@ onMounted(async () => {
       </table>
     </div>
 
-    <div class="pagination" v-if="totalPages() > 1">
+    <div class="pagination" v-if="!loading && !loadFailed && totalPages() > 1">
       <button class="page-btn" :class="{ disabled: query.page <= 1 }" @click="goPage(query.page - 1)">上一页</button>
       <button
         v-for="p in totalPages()"

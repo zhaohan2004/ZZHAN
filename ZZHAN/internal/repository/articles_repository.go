@@ -23,22 +23,26 @@ func NewArticlesRepository(db *gorm.DB, redisRepo RedisRepository) ArticlesRepos
 
 // GetPublishedList 获取已发布文章列表
 func (r *articlesRepository) GetPublishedList(ctx context.Context, req *dto.ArticleListRequest) ([]dto.ArticleListItem, int64, error) {
-	var articles []entity.Article
+	var articles []struct {
+		entity.Article
+		CategoryName string
+		AuthorName   string
+	}
 	var total int64
 
 	// 构建基础查询：只查已发布文章
 	query := r.db.WithContext(ctx).
 		Model(&entity.Article{}).
-		Where("status = ?", "published")
+		Where("articles.status = ?", "published")
 
 	// 按分类筛选
 	if req.CategoryID > 0 {
-		query = query.Where("category_id = ?", req.CategoryID)
+		query = query.Where("articles.category_id = ?", req.CategoryID)
 	}
 
 	// 按标签筛选（需要子查询）
 	if req.TagID > 0 {
-		query = query.Where("id IN (?)",
+		query = query.Where("articles.id IN (?)",
 			r.db.Model(&entity.ArticleTag{}).
 				Select("article_id").
 				Where("tag_id = ?", req.TagID),
@@ -48,7 +52,7 @@ func (r *articlesRepository) GetPublishedList(ctx context.Context, req *dto.Arti
 	// 关键词搜索（标题或摘要）
 	if req.Keyword != "" {
 		keyword := "%" + req.Keyword + "%"
-		query = query.Where("(title LIKE ? OR summary LIKE ?)", keyword, keyword)
+		query = query.Where("(articles.title LIKE ? OR articles.summary LIKE ?)", keyword, keyword)
 	}
 
 	// 统计总数
@@ -59,10 +63,24 @@ func (r *articlesRepository) GetPublishedList(ctx context.Context, req *dto.Arti
 	// 分页查询，按发布时间倒序
 	offset := (req.Page - 1) * req.Size
 	if err := query.
-		Order("published_at DESC").
+		Select(`articles.id, articles.title, articles.slug, articles.summary, articles.cover_image,
+			articles.category_id, articles.views, articles.likes, articles.comment_count, articles.published_at,
+			COALESCE(categories.name, '') AS category_name, COALESCE(admins.username, '') AS author_name`).
+		Joins("LEFT JOIN categories ON categories.id = articles.category_id").
+		Joins("LEFT JOIN admins ON admins.id = articles.author_id").
+		Order("articles.published_at DESC").
 		Offset(offset).
 		Limit(req.Size).
 		Find(&articles).Error; err != nil {
+		return nil, 0, err
+	}
+
+	articleIDs := make([]int64, len(articles))
+	for i, article := range articles {
+		articleIDs[i] = article.ID
+	}
+	tagsByArticle, err := loadArticleListTags(ctx, r.db, articleIDs)
+	if err != nil {
 		return nil, 0, err
 	}
 
@@ -76,35 +94,49 @@ func (r *articlesRepository) GetPublishedList(ctx context.Context, req *dto.Arti
 			Summary:      article.Summary,
 			CoverImage:   article.CoverImage,
 			CategoryID:   article.CategoryID,
+			CategoryName: article.CategoryName,
+			AuthorName:   article.AuthorName,
+			Tags:         tagsByArticle[article.ID],
 			Views:        article.Views,
 			Likes:        article.Likes,
 			CommentCount: article.CommentCount,
-			PublishedAt:  *article.PublishedAt,
 		}
-
-		// 查询分类名称
-		var category entity.Category
-		if err := r.db.WithContext(ctx).
-			Select("name").
-			First(&category, article.CategoryID).Error; err == nil {
-			item.CategoryName = category.Name
-		}
-
-		// 查询文章标签
-		item.Tags = r.getArticleTags(ctx, article.ID)
-
-		// 查询作者名称
-		var admin entity.Admin
-		if err := r.db.WithContext(ctx).
-			Select("username").
-			First(&admin, article.AuthorID).Error; err == nil {
-			item.AuthorName = admin.Username
+		if article.PublishedAt != nil {
+			item.PublishedAt = *article.PublishedAt
 		}
 
 		result = append(result, item)
 	}
 
 	return result, total, nil
+}
+
+// loadArticleListTags 一次读取当前页文章的标签，无标签的文章返回空列表。
+func loadArticleListTags(ctx context.Context, db *gorm.DB, articleIDs []int64) (map[int64][]dto.TagItem, error) {
+	tagsByArticle := make(map[int64][]dto.TagItem, len(articleIDs))
+	if len(articleIDs) == 0 {
+		return tagsByArticle, nil
+	}
+	for _, id := range articleIDs {
+		tagsByArticle[id] = []dto.TagItem{}
+	}
+
+	var rows []struct {
+		ArticleID int64
+		dto.TagItem
+	}
+	if err := db.WithContext(ctx).
+		Table("article_tags").
+		Select("article_tags.article_id, tags.id, tags.name, tags.slug").
+		Joins("JOIN tags ON tags.id = article_tags.tag_id").
+		Where("article_tags.article_id IN ?", articleIDs).
+		Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		tagsByArticle[row.ArticleID] = append(tagsByArticle[row.ArticleID], row.TagItem)
+	}
+	return tagsByArticle, nil
 }
 
 // GetBySlug 通过 slug 获取文章详情

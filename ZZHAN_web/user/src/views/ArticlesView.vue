@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** 文章列表页 — 搜索 + 分类/标签/时间筛选 + 分页 + 侧边栏。URL query 同步（q/category/tag）。 */
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Calendar, ChevronLeft, ChevronRight, Folder, Search, Tag as TagIcon } from 'lucide-vue-next'
 import ArticleCard from '@/components/article/ArticleCard.vue'
@@ -13,23 +13,8 @@ import type { ArticleSummary, Category, Tag } from '@/types/models'
 const route = useRoute()
 const router = useRouter()
 
-/** 滚动渐入观察根 */
-const root = ref<HTMLElement | null>(null)
-
-/** 手动触发 reveal 动画 */
-function triggerReveal(): void {
-  nextTick(() => {
-    setTimeout(() => {
-      if (!root.value) return
-      root.value.querySelectorAll('.reveal:not(.in)').forEach((el) => {
-        el.classList.add('in')
-      })
-    }, 100)
-  })
-}
-
 const state = ref({
-  page: 1,
+  page: Number(route.query.page) || 1,
   size: 6,
   keyword: (route.query.keyword as string) || '',
   category_id: Number(route.query.category_id) || 0,
@@ -41,11 +26,15 @@ const tags = ref<Tag[]>([])
 const list = ref<ArticleSummary[]>([])
 const total = ref(0)
 const loading = ref(true)
+const loadFailed = ref(false)
+let loadVersion = 0
 
 const pages = computed(() => Math.max(1, Math.ceil(total.value / state.value.size)))
 
 async function load(): Promise<void> {
+  const version = ++loadVersion
   loading.value = true
+  loadFailed.value = false
   try {
     const { list: l, total: t } = await getArticles({
       page: state.value.page,
@@ -54,17 +43,19 @@ async function load(): Promise<void> {
       tag_id: state.value.tag_id || undefined,
       keyword: state.value.keyword || undefined,
     })
+    if (version !== loadVersion) return
     let rows = l
     // 时间筛选在前端按年份过滤（对齐静态页行为）
     if (state.value.time !== 'all') rows = rows.filter((a) => a.published_at.startsWith(state.value.time))
     list.value = rows
     total.value = t
   } catch {
+    if (version !== loadVersion) return
     list.value = []
     total.value = 0
+    loadFailed.value = true
   } finally {
-    loading.value = false
-    triggerReveal()
+    if (version === loadVersion) loading.value = false
   }
 }
 
@@ -101,8 +92,8 @@ function resetFilters(): void {
   state.value.tag_id = 0
   state.value.time = 'all'
   state.value.page = 1
-  router.push({ query: {} })
-  load()
+  if (Object.keys(route.query).length) void router.push({ query: {} })
+  else void load()
 }
 
 function goPage(p: number): void {
@@ -110,20 +101,19 @@ function goPage(p: number): void {
   applyQuery({ page: p }, false)
 }
 
-onMounted(async () => {
-  try {
-    const [c, t] = await Promise.all([getCategories(), getTags()])
-    cats.value = [...c].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
-    tags.value = [...t].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
-  } catch {
-    /* 静默 */
-  }
-  load()
+onMounted(() => {
+  void load()
+  void getCategories().then((rows) => {
+    cats.value = [...rows].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
+  }).catch(() => {})
+  void getTags().then((rows) => {
+    tags.value = [...rows].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
+  }).catch(() => {})
 })
 </script>
 
 <template>
-  <div ref="root">
+  <div>
     <!-- 页面头部 -->
     <section style="padding:118px 0 30px">
       <div class="container">
@@ -188,12 +178,16 @@ onMounted(async () => {
       <div class="container">
         <div class="grid gap-8 lg:grid-cols-3" style="align-items:start">
           <div class="lg:col-span-2" style="min-width:0">
-            <div v-if="loading" class="grid gap-6 md:grid-cols-2">
+            <div v-if="loading" class="grid gap-6 md:grid-cols-2" role="status" aria-label="正在加载文章">
               <div v-for="n in 4" :key="n" class="glass-card overflow-hidden"><div class="h-40 bg-[var(--card-2)]" /><div class="space-y-3 p-5"><div class="h-4 w-3/4 rounded bg-[var(--card-2)]" /><div class="h-4 w-full rounded bg-[var(--card-2)]" /></div></div>
+            </div>
+            <div v-else-if="loadFailed" class="glass-card pb-6 text-center">
+              <EmptyState icon="file-x" text="文章加载失败" />
+              <button class="btn btn-ghost" type="button" @click="load">重试</button>
             </div>
             <template v-else>
               <div v-if="list.length" class="grid gap-6 md:grid-cols-1">
-                <ArticleCard v-for="(a, i) in list" :key="a.id" :article="a" horizontal :reverse="i % 2 === 1" />
+                <ArticleCard v-for="(a, i) in list" :key="a.id" :article="a" class="in" horizontal :reverse="i % 2 === 1" />
               </div>
               <EmptyState v-else icon="search-x" text="没有找到匹配的文章" sub="换个关键词或筛选条件试试" />
             </template>
@@ -214,7 +208,7 @@ onMounted(async () => {
             </div>
           </div>
           <aside class="lg:col-span-1" style="position:sticky;top:88px;min-width:0">
-            <WidgetSidebar />
+            <WidgetSidebar :categories="cats" :tags="tags" />
           </aside>
         </div>
       </div>

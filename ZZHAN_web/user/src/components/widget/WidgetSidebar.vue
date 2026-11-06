@@ -3,7 +3,7 @@
  * 侧边栏组件 — 结构对齐静态原型 main.js sidebarHTML：
  * 最新文章（缩略图 + 标题 + 日期）、分类列表、标签云。
  */
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { FolderTree, History, Tags } from 'lucide-vue-next'
 import { getArticles } from '@/api/articles'
 import { getCategories, getTags } from '@/api/site'
@@ -11,20 +11,27 @@ import type { ArticleSummary, Category, Tag } from '@/types/models'
 import { coverArt } from '@/utils/cover'
 import { fmtDate } from '@/utils/format'
 
-const props = withDefaults(defineProps<{ withCatTag?: boolean }>(), { withCatTag: true })
+const props = withDefaults(defineProps<{
+  withCatTag?: boolean
+  categories?: Category[]
+  tags?: Tag[]
+}>(), { withCatTag: true })
 
 const recent = ref<ArticleSummary[]>([])
-const cats = ref<Category[]>([])
-const tags = ref<Tag[]>([])
+const ownCategories = ref<Category[]>([])
+const ownTags = ref<Tag[]>([])
+const cats = computed(() => [...(props.categories ?? ownCategories.value)].sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).slice(0, 14))
+const tags = computed(() => [...(props.tags ?? ownTags.value)].sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).slice(0, 14))
 
-onMounted(async () => {
-  try {
-    const [r, c, t] = await Promise.all([getArticles({ page: 1, size: 5 }), getCategories(), getTags()])
+onMounted(() => {
+  void getArticles({ page: 1, size: 5 }).then((r) => {
     recent.value = r.list
-    cats.value = [...c].sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).slice(0, 14)
-    tags.value = [...t].sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).slice(0, 14)
-  } catch {
-    /* 静默 */
+  }).catch(() => {})
+  if (props.withCatTag && props.categories === undefined) {
+    void getCategories().then((rows) => { ownCategories.value = rows }).catch(() => {})
+  }
+  if (props.withCatTag && props.tags === undefined) {
+    void getTags().then((rows) => { ownTags.value = rows }).catch(() => {})
   }
 })
 
@@ -48,7 +55,7 @@ function thumbOf(a: ArticleSummary): string {
       </ul>
     </div>
 
-    <template v-if="withCatTag">
+    <template v-if="props.withCatTag">
       <div class="widget reveal in">
         <h3 class="widget-title"><FolderTree :size="16" style="color:var(--accent)" />分类列表</h3>
         <ul class="widget-list">
