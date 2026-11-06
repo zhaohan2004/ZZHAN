@@ -18,7 +18,7 @@ function toggleSidebar(): void {
   <div class="admin-layout">
     <SideNav :open="sidebarOpen" @close="sidebarOpen = false" />
     <div class="admin-main">
-      <AdminHeader @toggle="toggleSidebar" />
+      <AdminHeader :sidebar-open="sidebarOpen" @toggle="toggleSidebar" />
       <main class="admin-content">
         <RouterView />
       </main>

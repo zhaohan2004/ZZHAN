@@ -14,6 +14,7 @@ import { initialsAvatar } from '@/utils/cover'
 import { uploadImage } from '@/api/admin'
 import type { AdminProfile } from '@/types/models'
 
+defineProps<{ sidebarOpen: boolean }>()
 const emit = defineEmits<{ toggle: [] }>()
 
 const route = useRoute()
@@ -25,7 +26,7 @@ const menuOpen = ref(false)
 
 const title = computed(() => String(route.meta.title || '管理后台'))
 
-const fallbackAvatar = computed(() => initialsAvatar(auth.profile?.username || '轩', '#3b82f6', '#38bdf8', 64))
+const fallbackAvatar = computed(() => initialsAvatar(auth.profile?.username || '轩', '#206079', '#285d6f', 64))
 const avatar = computed(() => {
   const p = auth.profile
   if (p?.avatar) return p.avatar
@@ -121,9 +122,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
 
 <template>
   <header class="admin-header">
-    <button class="icon-btn" type="button" aria-label="菜单" @click="emit('toggle')"><Menu :size="19" /></button>
+    <button class="icon-btn sidebar-toggle" type="button" aria-label="菜单" aria-controls="admin-sidebar" :aria-expanded="sidebarOpen" @click="emit('toggle')"><Menu :size="19" /></button>
     <div>
-      <div class="h-title"><span style="color: var(--accent)">{{ title }}</span></div>
+      <h1 class="h-title">{{ title }}</h1>
       <div class="h-crumb">{{ settings.settings?.blog_name || 'Blog' }} 管理后台</div>
     </div>
     <div class="h-right">

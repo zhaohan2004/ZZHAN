@@ -152,7 +152,7 @@ onMounted(() => {
                 />
                 <span
                   v-else
-                  style="width: 32px; height: 32px; border-radius: 10px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600"
+                  style="width: 32px; height: 32px; border-radius: 10px; background: var(--grad-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600"
                 >
                   {{ u.nickname?.charAt(0)?.toUpperCase() || '?' }}
                 </span>

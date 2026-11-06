@@ -24,8 +24,11 @@ const loading = ref(false)
 // 服务端验证码
 const captchaId = ref('')
 const captchaB64 = ref('')
+const captchaLoading = ref(false)
 
 async function loadCaptcha(): Promise<void> {
+  if (captchaLoading.value) return
+  captchaLoading.value = true
   try {
     const res = await getCaptcha()
     captchaId.value = res.captcha_id
@@ -33,6 +36,8 @@ async function loadCaptcha(): Promise<void> {
     captchaCode.value = ''
   } catch {
     toast.error('获取验证码失败')
+  } finally {
+    captchaLoading.value = false
   }
 }
 
@@ -64,11 +69,7 @@ async function onLogin(): Promise<void> {
 
 <template>
   <div class="login-body">
-    <div class="hero-grid-bg" style="position: fixed" />
-    <div class="hero-orb a" style="position: fixed" />
-    <div class="hero-orb b" style="position: fixed" />
-
-    <div style="position: fixed; top: 22px; right: 26px; z-index: 5; display: flex; gap: 8px; align-items: center">
+    <div class="login-theme">
       <button class="icon-btn" type="button" :title="theme.dark ? '切换浅色' : '切换深色'" @click="theme.toggle()">
         <component :is="theme.dark ? Sun : Moon" :size="18" />
       </button>
@@ -101,21 +102,18 @@ async function onLogin(): Promise<void> {
         <div class="form-group">
           <label class="form-label" for="loginCaptcha">图形验证码 <span class="req">*</span></label>
           <div class="captcha-row">
-            <input id="loginCaptcha" v-model="captchaCode" class="input" type="text" maxlength="5" placeholder="验证码" style="text-transform: uppercase; font-family: 'JetBrains Mono', monospace" autocomplete="off">
-            <img
-              v-if="captchaB64"
-              :src="captchaB64"
-              alt="验证码"
-              title="点击刷新验证码"
-              style="cursor: pointer; height: 42px; border-radius: 12px; border: 1px solid var(--border-strong); background: #fff"
+            <input id="loginCaptcha" v-model="captchaCode" class="input" type="text" maxlength="5" placeholder="验证码" style="text-transform: uppercase; font-family: var(--font-mono)" autocomplete="off">
+            <button
+              class="captcha-slot"
+              :class="{ 'captcha-refresh': captchaB64 }"
+              type="button"
+              :disabled="captchaLoading"
+              :aria-label="captchaB64 ? '刷新验证码' : '获取验证码'"
               @click="loadCaptcha"
             >
-            <div
-              v-else
-              style="width: 120px; height: 42px; border-radius: 12px; border: 1px solid var(--border-strong); display: flex; align-items: center; justify-content: center; color: var(--text-3); font-size: 12px"
-            >
-              加载中...
-            </div>
+              <img v-if="captchaB64" :src="captchaB64" alt="图形验证码" />
+              <span v-else>{{ captchaLoading ? '加载中…' : '重试验证码' }}</span>
+            </button>
           </div>
           <div class="form-hint"><RefreshCw :size="12" style="vertical-align: -2px" /> 点击图片可刷新验证码</div>
         </div>

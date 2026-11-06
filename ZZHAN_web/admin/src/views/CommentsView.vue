@@ -156,7 +156,7 @@ onMounted(async () => {
               />
               <span
                 v-else
-                style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; font-size: 12px; font-weight: 600; color: #fff; background: var(--accent)"
+                style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--on-accent); background: var(--accent)"
               >{{ c.user_name?.[0] }}</span>
             </td>
             <td style="max-width: 320px; color: var(--text-2)">{{ c.content }}</td>
