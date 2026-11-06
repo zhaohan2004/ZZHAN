@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /** 首页 — Hero + 最新文章（横向全宽卡片） */
 import { nextTick, onMounted, ref } from 'vue'
-import { ArrowRight, Sparkles } from 'lucide-vue-next'
+import { ArrowRight, BookOpen } from 'lucide-vue-next'
 import Hero from '@/components/home/Hero.vue'
 import ArticleCard from '@/components/article/ArticleCard.vue'
 import { useSiteStore } from '@/stores/site'
@@ -36,7 +36,7 @@ onMounted(async () => {
     <div class="section">
       <div class="container">
         <div class="section-head reveal">
-          <h2 class="section-title"><span class="st-ico"><Sparkles :size="17" /></span>最新文章</h2>
+          <h2 class="section-title"><span class="st-ico"><BookOpen :size="17" aria-hidden="true" /></span>最新文章</h2>
           <router-link to="/articles" class="section-more">查看全部 <ArrowRight :size="15" /></router-link>
         </div>
         <div id="latestGrid" class="grid gap-6 md:grid-cols-1">

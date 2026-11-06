@@ -1,6 +1,7 @@
 <script setup lang="ts">
-/** 终端卡片 — 打字机逐行展示；内容来自后台「系统设置 → 首页终端内容」（多行 `类型|文本`）。 */
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+/** 作者手记，沿用后台的「类型|文本」配置。 */
+import { computed } from 'vue'
+import { Terminal } from 'lucide-vue-next'
 import { useSiteStore } from '@/stores/site'
 
 interface TermLine {
@@ -43,34 +44,14 @@ function parseLines(raw: string): TermLine[] {
     .filter((x): x is TermLine => x !== null)
 }
 
-const LINES = computed(() => parseLines(site.site?.hero_terminal || DEFAULT_TERMINAL))
-
-const visible = ref(0)
-let timer: ReturnType<typeof setInterval> | null = null
-
-const typedLines = computed(() => LINES.value.slice(0, visible.value))
-
-onMounted(() => {
-  timer = setInterval(() => {
-    if (visible.value < LINES.value.length) visible.value += 1
-    else if (timer) clearInterval(timer)
-  }, 430)
-})
-onBeforeUnmount(() => {
-  if (timer) clearInterval(timer)
-})
+const lines = computed(() => parseLines(site.site?.hero_terminal || DEFAULT_TERMINAL))
 </script>
 
 <template>
-  <div class="hero-terminal">
-    <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center">
-      <span class="dot" style="background:#f87171" />
-      <span class="dot" style="background:#fbbf24" />
-      <span class="dot" style="background:#34d399" />
-      <span style="margin-left:8px" class="cm">~/blog · zsh</span>
+  <aside class="hero-terminal" aria-labelledby="note-label">
+    <h2 id="note-label" class="note-label"><Terminal :size="16" aria-hidden="true" /> 作者手记</h2>
+    <div class="note-lines">
+      <div v-for="(line, index) in lines" :key="index" :class="line.cls">{{ line.text }}</div>
     </div>
-    <div v-for="(line, i) in typedLines" :key="i">
-      <span :class="line.cls">{{ line.text }}</span>
-    </div>
-  </div>
+  </aside>
 </template>

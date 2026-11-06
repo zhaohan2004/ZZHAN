@@ -1,11 +1,16 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from './auth'
 
 beforeEach(() => {
   setActivePinia(createPinia())
   localStorage.clear()
-  import.meta.env.VITE_API_MODE = 'mock'
+  vi.stubEnv('VITE_API_MODE', 'mock')
+})
+
+afterEach(() => {
+  window.history.replaceState({}, '', '/')
+  vi.unstubAllEnvs()
 })
 
 describe('auth', () => {
@@ -13,6 +18,7 @@ describe('auth', () => {
     const s = useAuthStore()
     expect(s.isLoggedIn).toBe(false)
 
+    window.history.replaceState({}, '', '/auth/github/callback?code=mock-code')
     const ok = await s.loginWith('github')
     expect(ok).toBe(true)
     expect(s.token).toBe('mock-access-token-github')
@@ -20,6 +26,7 @@ describe('auth', () => {
     expect(s.user?.nickname).toBe('GitHub User')
     expect(localStorage.getItem('ct-access-token')).toBe('mock-access-token-github')
     expect(s.isLoggedIn).toBe(true)
+    expect(window.location.search).toBe('')
 
     await s.logout()
     expect(s.token).toBeNull()
@@ -34,6 +41,7 @@ describe('auth', () => {
     expect(denied).toBe(false)
     expect(s.loginModalOpen).toBe(true)
 
+    window.history.replaceState({}, '', '/auth/github/callback?code=mock-code')
     await s.loginWith('github')
     expect(s.loginModalOpen).toBe(false)
     const allowed = await s.ensureAuth()

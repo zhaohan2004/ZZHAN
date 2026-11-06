@@ -71,13 +71,13 @@ onMounted(async () => {
             class="cat-card reveal"
             :style="{ '--cat-c': c.color }"
           >
-            <div class="cat-ico" :style="{ background: 'linear-gradient(135deg,' + c.color + 'cc,' + c.color + '66)' }">
+            <div class="cat-ico">
               <component :is="ICON_MAP[c.icon || ''] || Code2" :size="24" />
             </div>
             <h3>{{ c.name }}</h3>
             <p>{{ c.desc }}</p>
             <div class="cat-foot">
-              <span><b :style="{ color: c.color }">{{ c.count ?? 0 }}</b> 篇文章</span>
+              <span><b>{{ c.count ?? 0 }}</b> 篇文章</span>
               <span>{{ total ? Math.round(((c.count ?? 0) / total) * 100) : 0 }}% 占比</span>
             </div>
           </router-link>
