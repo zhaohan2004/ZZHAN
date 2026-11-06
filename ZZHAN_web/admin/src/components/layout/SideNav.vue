@@ -64,13 +64,16 @@ function isActive(item: NavItem): boolean {
 </script>
 
 <template>
-  <aside class="admin-sidebar" :class="{ open }">
+  <aside id="admin-sidebar" class="admin-sidebar" :class="{ open }">
     <div class="side-brand">
       <span class="brand-logo">
         <img v-if="settings.settings?.avatar" :src="settings.settings.avatar" alt="头像" />
         <span v-else>{{ (settings.settings?.blog_name || 'C').slice(0, 1) }}</span>
       </span>
-      <span class="brand-text">{{ settings.settings?.blog_name || 'Blog' }}<span class="brand-dot">.</span><span style="font-size:11px;color:var(--text-3);font-weight:400;margin-left:8px">管理后台</span></span>
+      <div class="side-brand-copy">
+        <span class="brand-text">{{ settings.settings?.blog_name || 'Blog' }}<span class="brand-dot">.</span></span>
+        <span class="side-brand-label">管理后台</span>
+      </div>
     </div>
     <nav class="side-nav">
       <template v-for="g in groups" :key="g.label">
@@ -87,8 +90,7 @@ function isActive(item: NavItem): boolean {
           {{ item.label }}
           <span
             v-if="item.to === '/comments' && bannedCount"
-            class="badge"
-            style="margin-left:auto;background:rgba(239,68,68,.14);color:#ef4444"
+            class="badge st-block"
           >{{ bannedCount }}</span>
         </router-link>
       </template>

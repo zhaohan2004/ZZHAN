@@ -219,9 +219,9 @@ onMounted(async () => {
             <td>
               <span class="st" :class="STATUS_MAP[a.status].cls">{{ STATUS_MAP[a.status].label }}</span>
             </td>
-            <td style="font-family: 'JetBrains Mono', monospace">{{ fmtNum(a.views) }}</td>
-            <td>{{ a.date }}</td>
-            <td>{{ a.updated }}</td>
+            <td style="font-family: var(--font-mono)">{{ fmtNum(a.views) }}</td>
+            <td class="table-date">{{ a.date }}</td>
+            <td class="table-date">{{ a.updated }}</td>
             <td style="text-align: right; white-space: nowrap">
               <button class="tb-btn edit" title="编辑" @click="editArticle(a)"><Pencil :size="15" /></button>
               <button class="tb-btn view" :title="STATUS_MAP[a.status].nextLabel" @click="toggleStatus(a)">
@@ -232,7 +232,7 @@ onMounted(async () => {
             </td>
           </tr>
           <tr v-if="!articles.length">
-            <td colspan="9" style="text-align: center; color: var(--text-3); padding: 40px">暂无文章</td>
+            <td colspan="10" style="text-align: center; color: var(--text-3); padding: 40px">暂无文章</td>
           </tr>
         </tbody>
       </table>

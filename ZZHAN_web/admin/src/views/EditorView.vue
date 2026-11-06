@@ -676,7 +676,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 <style scoped>
 .editor-page :deep(.prose pre) {
-  background: rgba(15, 23, 42, 0.55);
+  background: var(--code-bg);
   border: 1px solid var(--border-strong);
   border-radius: 12px;
   padding: 14px 16px;
@@ -686,15 +686,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 .editor-page :deep(.prose pre code) {
   background: transparent;
   padding: 0;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
-  color: #e2e8f0;
+  color: var(--text);
 }
 .editor-page :deep(.prose code.inline) {
   background: var(--card-2);
   padding: 2px 6px;
   border-radius: 6px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.88em;
 }
 
@@ -747,7 +747,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 }
 .md-toolbar-btn:active {
   transform: translateY(0);
-  background: rgba(59, 130, 246, 0.2);
+  background: var(--grad-soft);
 }
 
 /* 标题下拉菜单 */

@@ -19,10 +19,10 @@ import { fmtNum } from '@/utils/format'
 
 /** 统计卡展示配置 — 前端自管 */
 const STAT_CARDS = [
-  { key: 'articles', label: '文章总数', icon: FileText, color: '#5b9df6' },
-  { key: 'categories', label: '分类数量', icon: Folder, color: '#38bdf8' },
-  { key: 'tags', label: '标签数量', icon: Tag, color: '#a78bfa' },
-  { key: 'comments', label: '评论数量', icon: MessageCircle, color: '#f59e0b' },
+  { key: 'articles', label: '文章总数', icon: FileText },
+  { key: 'categories', label: '分类数量', icon: Folder },
+  { key: 'tags', label: '标签数量', icon: Tag },
+  { key: 'comments', label: '评论数量', icon: MessageCircle },
 ] as const
 
 const rawData = ref<DashboardStatData | null>(null)
@@ -60,8 +60,8 @@ onMounted(async () => {
   <div>
     <!-- 统计卡 -->
     <div class="stat-grid">
-      <div v-for="s in stats" :key="s.key" class="stat-card" :style="{ '--sc': s.color }">
-        <div class="stat-ico" :style="{ background: 'linear-gradient(135deg,' + s.color + 'dd,' + s.color + '77)' }">
+      <div v-for="s in stats" :key="s.key" class="stat-card">
+        <div class="stat-ico">
           <component :is="s.icon" :size="24" />
         </div>
         <div class="stat-info"><b>{{ s.value }}</b><span>{{ s.label }}</span></div>
@@ -69,7 +69,7 @@ onMounted(async () => {
     </div>
 
     <!-- 底部列表 -->
-    <div style="display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))">
+    <div class="dashboard-activity">
       <div class="widget">
         <h3 class="widget-title">最近发布文章</h3>
         <div
@@ -98,8 +98,8 @@ onMounted(async () => {
       <div class="widget">
         <h3 class="widget-title">最近操作记录</h3>
         <div class="timeline">
-          <div v-for="op in operations" :key="op.time + op.target" style="display: flex; gap: 10px; font-size: 15px; padding: 4px 0">
-            <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text-3)">{{ op.time }}</span>
+          <div v-for="op in operations" :key="op.time + op.target" class="dashboard-operation">
+            <span class="dashboard-operation-time">{{ op.time }}</span>
             <span style="color: var(--text-2)"><b style="font-weight: 600">{{ op.user }}</b> {{ op.action }}：{{ op.target }}</span>
           </div>
         </div>
