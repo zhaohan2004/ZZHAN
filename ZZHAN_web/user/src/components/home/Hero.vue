@@ -1,25 +1,13 @@
 <script setup lang="ts">
-/**
- * Hero 区 — 头像 + 站点名（末段渐变）+ 标语 + bio + 按钮 + meta；
- * 右侧统计格（hero-stats）+ 终端。结构对齐静态原型 html/user/index.html。
- * 所有可编辑项均从 site 数据读取（来源：后台系统设置）。
- */
+/** 首页站点介绍与作者手记。 */
 import { computed } from 'vue'
 import { BookOpen, Calendar, Github, Link, MapPin, Twitter, User } from 'lucide-vue-next'
 import type { SiteInfo } from '@/types/models'
-import { initialsAvatar } from '@/utils/avatar'
 import HeroTerminal from './HeroTerminal.vue'
 
 const props = defineProps<{ site: SiteInfo | null }>()
 
 const name = computed(() => props.site?.name ?? '小猫的个人博客')
-const nameHead = computed(() => name.value.slice(0, Math.max(0, name.value.length - 4)))
-const nameTail = computed(() => name.value.slice(-4))
-
-/** 头像 — 优先取后台设置的自定义头像，否则按站点短名生成 initials。 */
-const avatarSrc = computed(
-  () => props.site?.avatar || initialsAvatar(props.site?.short_name || props.site?.name || 'CT', '#6b7280', '#9ca3af', 224),
-)
 
 /** 位置 — 来自 site.location。 */
 const locationText = computed(() => props.site?.location || '北京')
@@ -45,17 +33,14 @@ function getSocialIcon(icon: string) {
 
 <template>
   <section class="hero">
-    <div class="hero-orb a" />
-    <div class="hero-orb b" />
     <div class="container hero-inner">
       <div>
-        <div class="hero-avatar-wrap">
-          <img class="hero-avatar" :src="avatarSrc" alt="头像" />
-          <div class="hero-avatar-ring" />
+        <div v-if="site?.avatar || site?.tagline" class="hero-identity">
+          <img v-if="site.avatar" class="hero-avatar" :src="site.avatar" alt="" />
+          <p v-if="site.tagline" class="hero-sub">{{ site.tagline }}</p>
         </div>
-        <div class="hero-sub"><span class="grad-text">{{ site?.tagline }}</span></div>
-        <h1 class="hero-title">{{ nameHead }}<span class="grad-text">{{ nameTail }}</span></h1>
-        <p class="hero-bio">{{ site?.bio }}</p>
+        <h1 class="hero-title">{{ name }}</h1>
+        <p v-if="site?.bio" class="hero-bio">{{ site.bio }}</p>
         <div class="hero-actions">
           <router-link to="/articles" class="btn btn-primary"><BookOpen :size="17" /> 开始阅读</router-link>
           <router-link to="/about" class="btn btn-ghost"><User :size="17" /> 关于我</router-link>
@@ -79,9 +64,7 @@ function getSocialIcon(icon: string) {
           </template>
         </div>
       </div>
-      <div>
-        <HeroTerminal />
-      </div>
+      <HeroTerminal />
     </div>
   </section>
 </template>

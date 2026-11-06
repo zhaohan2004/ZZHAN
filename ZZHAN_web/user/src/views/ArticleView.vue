@@ -3,7 +3,7 @@
  * 文章详情页 — 阅读进度条 / TOC scroll-spy / 点赞分享 / 评论。
  * 布局对齐静态原型：post-header-inner、无封面、无相关推荐、操作仅点赞+分享。
  */
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   Calendar,
@@ -45,7 +45,6 @@ const onScroll = () => {
   progress.value = h > 0 ? (window.scrollY / h) * 100 : 0
 }
 
-const catColor = computed(() => '#4a8eff') // 默认主题色
 
 async function loadComments(): Promise<void> {
   if (!article.value) return
@@ -108,7 +107,7 @@ function jumpTo(id: string): void {
           <ChevronRight :size="13" />
           <router-link to="/articles" class="muted">文章</router-link>
           <ChevronRight :size="13" />
-          <span v-if="article" class="badge" :style="{ background: catColor + '1f', color: catColor, border: '1px solid ' + catColor + '44' }">
+          <span v-if="article" class="badge ac-cat">
             {{ article.category_name }}
           </span>
         </div>

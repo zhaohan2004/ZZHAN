@@ -14,7 +14,6 @@ const site = useSiteStore()
 const auth = useAuthStore()
 const { toast } = useToast()
 
-const scrolled = ref(false)
 const menuOpen = ref(false)
 
 const siteName = computed(() => site.site?.name ?? '小猫的个人博客')
@@ -31,10 +30,6 @@ const navLinks = [
 
 function isActive(l: { to: string; exact: boolean }): boolean {
   return l.exact ? route.path === l.to : route.path.startsWith(l.to)
-}
-
-function onScroll(): void {
-  scrolled.value = window.scrollY > 10
 }
 
 /* ---------- 用户区：头像下拉（退出登录） ---------- */
@@ -64,18 +59,15 @@ async function doLogout(): Promise<void> {
 }
 
 onMounted(() => {
-  window.addEventListener('scroll', onScroll, { passive: true })
   document.addEventListener('click', onDocClick)
-  onScroll()
 })
 onBeforeUnmount(() => {
-  window.removeEventListener('scroll', onScroll)
   document.removeEventListener('click', onDocClick)
 })
 </script>
 
 <template>
-  <header class="nav" :class="{ scrolled }">
+  <header class="nav">
     <div class="container nav-inner">
       <router-link to="/" class="brand">
         <span class="brand-logo">

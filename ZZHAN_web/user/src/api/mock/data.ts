@@ -54,7 +54,7 @@ export const siteData: SiteInfo = {
   location: SITE.location,
   since: SITE.since,
   avatar: SITE.avatar,
-  // 首页终端打字机（每行 `类型|文本`：tk 蓝 / cm 灰 / fn 紫；纯文本默认 tk）
+  // 首页作者手记（每行 `类型|文本`；纯文本默认 tk）
   hero_terminal: [
     'tk|go run server.go',
     'cm|# 今天也在认真写代码',

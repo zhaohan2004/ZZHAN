@@ -23,7 +23,6 @@ const props = withDefaults(
 const cover = computed(() =>
   props.article.cover_image || coverArt(props.article.title, props.article.category_name, props.article.id),
 )
-const catColor = computed(() => '#4a8eff') // 默认主题色
 </script>
 
 <template>
@@ -35,7 +34,7 @@ const catColor = computed(() => '#4a8eff') // 默认主题色
     <div class="ac-body">
       <div class="ac-title-wrap">
         <router-link :to="`/article/${article.slug}`" class="ac-title">{{ article.title }}</router-link>
-        <span class="badge ac-cat" :style="{ background: catColor + '1f', color: catColor, border: '1px solid ' + catColor + '44' }">
+        <span class="badge ac-cat">
           {{ article.category_name }}
         </span>
       </div>

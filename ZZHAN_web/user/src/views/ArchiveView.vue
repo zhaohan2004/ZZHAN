@@ -22,18 +22,6 @@ const years = computed(() => {
   return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0]))
 })
 
-function catColorOf(name: string): string {
-  return getCategoryColor(name)
-}
-
-function getCategoryColor(name: string): string {
-  const PALETTE: Record<string, string> = {
-    Go: '#4a8eff', MySQL: '#38bdf8', Redis: '#fb7185', Linux: '#a3e635', Docker: '#60a5fa',
-    Git: '#fb923c', Gin: '#34d399', WebSocket: '#93c5fd', SSE: '#fbbf24', '数据结构与算法': '#f472b6', '计算机基础': '#94a3b8',
-  }
-  return PALETTE[name] || '#4a8eff'
-}
-
 onMounted(async () => {
   try {
     items.value = await getArchives()
@@ -65,7 +53,7 @@ onMounted(async () => {
               <span class="arc-date">{{ a.date.slice(5) }}</span>
               <div style="flex:1;min-width:0">
                 <div style="font-size:14.5px;font-weight:600;line-height:1.5">{{ a.title }}</div>
-                <span class="badge" style="margin-top:4px;font-size:11px" :style="{ background: catColorOf(a.category) + '12', color: catColorOf(a.category) }">{{ a.category }}</span>
+                <span class="badge ac-cat" style="margin-top:4px;font-size:11px">{{ a.category }}</span>
               </div>
               <span style="display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:var(--text-3);flex-shrink:0;margin-top:2px"><Eye :size="13" />{{ fmtNum(a.views) }}</span>
             </router-link>
