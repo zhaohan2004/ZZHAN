@@ -58,6 +58,10 @@ const selectedTags = ref<string[]>([])
 const summary = ref('')
 const pubDate = ref('')
 const coverUrl = ref('')
+const coverInput = ref<HTMLInputElement | null>(null)
+const coverUploading = ref(false)
+const coverError = ref('')
+const saving = ref(false)
 
 /* 链接弹窗 */
 const showLinkDialog = ref(false)
@@ -81,18 +85,25 @@ function toggleTag(name: string) {
   else selectedTags.value.push(name)
 }
 
-function onCoverPick(e: Event) {
+async function onCoverPick(e: Event) {
   const input = e.target as HTMLInputElement
-  const file = input.files && input.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => {
-    coverUrl.value = String(reader.result)
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file || coverUploading.value || saving.value) return
+  coverUploading.value = true
+  coverError.value = ''
+  try {
+    const { url } = await uploadImage(file)
+    coverUrl.value = url
+  } catch (e: unknown) {
+    coverError.value = e instanceof Error ? e.message : '封面上传失败，请重新选择图片'
+  } finally {
+    coverUploading.value = false
   }
-  reader.readAsDataURL(file)
 }
 function removeCover() {
   coverUrl.value = ''
+  coverError.value = ''
 }
 
 function buildPayload(status: ArticleStatus): AdminArticlePayload {
@@ -109,6 +120,11 @@ function buildPayload(status: ArticleStatus): AdminArticlePayload {
 }
 
 async function saveDraft() {
+  if (coverUploading.value || saving.value) return
+  if (coverError.value) {
+    toast.warning('请重新上传封面，或取消更换后再保存')
+    return
+  }
   if (!title.value.trim()) {
     toast.warning('请先填写文章标题')
     return
@@ -118,12 +134,15 @@ async function saveDraft() {
     return
   }
   const payload = buildPayload('draft')
+  saving.value = true
   try {
-    if (editingId.value == null) await createAdminArticle(payload)
+    if (editingId.value == null) editingId.value = (await createAdminArticle(payload)).id
     else await updateAdminArticle(editingId.value, payload)
     toast.success('草稿已保存')
   } catch (e: any) {
     toast.error(e?.message || '保存失败')
+  } finally {
+    saving.value = false
   }
 }
 
@@ -138,14 +157,15 @@ function openPublish() {
 }
 
 async function confirmPublish() {
+  if (coverUploading.value || saving.value || coverError.value) return
   if (!pubCategory.value) {
     toast.warning('请选择分类')
     return
   }
-  const ok = await confirm('确定发布这篇文章吗？', '发布文章')
-  if (!ok) return
-  const payload = buildPayload('published')
+  saving.value = true
   try {
+    if (!(await confirm('确定发布这篇文章吗？', '发布文章'))) return
+    const payload = buildPayload('published')
     if (editingId.value == null) await createAdminArticle(payload)
     else await updateAdminArticle(editingId.value, payload)
     toast.success('文章已发布')
@@ -153,6 +173,8 @@ async function confirmPublish() {
     router.push('/articles')
   } catch (e: any) {
     toast.error(e?.message || '发布失败')
+  } finally {
+    saving.value = false
   }
 }
 
@@ -167,6 +189,7 @@ async function loadForEdit() {
     pubCategory.value = a.category
     selectedTags.value = [...(a.tags || [])]
     summary.value = a.summary || ''
+    coverUrl.value = a.cover_image || ''
     pubDate.value = a.date
   } catch {
     toast.error('加载文章失败')
@@ -423,7 +446,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <label class="ed-title-label" for="mdInput">文章标题</label>
       <input id="edTitle" v-model="title" class="input" type="text" placeholder="输入文章标题…" autocomplete="off" />
       <div class="tb-actions">
-        <button class="btn btn-ghost" @click="saveDraft"><Save :size="15" /> 保存草稿</button>
+        <button class="btn btn-ghost" :disabled="coverUploading || saving" @click="saveDraft"><Save :size="15" /> 保存草稿</button>
         <select v-model="viewMode" class="select" title="视图模式" style="width: 104px">
           <option value="split">分屏</option>
           <option value="preview">仅预览</option>
@@ -594,21 +617,27 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
               <div class="cover-upload">
                 <div v-if="coverUrl" class="cu-preview">
                   <img :src="coverUrl" alt="封面预览" />
-                  <button class="cu-remove" type="button" title="移除封面" @click="removeCover"><X :size="14" /></button>
+                  <button class="cu-remove" type="button" aria-label="移除封面" title="移除封面" :disabled="coverUploading || saving" @click="removeCover"><X :size="14" /></button>
                 </div>
                 <div v-else class="cu-placeholder">
                   <ImageIcon :size="22" />
                   <span>未上传，将自动生成渐变封面</span>
                 </div>
-                <label class="btn btn-ghost" style="width: 100%; margin-top: 10px; justify-content: center">
-                  <Upload :size="15" /> 上传封面图
-                  <input type="file" accept="image/*" hidden @change="onCoverPick" />
-                </label>
+                <input ref="coverInput" type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden @change="onCoverPick" />
+                <button type="button" class="btn btn-ghost" style="width: 100%; margin-top: 10px; justify-content: center"
+                  :disabled="coverUploading || saving" @click="coverInput?.click()">
+                  <Upload :size="15" /> {{ coverUploading ? '正在上传封面…' : '上传封面图' }}
+                </button>
+                <p v-if="coverError" class="cover-error" role="alert">
+                  {{ coverError }}
+                  <button type="button" class="btn btn-ghost btn-sm" @click="coverError = ''">取消更换</button>
+                </p>
+                <span v-if="coverUploading" role="status">上传完成后可保存或发布</span>
               </div>
             </div>
           </div>
 
-          <button class="btn btn-primary" style="width: 100%; padding: 12px" @click="confirmPublish">
+          <button class="btn btn-primary" style="width: 100%; padding: 12px" :disabled="coverUploading || saving || !!coverError" @click="confirmPublish">
             <Send :size="16" /> 确认发布
           </button>
         </div>

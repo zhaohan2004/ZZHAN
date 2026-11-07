@@ -3,14 +3,13 @@
  * 文章卡片 — 竖版 / 横向全宽（horizontal，图左/图右 reverse 交替）。
  * DOM 结构与静态原型 main.js articleCardHTML 完全一致。
  */
-import { computed } from 'vue'
 import { ArrowRight, Calendar, Eye, MessageCircle, ThumbsUp } from 'lucide-vue-next'
 import type { ArticleSummary } from '@/types/models'
-import { coverArt } from '@/utils/cover'
 import { fmtDate, fmtNum } from '@/utils/format'
 import TagMini from './TagMini.vue'
+import ArticleCover from './ArticleCover.vue'
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     article: ArticleSummary
     horizontal?: boolean
@@ -20,15 +19,12 @@ const props = withDefaults(
   { horizontal: false, reverse: false, tagLimit: 3 },
 )
 
-const cover = computed(() =>
-  props.article.cover_image || coverArt(props.article.title, props.article.category_name, props.article.id),
-)
 </script>
 
 <template>
   <article class="article-card reveal" :class="{ horizontal, reverse }">
     <router-link :to="`/article/${article.slug}`" class="ac-cover" :aria-label="article.title">
-      <img :src="cover" :alt="article.title" loading="lazy" />
+      <ArticleCover :article="article" :alt="article.title" />
     </router-link>
 
     <div class="ac-body">
