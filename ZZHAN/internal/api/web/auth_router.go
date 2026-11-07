@@ -15,5 +15,6 @@ func (c *AuthController) RegisterRoutes(r *gin.RouterGroup) {
 	}
 
 	r.POST("/auth/refresh", c.RefreshToken)
+	r.GET("/auth/github/config", c.GitHubConfig)
 	r.POST("/auth/github", c.GitHubLogin)
 }

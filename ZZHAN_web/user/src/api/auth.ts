@@ -4,6 +4,10 @@
 import { request } from './http'
 import type { AuthUser, LoginResult, RefreshResult } from '@/types/models'
 
+export function getGitHubConfig(): Promise<{ client_id: string }> {
+  return request({ method: 'GET', url: '/auth/github/config' })
+}
+
 /** GitHub 授权登录 POST /auth/github */
 export function githubLogin(code: string, redirectUri: string): Promise<LoginResult> {
   return request<LoginResult>({ method: 'POST', url: '/auth/github', data: { code, redirect_uri: redirectUri } })

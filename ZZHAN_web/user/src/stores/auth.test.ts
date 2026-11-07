@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import * as authApi from '@/api/auth'
 import { useAuthStore } from './auth'
 
 beforeEach(() => {
@@ -11,9 +12,19 @@ beforeEach(() => {
 afterEach(() => {
   window.history.replaceState({}, '', '/')
   vi.unstubAllEnvs()
+  vi.restoreAllMocks()
 })
 
 describe('auth', () => {
+  it('checks runtime configuration before navigating when the build has no client ID', async () => {
+    vi.stubEnv('VITE_GITHUB_CLIENT_ID', '')
+    const getConfig = vi.spyOn(authApi, 'getGitHubConfig').mockResolvedValue({ client_id: '' })
+
+    await expect(useAuthStore().loginWith('github')).rejects.toThrow('GitHub 登录尚未配置')
+    expect(getConfig).toHaveBeenCalledOnce()
+    expect(window.location.pathname).toBe('/')
+  })
+
   it('loginWith fills token/user and logout clears', async () => {
     const s = useAuthStore()
     expect(s.isLoggedIn).toBe(false)
