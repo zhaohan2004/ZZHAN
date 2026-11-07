@@ -398,7 +398,7 @@ html.dark{
 .widget-list a{color:var(--text-2);transition:color .25s;display:flex;align-items:center;gap:8px;min-width:0}
 .widget-list a:hover{color:var(--accent)}
 .widget-list .cnt{font-size:12px;color:var(--text-3);background:var(--card-2);padding:1px 8px;border-radius:999px;border:1px solid var(--border)}
-.widget-list .thumb-mini{width:48px;height:36px;border-radius:6px;background-size:cover;background-position:center 70%;flex:none;box-shadow:0 1px 4px rgba(0,0,0,.08);border:1px solid var(--border)}
+.widget-list .thumb-mini{width:48px;height:36px;border-radius:6px;object-fit:cover;object-position:center 70%;flex:none;box-shadow:0 1px 4px rgba(0,0,0,.08);border:1px solid var(--border)}
 .widget-list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;line-height:1.4;color:var(--text-2)}
 .widget-list a:hover .t{color:var(--accent)}
 .widget-list .d{font-size:11px;color:var(--text-3);margin-left:8px;flex:none}

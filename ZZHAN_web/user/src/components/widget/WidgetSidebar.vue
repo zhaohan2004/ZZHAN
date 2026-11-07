@@ -8,7 +8,7 @@ import { FolderTree, History, Tags } from 'lucide-vue-next'
 import { getArticles } from '@/api/articles'
 import { getCategories, getTags } from '@/api/site'
 import type { ArticleSummary, Category, Tag } from '@/types/models'
-import { coverArt } from '@/utils/cover'
+import ArticleCover from '@/components/article/ArticleCover.vue'
 import { fmtDate } from '@/utils/format'
 
 const props = withDefaults(defineProps<{
@@ -35,9 +35,6 @@ onMounted(() => {
   }
 })
 
-function thumbOf(a: ArticleSummary): string {
-  return a.cover_image || coverArt(a.title, a.category_name, a.id, 96, 72)
-}
 </script>
 
 <template>
@@ -47,7 +44,7 @@ function thumbOf(a: ArticleSummary): string {
       <ul class="widget-list">
         <li v-for="a in recent" :key="a.id" style="padding:7px 0">
           <router-link :to="`/article/${a.slug}`" style="width:100%">
-            <span class="thumb-mini" :style="{ backgroundImage: 'url(' + thumbOf(a) + ')' }" />
+            <ArticleCover class="thumb-mini" :article="a" thumbnail />
             <span class="t">{{ a.title }}</span>
             <span class="d">{{ fmtDate(a.published_at) }}</span>
           </router-link>
