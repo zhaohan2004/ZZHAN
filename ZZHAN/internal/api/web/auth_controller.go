@@ -4,7 +4,10 @@ import (
 	"ZZHAN/internal/model/dto"
 	"ZZHAN/internal/repository"
 	"ZZHAN/internal/service"
+	"ZZHAN/pkg/config"
+	"ZZHAN/pkg/response"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,6 +19,17 @@ type AuthController struct {
 
 func NewAuthController(authService service.AuthService, redisRepo repository.RedisRepository) *AuthController {
 	return &AuthController{authService: authService, redisRepo: redisRepo}
+}
+
+// GitHubConfig returns the public OAuth client ID for the authorization request.
+func (c *AuthController) GitHubConfig(ctx *gin.Context) {
+	cfg := config.Get().GitHub
+	clientID := strings.TrimSpace(cfg.ClientID)
+	if clientID == "" || strings.TrimSpace(cfg.ClientSecret) == "" {
+		response.Error(ctx, http.StatusServiceUnavailable, 50300, "GitHub 登录尚未配置")
+		return
+	}
+	response.Success(ctx, gin.H{"client_id": clientID})
 }
 
 // GitHubLogin GitHub OAuth 登录

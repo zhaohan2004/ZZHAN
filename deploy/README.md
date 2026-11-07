@@ -30,6 +30,10 @@ MySQL、Redis 不发布宿主机端口，前端使用 3000/4000。数据卷均�
 
 部署会自动执行应用现有的数据库迁移，因此失败后不自动回滚数据库。更新期间可能短暂中断；发布前应备份重要数据库数据。脚本没有删除容器卷、清理全机镜像或停止其他项目的操作。
 
+## 配置前台 GitHub 登录
+
+在 GitHub 的 OAuth Apps 设置中，将授权回调地址设为前台实际地址加 `/auth/github/callback`。当前部署示例为 `http://49.232.71.34:3000/auth/github/callback`。在服务器的 `config.yaml` 中填写同一个 OAuth App 的 `github.client_id`、`github.client_secret` 和回调地址 `github.redirect_url`，然后在部署目录运行 `docker compose up -d --no-deps --force-recreate backend`。前台在运行时读取公开的 Client ID，Client Secret 仅保存在后端。
+
 ## 将历史 Base64 文章封面迁移到 OSS
 
 发布新版后，在部署目录使用当前后端配置运行迁移：

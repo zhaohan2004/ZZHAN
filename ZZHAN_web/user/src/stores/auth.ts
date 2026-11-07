@@ -5,14 +5,13 @@
  */
 import {defineStore} from 'pinia'
 import {computed, ref} from 'vue'
-import {getCurrentUser, githubLogin, logout as apiLogout, refresh_token} from '@/api/auth'
+import {getCurrentUser, getGitHubConfig, githubLogin, logout as apiLogout, refresh_token} from '@/api/auth'
 import type {AuthUser} from '@/types/models'
 
 const ACCESS_TOKEN_KEY = 'ct-access-token'
 const REFRESH_TOKEN_KEY = 'ct-refresh-token'
 
 /** GitHub OAuth 配置 */
-const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID || ''
 const GITHUB_REDIRECT_URI_PATH = import.meta.env.VITE_GITHUB_REDIRECT_URI || '/auth/github/callback'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -52,7 +51,12 @@ export const useAuthStore = defineStore('auth', () => {
       if (!code) {
         // 没有 code，重定向到 GitHub 授权页面
         const redirectUri = `${window.location.origin}${GITHUB_REDIRECT_URI_PATH}`
-        window.location.href = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}`
+        const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID?.trim() || (await getGitHubConfig()).client_id
+        if (!clientId) throw new Error('GitHub 登录尚未配置')
+        const authorizeUrl = new URL('https://github.com/login/oauth/authorize')
+        authorizeUrl.searchParams.set('client_id', clientId)
+        authorizeUrl.searchParams.set('redirect_uri', redirectUri)
+        window.location.href = authorizeUrl.href
         return false
       }
 

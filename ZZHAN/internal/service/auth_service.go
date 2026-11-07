@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -131,15 +132,16 @@ func (s *authService) GitHubLogin(ctx context.Context, code, redirectURI string)
 
 // exchangeGitHubToken 用 code 换取 GitHub access_token
 func (s *authService) exchangeGitHubToken(clientID, clientSecret, code, redirectURI string) (*GitHubToken, error) {
-	url := fmt.Sprintf("https://github.com/login/oauth/access_token?client_id=%s&client_secret=%s&code=%s", clientID, clientSecret, code)
+	form := url.Values{"client_id": {strings.TrimSpace(clientID)}, "client_secret": {clientSecret}, "code": {code}}
 	if redirectURI != "" {
-		url += "&redirect_uri=" + redirectURI
+		form.Set("redirect_uri", redirectURI)
 	}
-	req, err := http.NewRequest("POST", url, nil)
+	req, err := http.NewRequest(http.MethodPost, "https://github.com/login/oauth/access_token", strings.NewReader(form.Encode()))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := githubHTTPClient().Do(req)
 	if err != nil {
 		return nil, err
