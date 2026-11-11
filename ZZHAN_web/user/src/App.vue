@@ -4,6 +4,7 @@ import { onMounted } from 'vue'
 import SiteNav from '@/components/layout/SiteNav.vue'
 import BackTop from '@/components/layout/BackTop.vue'
 import LoginModal from '@/components/auth/LoginModal.vue'
+import ManualCopyDialog from '@/components/ui/ManualCopyDialog.vue'
 import { useSiteStore } from '@/stores/site'
 
 const site = useSiteStore()
@@ -20,4 +21,5 @@ onMounted(() => {
   </main>
   <BackTop />
   <LoginModal />
+  <ManualCopyDialog />
 </template>

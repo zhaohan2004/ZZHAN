@@ -1,5 +1,6 @@
 import MarkdownIt, { type RendererRule } from 'markdown-it'
 import hljs from 'highlight.js'
+import { useClipboard } from '@/composables/useClipboard'
 
 /** Mirrors the static site's slugifier: keep CJK + ASCII word chars, collapse the rest to '-'. */
 function slugify(s: string): string {
@@ -75,33 +76,27 @@ export function buildTOC(container: HTMLElement): { level: 2 | 3 | 4; id: string
 }
 
 export function decorateCode(container: HTMLElement): void {
+  const { copyText } = useClipboard()
   container.querySelectorAll('pre code').forEach((el) => {
-    const codeEl = el as HTMLElement
     const block = el.closest('.code-block') as HTMLElement | null
     if (!block || block.dataset.decorated) return
     block.dataset.decorated = '1'
+    const codeText = el.textContent ?? ''
     el.querySelectorAll('span.cl').forEach((n) => n.remove())
     const lines = el.innerHTML.split('\n')
     // highlight.js appends a trailing newline; drop trailing empty lines like the static site does
     while (lines.length && /^\s*$/.test(lines[lines.length - 1])) lines.pop()
     el.innerHTML = lines.map((l) => `<span class="cl">${l || ' '}</span>`).join('\n')
     const btn = block.querySelector('.code-copy') as HTMLButtonElement | null
-    btn?.addEventListener('click', () => {
+    btn?.addEventListener('click', async () => {
+      if (!(await copyText(codeText, 'code'))) return
       const done = () => {
         btn.textContent = '已复制'
         setTimeout(() => {
           btn.textContent = '复制'
         }, 1600)
       }
-      const clip = navigator.clipboard
-      if (clip && typeof clip.writeText === 'function') {
-        Promise.resolve()
-          .then(() => clip.writeText(codeEl.innerText))
-          .then(done)
-          .catch(done)
-      } else {
-        done()
-      }
+      done()
     })
   })
 }

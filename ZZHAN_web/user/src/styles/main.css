@@ -764,6 +764,19 @@ html.dark .skeleton .sk-line::after,html.dark .skeleton .sk-cover::after{backgro
 .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border)}
 .modal-close{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-2);transition:all .25s}
 .modal-close:hover{background:var(--card-2);color:var(--danger)}
+/* 复制失败后的手动复制窗口，使用原生 dialog 管理焦点与背景隔离。 */
+.manual-copy-dialog{width:min(580px,calc(100vw - 32px));max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);margin:auto;padding:0;color:var(--text);transform:none;overflow:hidden}
+.manual-copy-dialog[open]{display:flex;flex-direction:column}
+.manual-copy-dialog::backdrop{background:rgba(2,6,23,.45);backdrop-filter:blur(3px)}
+.manual-copy-dialog .modal-head,.manual-copy-dialog .modal-foot{flex-shrink:0}
+.manual-copy-heading{display:flex;align-items:center;gap:12px}
+.manual-copy-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;flex:none;background:var(--grad-soft);color:var(--accent);border:1px solid var(--border);border-radius:8px}
+.manual-copy-body{min-height:0;overflow-y:auto}
+.manual-copy-description{font-size:14px;color:var(--text-2);margin-bottom:18px}
+.manual-copy-content{display:block;width:100%;max-height:40vh;max-height:40dvh;padding:13px 14px;border:1px solid var(--border-strong);border-radius:7px;background:var(--code-bg);color:var(--text);font-family:var(--font-mono);font-size:13px;line-height:1.7;cursor:text;overflow:auto}
+.manual-copy-content:focus{border-color:var(--accent)}
+.manual-copy-content.is-code{white-space:pre}
+.manual-copy-hint{margin-top:12px;font-size:12px;line-height:1.7;color:var(--text-3)}
 .form-group{margin-bottom:16px}
 .form-label{display:block;font-size:13px;font-weight:600;margin-bottom:7px;color:var(--text-2)}
 .form-hint{font-size:12px;color:var(--text-3);margin-top:5px}
