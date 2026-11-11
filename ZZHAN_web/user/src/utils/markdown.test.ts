@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { renderMarkdown, buildTOC, decorateCode } from './markdown'
+import { useClipboard } from '@/composables/useClipboard'
 
 describe('renderMarkdown', () => {
   it('renders headings, lists, tables, code', () => {
@@ -54,6 +55,17 @@ describe('buildTOC', () => {
 })
 
 describe('decorateCode', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    useClipboard().closeManualCopy()
+  })
+
+  afterEach(() => {
+    useClipboard().closeManualCopy()
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
+  })
+
   it('wraps each line in span.cl and guards re-decoration', () => {
     const html = renderMarkdown('```ts\nconst a = 1\nconst b = 2\n```')
     const container = document.createElement('div')
@@ -68,14 +80,60 @@ describe('decorateCode', () => {
     expect(container.innerHTML).toBe(before)
   })
 
-  it('copy button swaps text to 已复制 on click', async () => {
-    const html = renderMarkdown('```ts\nconst a = 1\n```')
+  it('copies the original code once and shows success only after the write resolves', async () => {
+    let finishCopy!: () => void
+    const pendingWrite = new Promise<void>((resolve) => { finishCopy = resolve })
+    const writeText = vi.fn(() => pendingWrite)
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    const source = 'function greet() {\n  const name = "<visitor>"\n\n  return name\n}\n\n'
+    const html = renderMarkdown('```ts\n' + source + '```')
     const container = document.createElement('div')
     container.innerHTML = html
     decorateCode(container)
+    decorateCode(container)
     const btn = container.querySelector('.code-copy') as HTMLButtonElement
+
     btn.click()
-    await new Promise((r) => setTimeout(r, 0))
+    expect(writeText).toHaveBeenCalledExactlyOnceWith(source)
+    expect(btn.textContent).toBe('复制')
+
+    finishCopy()
+    await vi.advanceTimersByTimeAsync(0)
     expect(btn.textContent).toBe('已复制')
+    expect(useClipboard().manualCopy.value).toBeNull()
+
+    vi.advanceTimersByTime(1600)
+    expect(btn.textContent).toBe('复制')
+  })
+
+  it('offers the original code for manual copying when clipboard writing is rejected', async () => {
+    const writeText = vi.fn().mockRejectedValue(new DOMException('Permission denied', 'NotAllowedError'))
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    const source = 'if (ready) {\n\trun()\n\n}\n'
+    const container = document.createElement('div')
+    container.innerHTML = renderMarkdown('```ts\n' + source + '```')
+    decorateCode(container)
+    const btn = container.querySelector('.code-copy') as HTMLButtonElement
+
+    btn.click()
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(writeText).toHaveBeenCalledExactlyOnceWith(source)
+    expect(btn.textContent).toBe('复制')
+    expect(useClipboard().manualCopy.value).toEqual({ text: source, kind: 'code' })
+  })
+
+  it('offers manual copying without claiming success when the Clipboard API is missing', async () => {
+    vi.stubGlobal('navigator', {})
+    const container = document.createElement('div')
+    container.innerHTML = renderMarkdown('```ts\nconst a = 1\n```')
+    decorateCode(container)
+    const btn = container.querySelector('.code-copy') as HTMLButtonElement
+
+    btn.click()
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(btn.textContent).toBe('复制')
+    expect(useClipboard().manualCopy.value).toEqual({ text: 'const a = 1\n', kind: 'code' })
   })
 })

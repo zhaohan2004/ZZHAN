@@ -7,12 +7,14 @@ import { Link, ThumbsUp } from 'lucide-vue-next'
 import { toggleLike } from '@/api/articles'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
+import { useClipboard } from '@/composables/useClipboard'
 
 const props = defineProps<{ slug: string; likes: number; liked?: boolean }>()
 const emit = defineEmits<{ (e: 'liked', likes: number): void }>()
 
 const auth = useAuthStore()
 const { toast } = useToast()
+const { copyText } = useClipboard()
 const liked = ref(props.liked ?? false)
 const like_count = ref(props.likes)
 const loading = ref(false)
@@ -36,11 +38,8 @@ async function onLike(): Promise<void> {
 
 async function onShare(): Promise<void> {
   const url = window.location.href
-  try {
-    await navigator.clipboard.writeText(url)
+  if (await copyText(url, 'link')) {
     toast('链接已复制，去分享吧', 'success')
-  } catch {
-    toast(url, 'info')
   }
 }
 </script>
