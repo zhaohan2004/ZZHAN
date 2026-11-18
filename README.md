@@ -1,219 +1,216 @@
-# ZZHAN Blog System
+# ZZHAN 博客系统
 
-A full-stack blog system based on Go + Vue 3 with frontend-backend separation, supporting article management, categories & tags, comments & likes, user authentication, and more.
+一个基于 Go + Vue 3 的前后端分离博客系统，支持文章管理、分类标签、评论点赞、用户认证等功能。
 
-## 🚀 Tech Stack
+## 🚀 技术栈
 
-### Backend (ZZHAN)
+### 后端 (ZZHAN)
 
-| Component | Technology |
-|-----------|------------|
-| Web Framework | Gin |
+| 组件 | 技术 |
+|------|------|
+| Web 框架 | Gin |
 | ORM | GORM |
-| Database | MySQL |
-| Cache | Redis |
-| Authentication | JWT |
-| Logging | Zap + Lumberjack |
-| Configuration | Viper |
-| Captcha | base64Captcha |
+| 数据库 | MySQL |
+| 缓存 | Redis |
+| 认证 | JWT |
+| 日志 | Zap + Lumberjack |
+| 配置 | Viper |
+| 验证码 | base64Captcha |
 
-### Frontend (ZZHAN_web)
+### 前端 (ZZHAN_web)
 
-- **User Site** (user): Vue 3 + TypeScript + Vite
-- **Admin Panel** (admin): Vue 3 + TypeScript + Vite
+- **前台** (user): Vue 3 + TypeScript + Vite
+- **后台** (admin): Vue 3 + TypeScript + Vite
 
-## 📁 Project Structure
+## 📁 项目结构
 
 ```
-ZZHAN/
-├── cmd/server/           # Application entry point
-├── internal/
-│   ├── api/              # Routes and controllers
-│   │   ├── admin/        # Admin API endpoints
-│   │   └── web/          # User-facing API endpoints
-│   ├── app/              # Application initialization
-│   ├── middleware/       # Middleware
-│   ├── model/            # Data models
-│   │   ├── dto/          # Data Transfer Objects
-│   │   └── entity/       # Entity definitions
-│   ├── repository/       # Data access layer
-│   └── service/          # Business logic layer
-├── pkg/                  # Public utility packages
-│   ├── b64c/             # Captcha
-│   ├── config/           # Configuration loading
-│   ├── database/         # Database connections
-│   ├── errors/           # Error handling
-│   ├── jwt/              # JWT authentication
-│   ├── logger/           # Logging utilities
-│   ├── response/         # Response wrapper
-│   ├── storage/          # Storage service
-│   └── utils/            # Utility functions
-├── config.yaml           # Configuration file
-├── Makefile              # Build scripts
-└── go.mod                # Go dependencies
+博客/
+├── ZZHAN/                    # 后端项目
+│   ├── cmd/server/           # 程序入口
+│   ├── internal/
+│   │   ├── api/              # 路由和控制器
+│   │   │   ├── admin/        # 后台管理接口
+│   │   │   └── web/          # 前台接口
+│   │   ├── app/              # 应用初始化
+│   │   ├── middleware/       # 中间件
+│   │   ├── model/            # 数据模型
+│   │   │   ├── dto/          # 数据传输对象
+│   │   │   └── entity/       # 实体定义
+│   │   ├── repository/       # 数据访问层
+│   │   └── service/          # 业务逻辑层
+│   ├── pkg/                  # 公共工具包
+│   │   ├── b64c/             # 验证码
+│   │   ├── config/           # 配置加载
+│   │   ├── database/         # 数据库连接
+│   │   ├── errors/           # 错误处理
+│   │   ├── jwt/              # JWT 认证
+│   │   ├── logger/           # 日志工具
+│   │   ├── response/         # 响应封装
+│   │   ├── storage/          # 存储服务
+│   │   └── utils/            # 工具函数
+│   ├── config.yaml           # 配置文件
+│   ├── Makefile              # 构建脚本
+│   └── go.mod                # Go 依赖
+│
+└── ZZHAN_web/                # 前端项目
+    ├── user/                 # 前台用户端
+    └── admin/                # 后台管理端
 ```
 
-## ✨ Features
+## ✨ 功能特性
 
-### User Site
-- 📝 Article browsing (Markdown rendering)
-- 🔍 Article search
-- 📂 Category filtering
-- 🏷️ Tag filtering
-- 👍 Like/Unlike
-- 💬 Comments/Replies
-- 📊 Site statistics
-- 📅 Article archive
-- 🔐 User registration/Login
-- 👤 User profile
+### 前台功能
+- 📝 文章浏览（Markdown 渲染）
+- 🔍 文章搜索
+- 📂 分类筛选
+- 🏷️ 标签筛选
+- 👍 点赞/取消点赞
+- 💬 评论/回复
+- 📊 站点统计
+- 📅 文章归档
+- 🔐 用户注册/登录
+- 👤 个人中心
 
-### Admin Panel
-- 📊 Dashboard
-- 📝 Article management (Publish/Edit/Unpublish)
-- 📂 Category management
-- 🏷️ Tag management
-- 💬 Comment management
-- 👥 User management
-- ⚙️ Site settings
-- 📋 Operation logs
+### 后台功能
+- 📊 数据仪表盘
+- 📝 文章管理（发布/编辑/下架）
+- 📂 分类管理
+- 🏷️ 标签管理
+- 💬 评论管理
+- 👥 用户管理
+- ⚙️ 站点设置
+- 📋 操作日志
 
-## 🛠️ Quick Start
+## 🛠️ 快速开始
 
-### Prerequisites
+### 环境要求
 
 - Go 1.24+
 - Node.js 18+
 - MySQL 8.0+
 - Redis 7.0+
 
-### 1. Clone the Repository
+### 1. 克隆项目
 
 ```bash
 git clone <repository-url>
-cd ZZHAN
+cd 博客
 ```
 
-### 2. Configure Backend
+### 2. 配置后端
 
 ```bash
-# Copy example config
+cd ZZHAN
+
+# 复制配置文件
 cp .env.example .env
 
-# Edit configuration file with your database and Redis connection info
+# 编辑配置文件，填入数据库和 Redis 连接信息
 vim config.yaml
 ```
 
-### 3. Initialize Database
+### 3. 初始化数据库
 
 ```bash
-# Import database schema
+# 导入数据库结构
 mysql -u root -p < zzhan_dump.sql
 ```
 
-### 4. Start Backend
+### 4. 启动后端
 
 ```bash
-# Using Makefile
+# 使用 Makefile
 make run
 
-# Or run directly
+# 或直接运行
 go run cmd/server/main.go
 
-# With custom config file
+# 指定配置文件
 go run cmd/server/main.go -c config.yaml
 ```
 
-### 5. Start Frontend
+### 5. 启动前端
 
 ```bash
-# User site
+# 前台
 cd ZZHAN_web/user
 npm install
 npm run dev
 
-# Admin panel
+# 后台
 cd ZZHAN_web/admin
 npm install
 npm run dev
 ```
 
-## 📦 Docker Deployment
+## 🔧 Makefile 命令
 
-```bash
-# Build and start all services
-docker-compose up -d
+| 命令 | 说明 |
+|------|------|
+| `make build` | 编译项目 |
+| `make run` | 运行项目 |
+| `make test` | 运行测试 |
+| `make test-coverage` | 生成测试覆盖率报告 |
+| `make clean` | 清理构建文件 |
+| `make deps` | 下载依赖 |
+| `make fmt` | 格式化代码 |
+| `make vet` | 静态检查 |
+| `make lint` | 代码检查（需安装 golangci-lint） |
+| `make help` | 显示帮助信息 |
 
-# View logs
-docker-compose logs -f
-```
+## 📡 API 接口
 
-## 🔧 Makefile Commands
+### 前台接口
 
-| Command | Description |
-|---------|-------------|
-| `make build` | Build the project |
-| `make run` | Run the project |
-| `make test` | Run tests |
-| `make test-coverage` | Generate test coverage report |
-| `make clean` | Clean build artifacts |
-| `make deps` | Download dependencies |
-| `make fmt` | Format code |
-| `make vet` | Static analysis |
-| `make lint` | Code linting (requires golangci-lint) |
-| `make help` | Show help information |
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/v1/articles` | 文章列表 |
+| GET | `/api/v1/articles/:slug` | 文章详情 |
+| GET | `/api/v1/categories` | 分类列表 |
+| GET | `/api/v1/tags` | 标签列表 |
+| GET | `/api/v1/archives` | 归档列表 |
+| GET | `/api/v1/stats` | 站点统计 |
+| POST | `/api/v1/auth/register` | 用户注册 |
+| POST | `/api/v1/auth/login` | 用户登录 |
+| POST | `/api/v1/articles/:id/like` | 点赞 |
+| POST | `/api/v1/articles/:id/comments` | 发表评论 |
 
-## 📡 API Endpoints
+### 后台接口
 
-### User API
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/admin/auth/login` | 管理员登录 |
+| GET | `/api/admin/dashboard` | 仪表盘数据 |
+| GET/POST/PUT/DELETE | `/api/admin/articles` | 文章管理 |
+| GET/POST/PUT/DELETE | `/api/admin/categories` | 分类管理 |
+| GET/POST/PUT/DELETE | `/api/admin/tags` | 标签管理 |
+| GET/PUT/DELETE | `/api/admin/comments` | 评论管理 |
+| GET/PUT | `/api/admin/users` | 用户管理 |
+| GET/PUT | `/api/admin/settings` | 站点设置 |
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/v1/articles` | Article list |
-| GET | `/api/v1/articles/:slug` | Article detail |
-| GET | `/api/v1/categories` | Category list |
-| GET | `/api/v1/tags` | Tag list |
-| GET | `/api/v1/archives` | Archive list |
-| GET | `/api/v1/stats` | Site statistics |
-| POST | `/api/v1/auth/register` | User registration |
-| POST | `/api/v1/auth/login` | User login |
-| POST | `/api/v1/articles/:id/like` | Like article |
-| POST | `/api/v1/articles/:id/comments` | Post comment |
+## 🔐 认证机制
 
-### Admin API
+- 使用 JWT 进行身份验证
+- 支持 Access Token + Refresh Token 双 Token 机制
+- 单设备登录（同一用户只允许一个活跃会话）
+- Token 黑名单（登出时失效）
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/admin/auth/login` | Admin login |
-| GET | `/api/admin/dashboard` | Dashboard data |
-| GET/POST/PUT/DELETE | `/api/admin/articles` | Article management |
-| GET/POST/PUT/DELETE | `/api/admin/categories` | Category management |
-| GET/POST/PUT/DELETE | `/api/admin/tags` | Tag management |
-| GET/PUT/DELETE | `/api/admin/comments` | Comment management |
-| GET/PUT | `/api/admin/users` | User management |
-| GET/PUT | `/api/admin/settings` | Site settings |
+## 📊 浏览量统计
 
-## 🔐 Authentication
+采用 **IP 去重** 机制：
+- 同一 IP 在 10 分钟内多次访问只计 1 次
+- 使用 Redis 存储访问记录
+- Redis 不可用时降级为直接计数
 
-- JWT-based authentication
-- Access Token + Refresh Token dual-token mechanism
-- Single device login (only one active session per user)
-- Token blacklist (invalidated on logout)
-
-## 📊 View Count Statistics
-
-Uses **IP-based deduplication**:
-- Same IP counts only once within 10 minutes
-- Access records stored in Redis
-- Falls back to direct counting when Redis is unavailable
-
-## 📝 License
+## 📝 许可证
 
 MIT License
 
-## 👥 Author
+## 👥 作者
 
 - 23107
 
-## 🙏 Acknowledgments
+## 🙏 致谢
 
-Thanks to everyone who has contributed to this project.
+感谢所有为这个项目做出贡献的人。
