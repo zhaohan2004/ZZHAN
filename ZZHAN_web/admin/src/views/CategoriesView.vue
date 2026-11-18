@@ -2,13 +2,14 @@
 /** 分类管理 — 1:1 复刻静态 categories.html（.admin-tools/.data-table + .modal-overlay 新增/编辑弹窗）。去 Element Plus。 */
 import { computed, onMounted, reactive, ref } from 'vue'
 import { Info, Pencil, Plus, RotateCcw, Search, ToggleLeft, ToggleRight, Trash2 } from 'lucide-vue-next'
+import TableLoadingBody from '@/components/common/TableLoadingBody.vue'
 import { createCategory, deleteCategory, listCategories, setCategoryStatus, updateCategory } from '@/api/admin'
 import type { CategoryAdmin } from '@/types/models'
 import { confirm, toast } from '@/composables/useToast'
 
 const categories = ref<CategoryAdmin[]>([])
 const total = ref(0)
-const loading = ref(false)
+const loading = ref(true)
 
 const query = reactive<{ page: number; pageSize: number; keyword: string; status: string; minCount: string; maxCount: string }>({
   page: 1,
@@ -145,7 +146,7 @@ onMounted(load)
       <span class="muted" style="font-size: 13px">共 <b>{{ total }}</b> 个分类</span>
     </div>
 
-    <div class="data-table-wrap reveal in" v-if="!loading">
+    <div class="data-table-wrap">
       <table class="data-table">
         <thead>
           <tr>
@@ -159,7 +160,8 @@ onMounted(load)
             <th style="text-align: right">操作</th>
           </tr>
         </thead>
-        <tbody>
+        <TableLoadingBody v-if="loading" :columns="8" label="正在加载分类…" />
+        <tbody v-else>
           <tr v-for="c in categories" :key="c.id">
             <td>{{ c.id }}</td>
             <td style="font-weight: 600; color: var(--text-1)">

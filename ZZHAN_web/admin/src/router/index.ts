@@ -29,7 +29,7 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior: () => ({ top: 0 }),
+  scrollBehavior: () => ({ left: 0, top: 0, behavior: 'instant' }),
 })
 
 router.beforeEach((to) => {

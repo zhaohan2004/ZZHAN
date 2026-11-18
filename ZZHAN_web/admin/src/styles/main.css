@@ -5,7 +5,7 @@
 
 /* ---------- 1. 基础与字体 ---------- */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;scroll-padding-top:74px;-webkit-text-size-adjust:100%}
+html{scroll-behavior:smooth;scrollbar-gutter:stable;scroll-padding-top:74px;-webkit-text-size-adjust:100%}
 body{
   font-family:var(--font-body);
   background:var(--bg);
@@ -819,6 +819,7 @@ html.dark{
   color:var(--text-3);background:var(--card-2);border-bottom:1px solid var(--border);white-space:nowrap;
 }
 .data-table td{padding:13px 18px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table .table-loading-cell{padding:40px 18px;text-align:center;color:var(--text-3)}
 .data-table .table-date{white-space:nowrap;font-variant-numeric:tabular-nums}
 .data-table tbody tr{transition:background .2s}
 .data-table tbody tr:hover,.data-table tbody tr:focus-within{background:var(--card-2)}

@@ -3,6 +3,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowDownToLine, Pencil, Plus, RotateCcw, Search, Send, Trash2 } from 'lucide-vue-next'
+import TableLoadingBody from '@/components/common/TableLoadingBody.vue'
 import {
   deleteAdminArticle,
   listAdminArticles,
@@ -180,9 +181,7 @@ onMounted(() => {
             <th style="text-align: right">操作</th>
           </tr>
         </thead>
-        <tbody v-if="loading">
-          <tr><td colspan="10" style="text-align: center; color: var(--text-3); padding: 40px"><span role="status">正在加载文章…</span></td></tr>
-        </tbody>
+        <TableLoadingBody v-if="loading" :columns="10" label="正在加载文章…" />
         <tbody v-else-if="loadFailed">
           <tr>
             <td colspan="10" style="text-align: center; color: var(--text-3); padding: 40px">

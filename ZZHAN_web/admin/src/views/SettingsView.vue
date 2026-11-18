@@ -7,12 +7,12 @@ import type { SettingsKV } from '@/types/models'
 import { SETTINGS } from '@/api/mock/data'
 import { confirm, toast } from '@/composables/useToast'
 
-const loading = ref(false)
+const loadState = ref<'loading' | 'ready' | 'error'>('loading')
 const saving = ref(false)
 const form = reactive<SettingsKV>({ ...(SETTINGS as SettingsKV) })
 
 async function load() {
-  loading.value = true
+  loadState.value = 'loading'
   try {
     const s = await getSettings()
     // socials 后端返回的是 JSON 字符串，需要解析为数组
@@ -20,14 +20,14 @@ async function load() {
       try { s.socials = JSON.parse(s.socials as string) } catch { s.socials = [] }
     }
     Object.assign(form, s)
+    loadState.value = 'ready'
   } catch {
-    toast.error('加载设置失败')
-  } finally {
-    loading.value = false
+    loadState.value = 'error'
   }
 }
 
 async function save() {
+  if (loadState.value !== 'ready' || saving.value) return
   saving.value = true
   try {
     // 将 socials 数组序列化为 JSON 字符串，后端以 string 存储
@@ -79,7 +79,14 @@ onMounted(load)
 
 <template>
   <div>
-    <div class="settings-grid">
+    <div v-if="loadState !== 'ready'" class="settings-sec settings-load-state">
+      <p v-if="loadState === 'loading'" role="status">正在加载系统设置…</p>
+      <template v-else>
+        <p role="alert">系统设置加载失败，请重试。</p>
+        <button type="button" class="btn btn-ghost btn-sm" @click="load">重试</button>
+      </template>
+    </div>
+    <div v-else class="settings-grid">
       <!-- 基本信息 -->
       <div class="settings-sec reveal in">
         <h3>
@@ -197,9 +204,21 @@ onMounted(load)
       </div>
     </div>
 
-    <div style="display: flex; gap: 10px; justify-content: flex-end; padding-bottom: 30px">
+    <div v-if="loadState === 'ready'" style="display: flex; gap: 10px; justify-content: flex-end; padding-bottom: 30px">
       <button class="btn btn-ghost" :disabled="saving" @click="reset"><RotateCcw :size="15" /> 恢复默认</button>
       <button class="btn btn-primary" :disabled="saving" @click="save"><Save :size="15" /> 保存设置</button>
     </div>
   </div>
 </template>
+
+<style scoped>
+.settings-load-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 120px;
+  color: var(--text-2);
+}
+</style>

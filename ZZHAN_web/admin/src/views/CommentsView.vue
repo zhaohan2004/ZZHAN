@@ -2,6 +2,7 @@
 /** 评论管理 — 1:1 复刻静态 comments.html（.admin-tools/.data-table/.pagination）。去 Element Plus。 */
 import { computed, onMounted, reactive, ref } from 'vue'
 import { Ban, RotateCcw, Search, ShieldCheck, Trash2 } from 'lucide-vue-next'
+import TableLoadingBody from '@/components/common/TableLoadingBody.vue'
 import { deleteComment, listAdminArticles, listComments, updateCommentStatus } from '@/api/admin'
 import type { AdminArticle, CommentAdmin, CommentStatus } from '@/types/models'
 import { confirm, toast } from '@/composables/useToast'
@@ -9,7 +10,7 @@ import { confirm, toast } from '@/composables/useToast'
 const comments = ref<CommentAdmin[]>([])
 const articles = ref<AdminArticle[]>([])
 const total = ref(0)
-const loading = ref(false)
+const loading = ref(true)
 
 const query = reactive<{
   page: number
@@ -97,13 +98,13 @@ async function removeComment(c: CommentAdmin) {
 }
 
 onMounted(async () => {
+  void load()
   try {
     const res = await listAdminArticles({ page: 1, pageSize: 100 })
     articles.value = res.list
   } catch {
     /* 静默 */
   }
-  load()
 })
 </script>
 
@@ -130,7 +131,7 @@ onMounted(async () => {
       <span class="muted" style="font-size: 13px">共 <b>{{ total }}</b> 条评论</span>
     </div>
 
-    <div class="data-table-wrap reveal in" v-if="!loading">
+    <div class="data-table-wrap">
       <table class="data-table">
         <thead>
           <tr>
@@ -144,7 +145,8 @@ onMounted(async () => {
             <th style="text-align: right">操作</th>
           </tr>
         </thead>
-        <tbody>
+        <TableLoadingBody v-if="loading" :columns="8" label="正在加载评论…" />
+        <tbody v-else>
           <tr v-for="c in comments" :key="c.id">
             <td style="font-weight: 600; color: var(--text-2)">{{ c.user_name }}</td>
             <td>

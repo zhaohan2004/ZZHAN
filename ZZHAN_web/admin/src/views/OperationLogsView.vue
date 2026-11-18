@@ -2,13 +2,14 @@
 /** 操作日志 — 列表 + 筛选（操作类型、操作对象、时间段）。 */
 import { computed, onMounted, reactive, ref } from 'vue'
 import { RotateCcw, Search } from 'lucide-vue-next'
+import TableLoadingBody from '@/components/common/TableLoadingBody.vue'
 import { listOperationLogs } from '@/api/operation-logs'
 import type { OperationLogAdmin } from '@/types/models'
 import { toast } from '@/composables/useToast'
 
 const logs = ref<OperationLogAdmin[]>([])
 const total = ref(0)
-const loading = ref(false)
+const loading = ref(true)
 
 const query = reactive<{
   page: number
@@ -133,7 +134,7 @@ onMounted(() => {
       <span class="muted" style="font-size: 13px">共 <b>{{ total }}</b> 条记录</span>
     </div>
 
-    <div class="data-table-wrap reveal in" v-if="!loading">
+    <div class="data-table-wrap">
       <table class="data-table">
         <thead>
           <tr>
@@ -143,7 +144,8 @@ onMounted(() => {
             <th>操作时间</th>
           </tr>
         </thead>
-        <tbody>
+        <TableLoadingBody v-if="loading" :columns="4" label="正在加载操作日志…" />
+        <tbody v-else>
           <tr v-for="log in logs" :key="log.id">
             <td style="font-weight: 600; color: var(--text-2)">{{ log.admin_name || '-' }}</td>
             <td><span class="st" :class="getActionClass(log.action)">{{ log.action }}</span></td>
