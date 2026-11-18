@@ -126,19 +126,19 @@ onMounted(() => {
         <button class="btn btn-ghost btn-sm" @click="search"><Search :size="14" /> 查询</button>
         <button class="btn btn-ghost btn-sm" @click="reset"><RotateCcw :size="14" /> 重置</button>
       </div>
-      <span class="muted" style="font-size: 13px">共 <b>{{ total }}</b> 个用户</span>
+      <span class="muted list-total">共 <b>{{ total }}</b> 个用户</span>
     </div>
 
     <div class="data-table-wrap">
-      <table class="data-table">
+      <table class="data-table users-table">
         <thead>
           <tr>
             <th>用户</th>
-            <th>登录方式</th>
-            <th>状态</th>
-            <th>最后登录</th>
-            <th>注册时间</th>
-            <th style="text-align: right">操作</th>
+            <th class="col-provider">登录方式</th>
+            <th class="col-status">状态</th>
+            <th class="col-timestamp">最后登录</th>
+            <th class="col-timestamp">注册时间</th>
+            <th class="col-actions" style="text-align: right">操作</th>
           </tr>
         </thead>
         <TableLoadingBody v-if="loading" :columns="6" label="正在加载用户…" />
@@ -150,11 +150,11 @@ onMounted(() => {
                   v-if="u.avatar"
                   :src="u.avatar"
                   :alt="u.nickname"
-                  style="width: 32px; height: 32px; border-radius: 10px; object-fit: cover"
+                  style="flex: none; width: 32px; height: 32px; border-radius: 10px; object-fit: cover"
                 />
                 <span
                   v-else
-                  style="width: 32px; height: 32px; border-radius: 10px; background: var(--grad-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600"
+                  style="flex: none; width: 32px; height: 32px; border-radius: 10px; background: var(--grad-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600"
                 >
                   {{ u.nickname?.charAt(0)?.toUpperCase() || '?' }}
                 </span>
@@ -186,7 +186,7 @@ onMounted(() => {
             </td>
           </tr>
           <tr v-if="!users.length">
-            <td colspan="6" style="text-align: center; color: var(--text-3); padding: 40px">暂无用户</td>
+            <td colspan="6"><span>暂无用户</span></td>
           </tr>
         </tbody>
       </table>

@@ -147,11 +147,11 @@ onMounted(() => {
         style="width: 220px"
         @keyup.enter="search"
       />
-      <select v-model="query.category" class="select">
+      <select v-model="query.category" class="select taxonomy-filter">
         <option value="all">全部分类</option>
         <option v-for="c in categories" :key="c.id" :value="c.name">{{ c.name }}</option>
       </select>
-      <select v-model="query.tag" class="select">
+      <select v-model="query.tag" class="select taxonomy-filter">
         <option value="all">全部标签</option>
         <option v-for="t in tags" :key="t.id" :value="t.name">{{ t.name }}</option>
       </select>
@@ -166,27 +166,29 @@ onMounted(() => {
     </div>
 
     <div class="data-table-wrap">
-      <table class="data-table">
+      <table class="data-table articles-table">
         <thead>
           <tr>
-            <th>ID</th>
+            <th class="col-id">ID</th>
             <th>文章标题</th>
-            <th>封面</th>
-            <th>分类</th>
-            <th>标签</th>
-            <th>状态</th>
-            <th>阅读量</th>
-            <th>发布时间</th>
-            <th>更新时间</th>
-            <th style="text-align: right">操作</th>
+            <th class="col-cover">封面</th>
+            <th class="col-category">分类</th>
+            <th class="col-tags">标签</th>
+            <th class="col-status">状态</th>
+            <th class="col-count">阅读量</th>
+            <th class="col-date">发布时间</th>
+            <th class="col-date">更新时间</th>
+            <th class="col-article-actions" style="text-align: right">操作</th>
           </tr>
         </thead>
         <TableLoadingBody v-if="loading" :columns="10" label="正在加载文章…" />
         <tbody v-else-if="loadFailed">
           <tr>
-            <td colspan="10" style="text-align: center; color: var(--text-3); padding: 40px">
-              <p>文章加载失败</p>
-              <button class="btn btn-ghost btn-sm" type="button" style="margin-top: 8px" @click="load">重试</button>
+            <td colspan="10">
+              <div>
+                <p>文章加载失败</p>
+                <button class="btn btn-ghost btn-sm" type="button" style="margin-top: 8px" @click="load">重试</button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -239,7 +241,7 @@ onMounted(() => {
             </td>
           </tr>
           <tr v-if="!articles.length">
-            <td colspan="10" style="text-align: center; color: var(--text-3); padding: 40px">暂无文章</td>
+            <td colspan="10"><span>暂无文章</span></td>
           </tr>
         </tbody>
       </table>

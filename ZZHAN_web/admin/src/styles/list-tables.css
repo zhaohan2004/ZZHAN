@@ -1,0 +1,43 @@
+/* 表头决定列宽，在列表数据返回前就为操作、日期和状态留出空间。 */
+.data-table {
+  table-layout: fixed;
+  overflow-wrap: anywhere;
+}
+
+.articles-table { min-width: 69rem; }
+.categories-table { min-width: 60rem; }
+.tags-table { min-width: 52rem; }
+.comments-table { min-width: 62rem; }
+.users-table { min-width: 54rem; }
+.logs-table { min-width: 36rem; }
+
+.data-table .col-id { width: 3.75rem; }
+.data-table .col-tag-id { width: 5.5rem; }
+.data-table .col-cover { width: 6.25rem; }
+.data-table .col-avatar { width: 4.5rem; }
+.data-table .col-count { width: 6rem; }
+.data-table .col-status { width: 6.75rem; }
+.data-table .col-date { width: 7.5rem; }
+.data-table .col-time { width: 10rem; }
+.data-table .col-timestamp { width: 12rem; }
+.data-table .col-actions { width: 6.5rem; }
+.data-table .col-article-actions { width: 8.5rem; }
+.data-table .col-provider { width: 8rem; }
+.data-table .col-category { width: 9%; }
+.data-table .col-tags { width: 12%; }
+.data-table .col-name { width: 15%; }
+.data-table .col-article { width: 17%; }
+
+/* 宽表可以横向滚动，跨栏的加载、空结果及错误提示在可见区域内居中。 */
+.data-table-wrap { container-type: inline-size; }
+.data-table td[colspan] {
+  color: var(--text-3);
+  padding: 40px 0;
+  text-align: center;
+}
+.data-table td[colspan] > * {
+  position: sticky;
+  left: 0;
+  display: block;
+  width: min(100%, 100cqi);
+}

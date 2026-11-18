@@ -143,21 +143,21 @@ onMounted(load)
         <button class="btn btn-ghost btn-sm" @click="search"><Search :size="14" /> 查询</button>
         <button class="btn btn-ghost btn-sm" @click="reset"><RotateCcw :size="14" /> 重置</button>
       </div>
-      <span class="muted" style="font-size: 13px">共 <b>{{ total }}</b> 个分类</span>
+      <span class="muted list-total">共 <b>{{ total }}</b> 个分类</span>
     </div>
 
     <div class="data-table-wrap">
-      <table class="data-table">
+      <table class="data-table categories-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>分类名称</th>
+            <th class="col-id">ID</th>
+            <th class="col-name">分类名称</th>
             <th>分类描述</th>
-            <th>状态</th>
-            <th>文章数量</th>
-            <th>创建时间</th>
-            <th>更新时间</th>
-            <th style="text-align: right">操作</th>
+            <th class="col-status">状态</th>
+            <th class="col-count">文章数量</th>
+            <th class="col-time">创建时间</th>
+            <th class="col-time">更新时间</th>
+            <th class="col-actions" style="text-align: right">操作</th>
           </tr>
         </thead>
         <TableLoadingBody v-if="loading" :columns="8" label="正在加载分类…" />
@@ -185,7 +185,7 @@ onMounted(load)
             </td>
           </tr>
           <tr v-if="!categories.length">
-            <td colspan="8" style="text-align: center; color: var(--text-3); padding: 40px">暂无分类</td>
+            <td colspan="8"><span>暂无分类</span></td>
           </tr>
         </tbody>
       </table>

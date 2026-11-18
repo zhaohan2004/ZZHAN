@@ -128,21 +128,21 @@ onMounted(async () => {
         <button class="btn btn-ghost btn-sm" @click="search"><Search :size="14" /> 查询</button>
         <button class="btn btn-ghost btn-sm" @click="reset"><RotateCcw :size="14" /> 重置</button>
       </div>
-      <span class="muted" style="font-size: 13px">共 <b>{{ total }}</b> 条评论</span>
+      <span class="muted list-total">共 <b>{{ total }}</b> 条评论</span>
     </div>
 
     <div class="data-table-wrap">
-      <table class="data-table">
+      <table class="data-table comments-table">
         <thead>
           <tr>
-            <th>评论用户</th>
-            <th>头像</th>
+            <th class="col-name">评论用户</th>
+            <th class="col-avatar">头像</th>
             <th>评论内容</th>
-            <th>所属文章</th>
-            <th>点赞</th>
-            <th>发布时间</th>
-            <th>状态</th>
-            <th style="text-align: right">操作</th>
+            <th class="col-article">所属文章</th>
+            <th class="col-count">点赞</th>
+            <th class="col-timestamp">发布时间</th>
+            <th class="col-status">状态</th>
+            <th class="col-actions" style="text-align: right">操作</th>
           </tr>
         </thead>
         <TableLoadingBody v-if="loading" :columns="8" label="正在加载评论…" />
@@ -187,7 +187,7 @@ onMounted(async () => {
             </td>
           </tr>
           <tr v-if="!comments.length">
-            <td colspan="8" style="text-align: center; color: var(--text-3); padding: 40px">暂无评论</td>
+            <td colspan="8"><span>暂无评论</span></td>
           </tr>
         </tbody>
       </table>
