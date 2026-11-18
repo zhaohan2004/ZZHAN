@@ -2,13 +2,14 @@
 /** 用户管理 */
 import { computed, onMounted, reactive, ref } from 'vue'
 import { RotateCcw, Search, ShieldCheck, ShieldOff, Trash2 } from 'lucide-vue-next'
+import TableLoadingBody from '@/components/common/TableLoadingBody.vue'
 import { deleteUser, listUsers, setUserStatus } from '@/api/admin'
 import type { UserAdmin, UserStatus } from '@/types/models'
 import { confirm, toast } from '@/composables/useToast'
 
 const users = ref<UserAdmin[]>([])
 const total = ref(0)
-const loading = ref(false)
+const loading = ref(true)
 
 const query = reactive<{
   page: number
@@ -128,7 +129,7 @@ onMounted(() => {
       <span class="muted" style="font-size: 13px">共 <b>{{ total }}</b> 个用户</span>
     </div>
 
-    <div class="data-table-wrap reveal in" v-if="!loading">
+    <div class="data-table-wrap">
       <table class="data-table">
         <thead>
           <tr>
@@ -140,7 +141,8 @@ onMounted(() => {
             <th style="text-align: right">操作</th>
           </tr>
         </thead>
-        <tbody>
+        <TableLoadingBody v-if="loading" :columns="6" label="正在加载用户…" />
+        <tbody v-else>
           <tr v-for="u in users" :key="u.id">
             <td>
               <div style="display: flex; align-items: center; gap: 10px">
