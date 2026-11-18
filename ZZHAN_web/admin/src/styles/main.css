@@ -1,3 +1,5 @@
+@import './list-tables.css';
+
 /* ============================================================
    CodeThink Blog · 统一设计系统
    晴窗 · 管理工作台
@@ -749,6 +751,8 @@ html.dark{
 .sidebar-toggle{display:none}
 .admin-tools{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;align-items:center}
 .admin-tools .input,.admin-tools .select{width:auto}
+.admin-tools .taxonomy-filter{width:9rem;min-width:0;text-overflow:ellipsis}
+.list-total{flex:0 0 8.5em;min-width:0;font-size:13px;font-variant-numeric:tabular-nums}
 
 /* 统计卡片 */
 .stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:22px}

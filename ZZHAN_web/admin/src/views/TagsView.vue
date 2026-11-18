@@ -141,20 +141,20 @@ onMounted(load)
         <button class="btn btn-ghost btn-sm" @click="search"><Search :size="14" /> 查询</button>
         <button class="btn btn-ghost btn-sm" @click="reset"><RotateCcw :size="14" /> 重置</button>
       </div>
-      <span class="muted" style="font-size: 13px">共 <b>{{ total }}</b> 个标签</span>
+      <span class="muted list-total">共 <b>{{ total }}</b> 个标签</span>
     </div>
 
     <div class="data-table-wrap">
-      <table class="data-table">
+      <table class="data-table tags-table">
         <thead>
           <tr>
-            <th>标签 ID</th>
+            <th class="col-tag-id">标签 ID</th>
             <th>标签名称</th>
-            <th>状态</th>
-            <th>使用次数</th>
-            <th>创建时间</th>
-            <th>更新时间</th>
-            <th style="text-align: right">操作</th>
+            <th class="col-status">状态</th>
+            <th class="col-count">使用次数</th>
+            <th class="col-time">创建时间</th>
+            <th class="col-time">更新时间</th>
+            <th class="col-actions" style="text-align: right">操作</th>
           </tr>
         </thead>
         <TableLoadingBody v-if="loading" :columns="7" label="正在加载标签…" />
@@ -162,7 +162,7 @@ onMounted(load)
           <tr v-for="t in tags" :key="t.id">
             <td>{{ t.id }}</td>
             <td style="font-weight: 500; color: var(--text-2)">
-              <span style="display: inline-flex; align-items: center; gap: 8px"><Tag :size="14" style="color: var(--accent)" /> {{ t.name }}</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px"><Tag :size="14" style="flex: none; color: var(--accent)" /> {{ t.name }}</span>
             </td>
             <td>
               <span :class="t.status === 'active' ? 'badge-success' : 'badge-muted'" style="cursor: pointer" @click="toggleStatus(t)" :title="t.status === 'active' ? '点击停用' : '点击启用'">
@@ -178,7 +178,7 @@ onMounted(load)
             </td>
           </tr>
           <tr v-if="!tags.length">
-            <td colspan="7" style="text-align: center; color: var(--text-3); padding: 40px">暂无标签</td>
+            <td colspan="7"><span>暂无标签</span></td>
           </tr>
         </tbody>
       </table>

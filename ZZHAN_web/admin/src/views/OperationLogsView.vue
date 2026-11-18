@@ -131,17 +131,17 @@ onMounted(() => {
         <button class="btn btn-ghost btn-sm" @click="search"><Search :size="14" /> 查询</button>
         <button class="btn btn-ghost btn-sm" @click="reset"><RotateCcw :size="14" /> 重置</button>
       </div>
-      <span class="muted" style="font-size: 13px">共 <b>{{ total }}</b> 条记录</span>
+      <span class="muted list-total">共 <b>{{ total }}</b> 条记录</span>
     </div>
 
     <div class="data-table-wrap">
-      <table class="data-table">
+      <table class="data-table logs-table">
         <thead>
           <tr>
             <th>操作者</th>
             <th>操作类型</th>
             <th>操作对象</th>
-            <th>操作时间</th>
+            <th class="col-timestamp">操作时间</th>
           </tr>
         </thead>
         <TableLoadingBody v-if="loading" :columns="4" label="正在加载操作日志…" />
@@ -153,7 +153,7 @@ onMounted(() => {
             <td style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px">{{ log.created_at }}</td>
           </tr>
           <tr v-if="!logs.length">
-            <td colspan="4" style="text-align: center; color: var(--text-3); padding: 40px">暂无操作日志</td>
+            <td colspan="4"><span>暂无操作日志</span></td>
           </tr>
         </tbody>
       </table>
