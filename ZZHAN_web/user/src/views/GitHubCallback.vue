@@ -4,6 +4,7 @@
  */
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { AccountDisabledError } from '@/api/session'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 
@@ -29,8 +30,7 @@ onMounted(async () => {
       toast('登录失败', 'error')
     }
   } catch (error) {
-    console.error('GitHub 登录失败:', error)
-    toast('登录失败，请重试', 'error')
+    if (!(error instanceof AccountDisabledError)) toast('登录失败，请重试', 'error')
   } finally {
     // 跳转到首页
     router.push('/')

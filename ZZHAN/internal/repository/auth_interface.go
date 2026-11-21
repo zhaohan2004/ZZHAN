@@ -17,7 +17,7 @@ type AuthRepository interface {
 	// CreateUser 创建用户
 	CreateUser(ctx context.Context, user *entity.User) error
 
-	// UpdateUser 更新用户信息
+	// UpdateUser 仅更新 OAuth 用户的昵称和头像。
 	UpdateUser(ctx context.Context, user *entity.User) error
 
 	// UpdateUserLoginTime 更新用户最后登录时间

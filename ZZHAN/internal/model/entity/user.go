@@ -5,12 +5,13 @@ import "time"
 // User 前台用户表（GitHub OAuth 登录，无密码）
 type User struct {
 	BaseEntity
-	Provider    string     `gorm:"type:varchar(20);not null;uniqueIndex:uk_users_provider_openid,priority:1;comment:登录方式：github" json:"provider"`
-	Openid      string     `gorm:"type:varchar(100);not null;uniqueIndex:uk_users_provider_openid,priority:2;comment:该平台用户唯一标识" json:"openid"`
-	Nickname    string     `gorm:"type:varchar(50);comment:昵称" json:"nickname"`
-	Avatar      string     `gorm:"type:varchar(255);comment:头像 URL" json:"avatar"`
-	Status      int8       `gorm:"type:tinyint;not null;default:1;comment:状态：1 正常 / 0 禁用" json:"status"`
-	LastLoginAt *time.Time `gorm:"type:datetime;comment:最后登录时间" json:"last_login_at"`
+	Provider       string     `gorm:"type:varchar(20);not null;uniqueIndex:uk_users_provider_openid,priority:1;comment:登录方式：github" json:"provider"`
+	Openid         string     `gorm:"type:varchar(100);not null;uniqueIndex:uk_users_provider_openid,priority:2;comment:该平台用户唯一标识" json:"openid"`
+	Nickname       string     `gorm:"type:varchar(50);comment:昵称" json:"nickname"`
+	Avatar         string     `gorm:"type:varchar(255);comment:头像 URL" json:"avatar"`
+	Status         int8       `gorm:"type:tinyint;not null;default:1;comment:状态：1 正常 / 0 禁用" json:"status"`
+	SessionVersion uint64     `gorm:"type:bigint unsigned;not null;default:0" json:"-"`
+	LastLoginAt    *time.Time `gorm:"type:datetime;comment:最后登录时间" json:"last_login_at"`
 }
 
 // TableName 指定表名

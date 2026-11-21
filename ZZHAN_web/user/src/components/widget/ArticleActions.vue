@@ -5,6 +5,7 @@
 import { ref } from 'vue'
 import { Link, ThumbsUp } from 'lucide-vue-next'
 import { toggleLike } from '@/api/articles'
+import { AccountDisabledError } from '@/api/session'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import { useClipboard } from '@/composables/useClipboard'
@@ -29,8 +30,8 @@ async function onLike(): Promise<void> {
     like_count.value = res.likes
     emit('liked', res.likes)
     toast(res.liked ? '点赞成功' : '已取消点赞', res.liked ? 'success' : 'info')
-  } catch {
-    toast('操作失败，请重试', 'error')
+  } catch (error) {
+    if (!(error instanceof AccountDisabledError)) toast('操作失败，请重试', 'error')
   } finally {
     loading.value = false
   }

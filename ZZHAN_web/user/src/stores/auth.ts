@@ -4,40 +4,49 @@
  * `ensureAuth()` 未登录时置 `loginModalOpen = true`（LoginModal 组件消费该标志）并返回 false。
  */
 import {defineStore} from 'pinia'
-import {computed, ref} from 'vue'
+import {computed, onScopeDispose, ref} from 'vue'
 import {getCurrentUser, getGitHubConfig, githubLogin, logout as apiLogout, refresh_token} from '@/api/auth'
+import {AccountDisabledError, clearSession, isCurrentSession, onSessionChange, readSession, saveSession, updateAccessToken} from '@/api/session'
+import {useToast} from '@/composables/useToast'
 import type {AuthUser} from '@/types/models'
-
-const ACCESS_TOKEN_KEY = 'ct-access-token'
-const REFRESH_TOKEN_KEY = 'ct-refresh-token'
 
 /** GitHub OAuth 配置 */
 const GITHUB_REDIRECT_URI_PATH = import.meta.env.VITE_GITHUB_REDIRECT_URI || '/auth/github/callback'
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(localStorage.getItem(ACCESS_TOKEN_KEY))
-  const refreshToken = ref<string | null>(localStorage.getItem(REFRESH_TOKEN_KEY))
+  const savedSession = readSession()
+  const token = ref(savedSession.accessToken)
+  const refreshToken = ref(savedSession.refreshToken)
   const user = ref<AuthUser | null>(null)
+  const { toast } = useToast()
   /** 登录弹窗开关（LoginModal 组件读取渲染） */
   const loginModalOpen = ref(false)
 
   const isLoggedIn = computed(() => !!token.value)
 
+  onScopeDispose(onSessionChange((change) => {
+    token.value = change.accessToken
+    if (change.accessToken === null) {
+      refreshToken.value = null
+      user.value = null
+      if (change.error) {
+        loginModalOpen.value = false
+        toast(change.error.message, 'error')
+      }
+    }
+  }))
+
   /** 初始化：如果有 token，获取用户信息 */
   async function init(): Promise<void> {
-    if (token.value) {
-      console.log('Token 存在，尝试获取用户信息...')
-      try {
-        const userData = await getCurrentUser()
-        console.log('获取用户信息成功:', userData)
+    if (!savedSession.accessToken) return
+
+    try {
+      const userData = await getCurrentUser()
+      if (isCurrentSession(savedSession)) {
         user.value = userData
-      } catch (error) {
-        console.error('获取用户信息失败:', error)
-        // http.ts 已处理 token 刷新；走到这里说明刷新也失败了，清空登录态
-        clearAuth()
       }
-    } else {
-      console.log('Token 不存在，跳过获取用户信息')
+    } catch {
+      clearSession(savedSession)
     }
   }
 
@@ -75,7 +84,7 @@ export const useAuthStore = defineStore('auth', () => {
 
         return true
       } catch (error) {
-        console.error('GitHub 登录失败:', error)
+        if (error instanceof AccountDisabledError) throw error
         return false
       }
     }
@@ -84,44 +93,36 @@ export const useAuthStore = defineStore('auth', () => {
 
   /** 保存双 token 到 state + localStorage */
   function setTokens(access: string, refresh: string): void {
+    saveSession(access, refresh)
     token.value = access
     refreshToken.value = refresh
-    localStorage.setItem(ACCESS_TOKEN_KEY, access)
-    localStorage.setItem(REFRESH_TOKEN_KEY, refresh)
   }
 
   /** 用 refresh_token 换新 access_token */
   async function refreshAccessToken(): Promise<boolean> {
-    if (!refreshToken.value) return false
+    const session = readSession()
+    if (!session.refreshToken) return false
     try {
-      const res = await refresh_token(refreshToken.value)
-      token.value = res.access_token
-      localStorage.setItem(ACCESS_TOKEN_KEY, res.access_token)
-      return true
-    } catch {
-      // refresh 也失败了，需要重新登录
-      clearAuth()
+      const res = await refresh_token(session.refreshToken)
+      return updateAccessToken(session, res.access_token)
+    } catch (error) {
+      if (error instanceof AccountDisabledError) throw error
+      clearSession(session)
       return false
     }
   }
 
-  /** 清空认证状态 */
-  function clearAuth(): void {
-    token.value = null
-    refreshToken.value = null
-    user.value = null
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
-  }
-
   /** 退出登录：调用 API 并清空本地态 */
-  async function logout(): Promise<void> {
+  async function logout(): Promise<boolean> {
+    const session = readSession()
     try {
       await apiLogout()
-    } catch {
-      /* 静默失败，仍清空本地 */
+    } catch (error) {
+      if (error instanceof AccountDisabledError) return false
+    } finally {
+      clearSession(session)
     }
-    clearAuth()
+    return true
   }
 
   /** 登录门卫：已登录返回 true；未登录弹 LoginModal 并返回 false */

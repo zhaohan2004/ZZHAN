@@ -24,9 +24,9 @@ function closeOnOutside(e: MouseEvent): void {
 }
 
 async function onLogout(): Promise<void> {
-  await auth.logout()
+  const loggedOut = await auth.logout()
   menuOpen.value = false
-  toast('已退出登录', 'info')
+  if (loggedOut) toast('已退出登录', 'info')
 }
 
 onMounted(() => document.addEventListener('click', closeOnOutside))

@@ -13,14 +13,14 @@ import (
 
 type CommentsController struct {
 	commentsService service.CommentsService
-	redisRepo       repository.RedisRepository
+	userAuth        gin.HandlerFunc
 	commentRepo     repository.CommentsRepository
 }
 
-func NewCommentsController(commentsService service.CommentsService, redisRepo repository.RedisRepository, commentRepo repository.CommentsRepository) *CommentsController {
+func NewCommentsController(commentsService service.CommentsService, userAuth gin.HandlerFunc, commentRepo repository.CommentsRepository) *CommentsController {
 	return &CommentsController{
 		commentsService: commentsService,
-		redisRepo:       redisRepo,
+		userAuth:        userAuth,
 		commentRepo:     commentRepo,
 	}
 }

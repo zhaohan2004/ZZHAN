@@ -1,10 +1,6 @@
 package web
 
-import (
-	"ZZHAN/internal/middleware"
-
-	"github.com/gin-gonic/gin"
-)
+import "github.com/gin-gonic/gin"
 
 // RegisterRoutes 注册评论相关路由
 func (c *CommentsController) RegisterRoutes(r *gin.RouterGroup) {
@@ -15,7 +11,7 @@ func (c *CommentsController) RegisterRoutes(r *gin.RouterGroup) {
 
 		// 发表评论需要登录
 		auth := comments.Group("")
-		auth.Use(middleware.Auth(c.redisRepo, "user"))
+		auth.Use(c.userAuth)
 		{
 			auth.POST("/:slug", c.PostComment) // 发表评论（需登录）
 		}

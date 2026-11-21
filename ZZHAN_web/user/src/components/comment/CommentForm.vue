@@ -3,6 +3,7 @@
 import { ref } from 'vue'
 import { Send } from 'lucide-vue-next'
 import { postComment } from '@/api/comments'
+import { AccountDisabledError } from '@/api/session'
 import { useToast } from '@/composables/useToast'
 
 const props = withDefaults(defineProps<{ slug: string; parentId?: number | null; replyTo?: string | null }>(), { parentId: null, replyTo: null })
@@ -27,6 +28,7 @@ async function submit(): Promise<void> {
     toast('评论已发布', 'success')
     emit('done')
   } catch (err) {
+    if (err instanceof AccountDisabledError) return
     const msg = err instanceof Error ? err.message : String(err)
     if (msg.includes('登录')) {
       toast('请先登录后再发表评论', 'error')

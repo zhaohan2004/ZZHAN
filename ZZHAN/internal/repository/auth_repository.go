@@ -13,6 +13,8 @@ type authRepository struct {
 	db *gorm.DB
 }
 
+const authUserColumns = "id, created_at, updated_at, provider, openid, nickname, avatar, status, session_version, last_login_at"
+
 // NewAuthRepository 创建认证仓储
 func NewAuthRepository(db *gorm.DB) AuthRepository {
 	return &authRepository{db: db}
@@ -22,6 +24,7 @@ func NewAuthRepository(db *gorm.DB) AuthRepository {
 func (r *authRepository) FindUserByOpenID(ctx context.Context, provider, openid string) (*entity.User, error) {
 	var user entity.User
 	err := r.db.WithContext(ctx).
+		Select(authUserColumns).
 		Where("provider = ? AND openid = ?", provider, openid).
 		First(&user).Error
 	if err != nil {
@@ -34,6 +37,7 @@ func (r *authRepository) FindUserByOpenID(ctx context.Context, provider, openid 
 func (r *authRepository) FindUserByID(ctx context.Context, userID int) (*entity.User, error) {
 	var user entity.User
 	err := r.db.WithContext(ctx).
+		Select(authUserColumns).
 		Where("id = ?", userID).
 		First(&user).Error
 	if err != nil {
@@ -47,9 +51,14 @@ func (r *authRepository) CreateUser(ctx context.Context, user *entity.User) erro
 	return r.db.WithContext(ctx).Create(user).Error
 }
 
-// UpdateUser 更新用户信息
+// UpdateUser 仅更新 OAuth 用户的昵称和头像。
 func (r *authRepository) UpdateUser(ctx context.Context, user *entity.User) error {
-	return r.db.WithContext(ctx).Save(user).Error
+	return r.db.WithContext(ctx).Model(&entity.User{}).
+		Where("id = ?", user.ID).
+		Updates(map[string]interface{}{
+			"nickname": user.Nickname,
+			"avatar":   user.Avatar,
+		}).Error
 }
 
 // UpdateUserLoginTime 更新用户最后登录时间
