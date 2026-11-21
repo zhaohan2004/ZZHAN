@@ -1,9 +1,14 @@
 package middleware
 
 import (
-	"ZZHAN/internal/repository"
+	"context"
+	"errors"
+	"net/http"
 	"strings"
 
+	"ZZHAN/internal/repository"
+	"ZZHAN/internal/service"
+	appErrors "ZZHAN/pkg/errors"
 	"ZZHAN/pkg/jwt"
 	"ZZHAN/pkg/response"
 
@@ -19,79 +24,109 @@ const (
 )
 
 // Auth JWT 认证中间件
-// userType: "admin" 或 "user"，用于单设备登录校验；为空则跳过活跃 token 检查
+// userType 用于单设备登录校验，为空时跳过活跃 token 检查。
 func Auth(redisRepo repository.RedisRepository, userType ...string) gin.HandlerFunc {
-	ut := ""
+	scope := ""
 	if len(userType) > 0 {
-		ut = userType[0]
+		scope = userType[0]
 	}
+	return authHandler(redisRepo, func(context.Context, *jwt.CustomClaims) (string, error) {
+		return scope, nil
+	}, false)
+}
 
+// AuthUser requires an enabled ordinary user with a current session.
+func AuthUser(redisRepo repository.RedisRepository, authRepo repository.AuthRepository) gin.HandlerFunc {
+	return userAuth(redisRepo, authRepo, false)
+}
+
+// OptionalUserAuth treats requests without a current user session as anonymous.
+func OptionalUserAuth(redisRepo repository.RedisRepository, authRepo repository.AuthRepository) gin.HandlerFunc {
+	return userAuth(redisRepo, authRepo, true)
+}
+
+func userAuth(redisRepo repository.RedisRepository, authRepo repository.AuthRepository, optional bool) gin.HandlerFunc {
+	return authHandler(redisRepo, func(ctx context.Context, claims *jwt.CustomClaims) (string, error) {
+		if err := service.ValidateUserSession(ctx, authRepo, claims.UserID, claims.SessionVersion); err != nil {
+			return "", err
+		}
+		return service.UserSessionScope(claims.SessionVersion), nil
+	}, optional)
+}
+
+func authHandler(redisRepo repository.RedisRepository, sessionScope func(context.Context, *jwt.CustomClaims) (string, error), optional bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 从 Header 获取 Authorization
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			response.Unauthorized(c, "请提供认证令牌")
-			c.Abort()
-			return
-		}
-
-		// 解析 Bearer Token
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			response.Unauthorized(c, "令牌格式错误")
-			c.Abort()
-			return
-		}
-
-		tokenString := parts[1]
-
-		// 解析 Token
-		claims, err := jwt.ParseToken(tokenString, "access_token")
+		claims, err := authenticate(c.Request.Context(), c.GetHeader("Authorization"), redisRepo, sessionScope)
 		if err != nil {
-			response.Unauthorized(c, err.Error())
+			if optional {
+				c.Next()
+				return
+			}
+			switch {
+			case errors.Is(err, appErrors.ErrUserDisabled):
+				response.Error(c, http.StatusForbidden, appErrors.CodeUserDisabled, appErrors.ErrUserDisabled.Message)
+			case errors.Is(err, appErrors.ErrInternalError):
+				_ = c.Error(err)
+				response.Error(c, http.StatusServiceUnavailable, appErrors.CodeInternalError, "暂时无法验证登录状态")
+			case errors.Is(err, appErrors.ErrInvalidToken):
+				response.Unauthorized(c, "登录已失效，请重新登录")
+			default:
+				response.Unauthorized(c, err.Error())
+			}
 			c.Abort()
 			return
 		}
 
-		// 检查 token 是否存在于黑名单中
-		if redisRepo != nil && redisRepo.Available(c) {
-			blacklisted, err := redisRepo.IsBlacklisted(c, tokenString)
-			if err != nil {
-				response.Unauthorized(c, "搜索黑名单失败")
-				c.Abort()
-				return
-			}
-			if blacklisted {
-				response.Unauthorized(c, "token 已失效")
-				c.Abort()
-				return
-			}
-
-			// 单设备登录校验：检查 token 是否为当前用户的活跃 token
-			if ut != "" {
-				activeToken, err := redisRepo.GetActiveToken(c, ut, claims.GetUserID())
-				if err != nil {
-					if err == redis.Nil {
-						// 无活跃 token 记录，说明该 token 不是通过新登录流程签发的
-						response.Unauthorized(c, "登录已失效，请重新登录")
-						c.Abort()
-						return
-					}
-					// 其他 Redis 错误 = 服务故障，放行（降级）
-				} else if activeToken != tokenString {
-					response.Unauthorized(c, "账号已在其他设备登录")
-					c.Abort()
-					return
-				}
-			}
-		}
-
-		// 将用户信息存入上下文
 		c.Set(ContextUserID, claims.GetUserID())
 		c.Set(ContextUsername, claims.GetUsername())
-
 		c.Next()
 	}
+}
+
+func authenticate(ctx context.Context, header string, redisRepo repository.RedisRepository, sessionScope func(context.Context, *jwt.CustomClaims) (string, error)) (*jwt.CustomClaims, error) {
+	if header == "" {
+		return nil, errors.New("请提供认证令牌")
+	}
+	scheme, token, found := strings.Cut(header, " ")
+	if !found || scheme != "Bearer" {
+		return nil, errors.New("令牌格式错误")
+	}
+	claims, err := jwt.ParseToken(token, "access_token")
+	if err != nil {
+		return nil, err
+	}
+	scope, err := sessionScope(ctx, claims)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkActiveToken(ctx, redisRepo, scope, claims.UserID, token); err != nil {
+		return nil, err
+	}
+	return claims, nil
+}
+
+func checkActiveToken(ctx context.Context, redisRepo repository.RedisRepository, scope string, userID int, token string) error {
+	if redisRepo == nil || !redisRepo.Available(ctx) {
+		return nil
+	}
+	blacklisted, err := redisRepo.IsBlacklisted(ctx, token)
+	if err != nil {
+		return errors.New("搜索黑名单失败")
+	}
+	if blacklisted {
+		return errors.New("token 已失效")
+	}
+	if scope == "" {
+		return nil
+	}
+	activeToken, err := redisRepo.GetActiveToken(ctx, scope, userID)
+	if errors.Is(err, redis.Nil) {
+		return errors.New("登录已失效，请重新登录")
+	}
+	if err == nil && activeToken != token {
+		return errors.New("账号已在其他设备登录")
+	}
+	return nil
 }
 
 // GetUserID 从上下文获取用户 ID
@@ -108,29 +143,4 @@ func GetUsername(c *gin.Context) string {
 		return username.(string)
 	}
 	return ""
-}
-
-// OptionalAuth 可选的 JWT 认证中间件
-func OptionalAuth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.Next()
-			return
-		}
-
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.Next()
-			return
-		}
-
-		claims, err := jwt.ParseToken(parts[1], "access_token")
-		if err == nil {
-			c.Set(ContextUserID, claims.GetUserID())
-			c.Set(ContextUsername, claims.GetUsername())
-		}
-
-		c.Next()
-	}
 }

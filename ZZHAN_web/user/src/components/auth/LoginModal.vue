@@ -4,6 +4,7 @@
  */
 import { computed, ref } from 'vue'
 import { Loader2, X } from 'lucide-vue-next'
+import { AccountDisabledError } from '@/api/session'
 import { useAuthStore } from '@/stores/auth'
 import { useSiteStore } from '@/stores/site'
 import { useToast } from '@/composables/useToast'
@@ -28,8 +29,8 @@ async function doLogin(): Promise<void> {
       toast('登录成功', 'success')
       close()
     }
-  } catch {
-    toast('登录失败，请重试', 'error')
+  } catch (error) {
+    if (!(error instanceof AccountDisabledError)) toast('登录失败，请重试', 'error')
   } finally {
     loading.value = false
   }

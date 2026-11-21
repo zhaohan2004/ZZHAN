@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"ZZHAN/internal/api"
+	"ZZHAN/internal/middleware"
 	"ZZHAN/internal/model/entity"
 	"ZZHAN/pkg/config"
 	"ZZHAN/pkg/database"
@@ -124,6 +125,9 @@ func (a *App) initDatabase() error {
 		// 审计模块
 		&entity.OperationLog{},
 	); err != nil {
+		if !a.mysqlDB.Migrator().HasColumn(&entity.User{}, "session_version") {
+			return fmt.Errorf("无法迁移用户会话版本字段: %w", err)
+		}
 		logger.Warn("数据库迁移警告", zap.Error(err))
 	} else {
 		logger.Info("数据库迁移完成")
@@ -195,8 +199,10 @@ func (a *App) initDependencies() {
 	siteController := web.NewSiteController(siteService)
 	siteAdminController := admin.NewSiteAdminController(siteAdminService, redisRepo, a.mysqlDB)
 	adminAuthController := admin.NewAdminAuthController(adminAuthService, redisRepo)
-	authController := web.NewAuthController(authService, redisRepo)
-	articlesController := web.NewArticlesController(articlesService)
+	userAuth := middleware.AuthUser(redisRepo, authRepo)
+	optionalUserAuth := middleware.OptionalUserAuth(redisRepo, authRepo)
+	authController := web.NewAuthController(authService, userAuth)
+	articlesController := web.NewArticlesController(articlesService, optionalUserAuth)
 	adminArticlesController := admin.NewAdminArticlesController(articlesAdminService, redisRepo, a.mysqlDB)
 	categoriesController := web.NewCategoriesController(categoriesService)
 	adminCategoriesController := admin.NewAdminCategoriesController(categoriesAdminService, redisRepo, a.mysqlDB)
@@ -204,10 +210,10 @@ func (a *App) initDependencies() {
 	adminTagsController := admin.NewAdminTagsController(tagsAdminService, redisRepo, a.mysqlDB)
 	archivesController := web.NewArchivesController(archivesService)
 	statsController := web.NewStatsController(statsService)
-	commentsController := web.NewCommentsController(commentsService, redisRepo, commentsRepo)
+	commentsController := web.NewCommentsController(commentsService, userAuth, commentsRepo)
 	adminCommentsController := admin.NewAdminCommentsController(commentsAdminService, redisRepo, a.mysqlDB)
 	adminUsersController := admin.NewAdminUsersController(usersAdminService, redisRepo, a.mysqlDB)
-	likeController := web.NewLikeController(likeService, redisRepo)
+	likeController := web.NewLikeController(likeService, userAuth)
 	uploadController := admin.NewUploadController(uploadService, redisRepo)
 	adminDashboardController := admin.NewAdminDashboardController(dashboardAdminService, redisRepo)
 	adminOperationLogsController := admin.NewAdminOperationLogsController(operationLogsAdminService, redisRepo)

@@ -53,9 +53,9 @@ function openLogout(): void {
   logoutOpen.value = true
 }
 async function doLogout(): Promise<void> {
-  await auth.logout()
+  const loggedOut = await auth.logout()
   logoutOpen.value = false
-  toast('已退出登录', 'success')
+  if (loggedOut) toast('已退出登录', 'success')
 }
 
 onMounted(() => {

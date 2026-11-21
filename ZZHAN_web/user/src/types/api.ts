@@ -18,6 +18,7 @@ export interface Paged<T> {
 /** 错误码（docs/api.md 通用约定） */
 export const ERROR_CODES = {
   OK: 0,
+  USER_DISABLED: 1004,
   BAD_REQUEST: 40001,
   UNAUTHORIZED: 40100,
   FORBIDDEN: 40300,

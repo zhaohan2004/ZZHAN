@@ -16,6 +16,15 @@ var (
 
 // GenerateToken 生成指定类型的 JWT Token
 func GenerateToken(userID int, username string, tokenType string) (string, error) {
+	return generateToken(userID, username, tokenType, 0)
+}
+
+// GenerateUserToken signs a token for the given user session version.
+func GenerateUserToken(userID int, username, tokenType string, sessionVersion uint64) (string, error) {
+	return generateToken(userID, username, tokenType, sessionVersion)
+}
+
+func generateToken(userID int, username, tokenType string, sessionVersion uint64) (string, error) {
 	cfg := config.Get().JWT
 
 	var expireDuration time.Duration
@@ -26,9 +35,10 @@ func GenerateToken(userID int, username string, tokenType string) (string, error
 	}
 
 	claims := CustomClaims{
-		UserID:    userID,
-		Username:  username,
-		TokenType: tokenType,
+		UserID:         userID,
+		Username:       username,
+		TokenType:      tokenType,
+		SessionVersion: sessionVersion,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expireDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -43,11 +53,20 @@ func GenerateToken(userID int, username string, tokenType string) (string, error
 
 // GenerateTokenPair 生成access + refresh token 对
 func GenerateTokenPair(userID int, username string) (accessToken, refreshToken string, err error) {
-	accessToken, err = GenerateToken(userID, username, "access_token")
+	return generateTokenPair(userID, username, 0)
+}
+
+// GenerateUserTokenPair issues an access and refresh token with the same session version.
+func GenerateUserTokenPair(userID int, username string, sessionVersion uint64) (accessToken, refreshToken string, err error) {
+	return generateTokenPair(userID, username, sessionVersion)
+}
+
+func generateTokenPair(userID int, username string, sessionVersion uint64) (accessToken, refreshToken string, err error) {
+	accessToken, err = generateToken(userID, username, "access_token", sessionVersion)
 	if err != nil {
 		return "", "", err
 	}
-	refreshToken, err = GenerateToken(userID, username, "refresh_token")
+	refreshToken, err = generateToken(userID, username, "refresh_token", sessionVersion)
 	if err != nil {
 		return "", "", err
 	}

@@ -10,11 +10,12 @@ import (
 )
 
 type ArticlesController struct {
-	articlesService service.ArticlesService
+	articlesService  service.ArticlesService
+	optionalUserAuth gin.HandlerFunc
 }
 
-func NewArticlesController(articlesService service.ArticlesService) *ArticlesController {
-	return &ArticlesController{articlesService: articlesService}
+func NewArticlesController(articlesService service.ArticlesService, optionalUserAuth gin.HandlerFunc) *ArticlesController {
+	return &ArticlesController{articlesService: articlesService, optionalUserAuth: optionalUserAuth}
 }
 
 // GetArticleList 获取文章列表

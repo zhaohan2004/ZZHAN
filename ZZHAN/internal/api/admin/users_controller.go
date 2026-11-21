@@ -73,7 +73,7 @@ func (c *AdminUsersController) UpdateStatus(ctx *gin.Context) {
 		return
 	}
 
-	detail, err := c.usersAdminService.AdminUpdateStatus(ctx.Request.Context(), id, req.Status)
+	detail, err := c.usersAdminService.AdminUpdateStatus(ctx.Request.Context(), id, *req.Status)
 	if err != nil {
 		response.InternalError(ctx, "修改用户状态失败")
 		return

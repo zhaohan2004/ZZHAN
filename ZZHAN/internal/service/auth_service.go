@@ -5,15 +5,19 @@ import (
 	"ZZHAN/internal/model/entity"
 	"ZZHAN/internal/repository"
 	"ZZHAN/pkg/config"
+	appErrors "ZZHAN/pkg/errors"
 	"ZZHAN/pkg/jwt"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // userAccessTTL 获取前台用户 access_token 的过期时长
@@ -97,7 +101,7 @@ func (s *authService) GitHubLogin(ctx context.Context, code, redirectURI string)
 	}()
 
 	//5.生成access_token 和 refresh_token 的 JWT token 对
-	accessToken, refreshToken, err := jwt.GenerateTokenPair(int(user.ID), user.Nickname)
+	accessToken, refreshToken, err := jwt.GenerateUserTokenPair(int(user.ID), user.Nickname, user.SessionVersion)
 	if err != nil {
 		return nil, fmt.Errorf("生成 token 失败：%w", err)
 	}
@@ -105,17 +109,18 @@ func (s *authService) GitHubLogin(ctx context.Context, code, redirectURI string)
 	//6.单设备登录：踢掉旧 token，记录新 token
 	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
 		uid := int(user.ID)
+		scope := UserSessionScope(user.SessionVersion)
 		// 获取旧的活跃 access_token 并加入黑名单
-		if oldToken, err := s.redisRepo.GetActiveToken(ctx, "user", uid); err == nil && oldToken != "" {
+		if oldToken, err := s.redisRepo.GetActiveToken(ctx, scope, uid); err == nil && oldToken != "" {
 			_ = s.redisRepo.AddToBlacklist(ctx, oldToken, userAccessTTL())
 		}
 		// 获取旧的活跃 refresh_token 并加入黑名单（防止旧设备用 refresh 续期）
-		if oldRefresh, err := s.redisRepo.GetActiveRefreshToken(ctx, "user", uid); err == nil && oldRefresh != "" {
+		if oldRefresh, err := s.redisRepo.GetActiveRefreshToken(ctx, scope, uid); err == nil && oldRefresh != "" {
 			_ = s.redisRepo.AddToBlacklist(ctx, oldRefresh, userRefreshTTL())
 		}
 		// 存储新的活跃 token
-		_ = s.redisRepo.SetActiveToken(ctx, "user", uid, accessToken, userAccessTTL())
-		_ = s.redisRepo.SetActiveRefreshToken(ctx, "user", uid, refreshToken, userRefreshTTL())
+		_ = s.redisRepo.SetActiveToken(ctx, scope, uid, accessToken, userAccessTTL())
+		_ = s.redisRepo.SetActiveRefreshToken(ctx, scope, uid, refreshToken, userRefreshTTL())
 	}
 
 	return &dto.LoginResponse{
@@ -193,6 +198,9 @@ func (s *authService) getGitHubUser(accessToken string) (*GitHubUser, error) {
 func (s *authService) findOrCreateUser(ctx context.Context, ghUser *GitHubUser) (*entity.User, error) {
 	user, err := s.authRepo.FindUserByOpenID(ctx, "github", fmt.Sprintf("%d", ghUser.ID))
 	if err == nil {
+		if user.Status != 1 {
+			return nil, appErrors.ErrUserDisabled
+		}
 		//用户存在，获取最新的头像和昵称
 		user.Avatar = ghUser.AvatarURL
 		if ghUser.Name != "" {
@@ -200,6 +208,9 @@ func (s *authService) findOrCreateUser(ctx context.Context, ghUser *GitHubUser) 
 		}
 		_ = s.authRepo.UpdateUser(ctx, user)
 		return user, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, fmt.Errorf("%w: 读取用户状态失败: %w", appErrors.ErrInternalError, err)
 	}
 
 	//用户不存在在时，创建新用户
@@ -227,26 +238,32 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (*d
 	if err != nil {
 		return nil, fmt.Errorf("refresh_token 无效：%w", err)
 	}
+	if err := ValidateUserSession(ctx, s.authRepo, claims.UserID, claims.SessionVersion); err != nil {
+		return nil, err
+	}
 
 	// 检查是否在黑名单中
-	blacklisted, err := s.redisRepo.IsBlacklisted(ctx, refreshToken)
-	if err != nil {
-		return nil, fmt.Errorf("检查 token 黑名单失败：%w", err)
-	}
-	if blacklisted {
-		return nil, fmt.Errorf("refresh_token 已失效")
+	if s.redisRepo != nil {
+		blacklisted, err := s.redisRepo.IsBlacklisted(ctx, refreshToken)
+		if err != nil {
+			return nil, fmt.Errorf("检查 token 黑名单失败：%w", err)
+		}
+		if blacklisted {
+			return nil, appErrors.ErrInvalidToken
+		}
 	}
 
-	newAccessToken, err := jwt.GenerateToken(claims.UserID, claims.Username, "access_token")
+	newAccessToken, err := jwt.GenerateUserToken(claims.UserID, claims.Username, "access_token", claims.SessionVersion)
 	if err != nil {
 		return nil, fmt.Errorf("生成新的 access_token 失败：%w", err)
 	}
 
 	// 更新活跃 token
 	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
-		_ = s.redisRepo.SetActiveToken(ctx, "user", claims.UserID, newAccessToken, userAccessTTL())
+		scope := UserSessionScope(claims.SessionVersion)
+		_ = s.redisRepo.SetActiveToken(ctx, scope, claims.UserID, newAccessToken, userAccessTTL())
 		// 确保 refresh_token 也记录在活跃列表中（兼容旧 token 迁移）
-		_ = s.redisRepo.SetActiveRefreshToken(ctx, "user", claims.UserID, refreshToken, userRefreshTTL())
+		_ = s.redisRepo.SetActiveRefreshToken(ctx, scope, claims.UserID, refreshToken, userRefreshTTL())
 	}
 
 	return &dto.RefreshResponse{
@@ -277,10 +294,11 @@ func (s *authService) Logout(ctx context.Context, accessToken string) error {
 
 	// 将活跃的 refresh_token 也加入黑名单并清除所有活跃 token
 	if s.redisRepo != nil && s.redisRepo.Available(ctx) {
-		if oldRefresh, err := s.redisRepo.GetActiveRefreshToken(ctx, "user", claims.UserID); err == nil && oldRefresh != "" {
+		scope := UserSessionScope(claims.SessionVersion)
+		if oldRefresh, err := s.redisRepo.GetActiveRefreshToken(ctx, scope, claims.UserID); err == nil && oldRefresh != "" {
 			_ = s.redisRepo.AddToBlacklist(ctx, oldRefresh, userRefreshTTL())
 		}
-		_ = s.redisRepo.ClearActiveToken(ctx, "user", claims.UserID)
+		_ = s.redisRepo.ClearActiveToken(ctx, scope, claims.UserID)
 	}
 
 	return nil
@@ -291,6 +309,9 @@ func (s *authService) GetCurrentUser(ctx context.Context, userID int) (*dto.Auth
 	user, err := s.authRepo.FindUserByID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("用户不存在：%w", err)
+	}
+	if user.Status != 1 {
+		return nil, appErrors.ErrUserDisabled
 	}
 
 	return &dto.AuthUser{

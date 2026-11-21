@@ -2,10 +2,11 @@ package web
 
 import (
 	"ZZHAN/internal/model/dto"
-	"ZZHAN/internal/repository"
 	"ZZHAN/internal/service"
 	"ZZHAN/pkg/config"
+	appErrors "ZZHAN/pkg/errors"
 	"ZZHAN/pkg/response"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -14,11 +15,26 @@ import (
 
 type AuthController struct {
 	authService service.AuthService
-	redisRepo   repository.RedisRepository
+	userAuth    gin.HandlerFunc
 }
 
-func NewAuthController(authService service.AuthService, redisRepo repository.RedisRepository) *AuthController {
-	return &AuthController{authService: authService, redisRepo: redisRepo}
+func NewAuthController(authService service.AuthService, userAuth gin.HandlerFunc) *AuthController {
+	return &AuthController{authService: authService, userAuth: userAuth}
+}
+
+func respondAccountError(ctx *gin.Context, err error) bool {
+	switch {
+	case errors.Is(err, appErrors.ErrUserDisabled):
+		response.Error(ctx, http.StatusForbidden, appErrors.CodeUserDisabled, appErrors.ErrUserDisabled.Message)
+	case errors.Is(err, appErrors.ErrInternalError):
+		_ = ctx.Error(err)
+		response.Error(ctx, http.StatusServiceUnavailable, appErrors.CodeInternalError, "暂时无法验证登录状态")
+	case errors.Is(err, appErrors.ErrInvalidToken):
+		response.Unauthorized(ctx, "登录已失效，请重新登录")
+	default:
+		return false
+	}
+	return true
 }
 
 // GitHubConfig returns the public OAuth client ID for the authorization request.
@@ -45,6 +61,9 @@ func (c *AuthController) GitHubLogin(ctx *gin.Context) {
 
 	resp, err := c.authService.GitHubLogin(ctx.Request.Context(), req.Code, req.RedirectURI)
 	if err != nil {
+		if respondAccountError(ctx, err) {
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code":    50000,
 			"message": "登录失败：" + err.Error(),
@@ -72,6 +91,9 @@ func (c *AuthController) RefreshToken(ctx *gin.Context) {
 
 	resp, err := c.authService.RefreshToken(ctx.Request.Context(), req.RefreshToken)
 	if err != nil {
+		if respondAccountError(ctx, err) {
+			return
+		}
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"code":    40100,
 			"message": "刷新失败：" + err.Error(),
@@ -133,6 +155,9 @@ func (c *AuthController) GetCurrentUser(ctx *gin.Context) {
 
 	resp, err := c.authService.GetCurrentUser(ctx.Request.Context(), userID.(int))
 	if err != nil {
+		if respondAccountError(ctx, err) {
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"code":    50000,
 			"message": "获取用户信息失败：" + err.Error(),

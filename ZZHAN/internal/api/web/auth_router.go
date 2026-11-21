@@ -1,14 +1,11 @@
 package web
 
-import (
-	"ZZHAN/internal/middleware"
-	"github.com/gin-gonic/gin"
-)
+import "github.com/gin-gonic/gin"
 
 // RegisterRoutes 注册认证相关路由
 func (c *AuthController) RegisterRoutes(r *gin.RouterGroup) {
 	auth := r.Group("/auth")
-	auth.Use(middleware.Auth(c.redisRepo, "user"))
+	auth.Use(c.userAuth)
 	{
 		auth.GET("/me", c.GetCurrentUser)
 		auth.POST("/logout", c.Logout)

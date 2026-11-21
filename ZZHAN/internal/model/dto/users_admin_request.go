@@ -12,5 +12,5 @@ type UsersAdminListRequest struct {
 
 // UsersAdminUpdateStatusRequest 后台修改用户状态请求
 type UsersAdminUpdateStatusRequest struct {
-	Status int8 `json:"status" binding:"required,oneof=0 1"` // 0 禁用 / 1 正常
+	Status *int8 `json:"status" binding:"required,oneof=0 1"` // 0 禁用 / 1 正常
 }

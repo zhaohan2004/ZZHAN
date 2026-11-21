@@ -2,7 +2,6 @@ package web
 
 import (
 	"ZZHAN/internal/middleware"
-	"ZZHAN/internal/repository"
 	"ZZHAN/internal/service"
 	"ZZHAN/pkg/response"
 	"strconv"
@@ -12,13 +11,13 @@ import (
 
 type LikeController struct {
 	likeService service.LikeService
-	redisRepo   repository.RedisRepository
+	userAuth    gin.HandlerFunc
 }
 
-func NewLikeController(likeService service.LikeService, redisRepo repository.RedisRepository) *LikeController {
+func NewLikeController(likeService service.LikeService, userAuth gin.HandlerFunc) *LikeController {
 	return &LikeController{
 		likeService: likeService,
-		redisRepo:   redisRepo,
+		userAuth:    userAuth,
 	}
 }
 

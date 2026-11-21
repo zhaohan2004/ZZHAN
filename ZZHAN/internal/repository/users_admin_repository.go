@@ -125,11 +125,14 @@ func (r *usersAdminRepository) AdminGetByID(ctx context.Context, id int64) (*dto
 	return item, nil
 }
 
-// AdminUpdateStatus 修改用户状态
+// AdminUpdateStatus 在用户状态变更时同时撤销旧会话。
 func (r *usersAdminRepository) AdminUpdateStatus(ctx context.Context, id int64, status int8) error {
 	return r.db.WithContext(ctx).Model(&entity.User{}).
-		Where("id = ?", id).
-		Update("status", status).Error
+		Where("id = ? AND status <> ?", id, status).
+		Updates(map[string]interface{}{
+			"status":          status,
+			"session_version": gorm.Expr("session_version + 1"),
+		}).Error
 }
 
 // AdminDelete 删除用户

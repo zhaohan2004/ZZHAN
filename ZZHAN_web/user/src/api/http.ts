@@ -1,86 +1,103 @@
-/**
- * HTTP 客户端 — 按 VITE_API_MODE 分流：
- * - mock：走 mock 适配器
- * - api：axios + baseURL + 注入 Authorization + 解包 { code, message, data }
- * - 自动刷新 token：遇到 401 时尝试用 refresh_token 换新 access_token 再重试
- */
+/** 前台 HTTP 客户端。令牌刷新成功后仅重试一次请求。 */
 import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios'
-import type { ApiResponse } from '@/types/api'
+import { ERROR_CODES, type ApiResponse } from '@/types/api'
 import { mockRequest } from './mock/handlers'
+import {
+  AccountDisabledError, clearSession, isCurrentSession, readSession, updateAccessToken,
+} from './session'
 
 export interface RequestConfig extends AxiosRequestConfig {}
-
-const ACCESS_TOKEN_KEY = 'ct-access-token'
-const REFRESH_TOKEN_KEY = 'ct-refresh-token'
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || '/api/v1',
 })
 
-/** 响应错误拦截：统一处理 HTTP 401 */
-client.interceptors.response.use(
-  (resp) => resp,
-  (err) => {
-    if (axios.isAxiosError(err) && err.response?.status === 401) {
-      clearAuth()
-      throw new Error('登录已过期，请重新登录')
-    }
-    throw err
-  },
-)
+const refreshPath = '/auth/refresh'
+type Session = ReturnType<typeof readSession>
 
-/** 注入 Authorization 头 */
-function authHeader(): Record<string, string> {
-  const token = localStorage.getItem(ACCESS_TOKEN_KEY)
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
-/** 用 refresh_token 换新 access_token */
-async function tryRefreshToken(): Promise<boolean> {
-  const rt = localStorage.getItem(REFRESH_TOKEN_KEY)
-  if (!rt) return false
+async function send<T>(config: RequestConfig): Promise<AxiosResponse<ApiResponse<T>>> {
   try {
-    const { data } = await client.post<{ code: number; data?: { access_token: string } }>('/auth/refresh', { refresh_token: rt })
-    if (data.code === 0 && data.data?.access_token) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, data.data.access_token)
-      return true
+    return await client.request<ApiResponse<T>>(config)
+  } catch (error) {
+    if (axios.isAxiosError<ApiResponse<T>>(error) &&
+      (error.response?.status === 401 || error.response?.status === 403)) {
+      return error.response
     }
-    return false
-  } catch {
-    return false
+    throw error
   }
 }
 
-/** 清空认证状态 */
-function clearAuth(): void {
-  localStorage.removeItem(ACCESS_TOKEN_KEY)
-  localStorage.removeItem(REFRESH_TOKEN_KEY)
+function checkAccountStatus(response: AxiosResponse<ApiResponse<unknown>>, session: Session): void {
+  if (response.data?.code === ERROR_CODES.USER_DISABLED) {
+    const error = new AccountDisabledError()
+    clearSession(session, error)
+    throw error
+  }
 }
 
-export async function request<T>(cfg: RequestConfig): Promise<T> {
-  const mode = import.meta.env.VITE_API_MODE
-  if (mode === 'mock') return mockRequest<T>(cfg)
+function isUnauthorized(response: AxiosResponse<ApiResponse<unknown>>): boolean {
+  return response.status === 401 || response.data?.code === 401 || response.data?.code === ERROR_CODES.UNAUTHORIZED
+}
 
-  const doRequest = async (): Promise<AxiosResponse<ApiResponse<T>>> => {
-    return client.request<ApiResponse<T>>({
-      ...cfg,
-      headers: { ...authHeader(), ...(cfg.headers || {}) },
-    })
+let pendingRefresh: { token: string; result: Promise<boolean> } | undefined
+
+async function tryRefreshToken(session: Session): Promise<boolean> {
+  const refreshToken = session.refreshToken
+  if (!refreshToken || !isCurrentSession(session)) return false
+
+  const currentAccessToken = readSession().accessToken
+  if (currentAccessToken && currentAccessToken !== session.accessToken) return true
+  if (pendingRefresh?.token === refreshToken) return pendingRefresh.result
+
+  const result = (async () => {
+    try {
+      const response = await send<{ access_token: string }>({
+        method: 'POST', url: refreshPath, data: { refresh_token: refreshToken },
+      })
+      checkAccountStatus(response, session)
+      const accessToken = response.data?.data?.access_token
+      return response.status < 400 && response.data?.code === ERROR_CODES.OK && !!accessToken &&
+        updateAccessToken(session, accessToken)
+    } catch (error) {
+      if (error instanceof AccountDisabledError) throw error
+      return false
+    }
+  })()
+  pendingRefresh = { token: refreshToken, result }
+
+  try {
+    return await result
+  } finally {
+    if (pendingRefresh?.result === result) pendingRefresh = undefined
   }
+}
 
-  let resp = await doRequest()
+export async function request<T>(config: RequestConfig): Promise<T> {
+  if (import.meta.env.VITE_API_MODE === 'mock') return mockRequest<T>(config)
 
-  // 如果返回 401 或 40100（token 过期/无效），尝试刷新 token 后重试
-  if (resp.data.code === 401 || resp.data.code === 40100) {
-    const refreshed = await tryRefreshToken()
-    if (refreshed) {
-      resp = await doRequest()
-    } else {
-      clearAuth()
+  const session = readSession()
+  const doRequest = (accessToken: string | null) => send<T>({
+    ...config,
+    headers: { ...(accessToken ? { Authorization: 'Bearer ' + accessToken } : {}), ...config.headers },
+  })
+
+  let response = await doRequest(session.accessToken)
+  checkAccountStatus(response, session)
+
+  if (isUnauthorized(response)) {
+    if (config.url !== refreshPath && await tryRefreshToken(session) && isCurrentSession(session)) {
+      response = await doRequest(readSession().accessToken)
+      checkAccountStatus(response, session)
+    }
+
+    if (isUnauthorized(response)) {
+      clearSession(session)
       throw new Error('登录已过期，请重新登录')
     }
   }
 
-  if (resp.data.code !== 0) throw new Error(resp.data.message)
-  return resp.data.data
+  if (response.status >= 400 || response.data?.code !== ERROR_CODES.OK) {
+    throw new Error(response.data?.message || '请求失败，请重试')
+  }
+  return response.data.data
 }
